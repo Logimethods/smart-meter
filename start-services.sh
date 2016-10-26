@@ -40,7 +40,8 @@ docker service create \
 	-e NATS_URI=nats://nats:4222 \
 	--network smart-meter-net \
 	--replicas=1 \
-	logimethods/smart-meter:monitor
+	logimethods/smart-meter:monitor \
+		"OUTPUT"
 
 docker pull logimethods/smart-meter:inject
 docker service create \
