@@ -32,7 +32,7 @@ docker service create \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:app-streaming \
-		"INPUT OUTPUT"
+		"INPUT" "OUTPUT"
 
 docker pull logimethods/smart-meter:monitor
 docker service create \
