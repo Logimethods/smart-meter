@@ -6,21 +6,22 @@ import sbt.Keys.{artifactPath, libraryDependencies, mainClass, managedClasspath,
 
 logLevel := Level.Debug
 
-val rootName = "nats-connector-spark"
-name := "docker-" + rootName + "-main-app"
+val rootName = "smart-meter"
+name := "docker-" + rootName + "-streaming-app"
 organization := "logimethods"
 val tag = "app"
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"
 
-version := "0.3.0-SNAPSHOT"
-scalaVersion := "2.10.6"
+version := "0.1.0-SNAPSHOT"
+scalaVersion := "2.11.8"
 val sparkVersion = "2.0.1"
+val natsConnectorSparkVersion = "0.3.0-SNAPSHOT"
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
-libraryDependencies += "com.logimethods"  %% "nats-connector-spark-scala" % version.value changing()
+libraryDependencies += "com.logimethods"  %% "nats-connector-spark-scala" % natsConnectorSparkVersion changing()
 
 // @see http://stackoverflow.com/questions/30446984/spark-sbt-assembly-deduplicate-different-file-contents-found-in-the-followi
 assemblyMergeStrategy in assembly := {
