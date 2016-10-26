@@ -45,6 +45,7 @@ docker service create \
 docker pull logimethods/smart-meter:inject
 docker service create \
 	--name inject \
+	-e GATLING_TO_NATS_SUBJECT=INPUT \
 	-e NATS_URI=nats://nats:4222 \
 	--network smart-meter-net \
 	--replicas=1 \
