@@ -129,3 +129,4 @@ dockerFileTask := {
 }
 
 dockerFileTask <<= dockerFileTask.dependsOn(compile in Compile, dockerfile in docker)
+
