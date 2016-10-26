@@ -16,7 +16,7 @@ resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/
 
 version := "0.3.0-SNAPSHOT"
 scalaVersion := "2.10.6"
-val sparkVersion = "1.6.2"
+val sparkVersion = "2.0.1"
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
