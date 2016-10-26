@@ -1,0 +1,57 @@
+box: hseeberger/scala-sbt
+build:
+  steps:
+    - install-packages:
+        name: install git
+        packages: git vim
+    - add-to-known_hosts:
+        name: add-to-known_hosts
+        hostname: github.com
+        fingerprint: 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48
+        type: rsa
+    - add-ssh-key:
+        name: add-ssh-key
+        keyname: GITHUB_SSH_KEY
+    - script:
+        name: git setup
+        code: |
+          git config --global user.email "info@logimethods.com"
+          git config --global user.name "Logimethods Wercker"
+          git fetch origin
+          git merge origin/master_docker
+    - script:
+        name: build APP STREAMING dockerfile
+        code: |
+          pushd dockerfile-app-streaming
+          sbt clean assembly dockerFileTask
+          rm -R ./docker
+          mv target/docker .
+          popd
+    - script:
+        name: build INJECT dockerfile
+        code: |
+          pushd dockerfile-inject
+          sbt clean assembly dockerFileTask
+          rm -R ./docker
+          mv target/docker .
+          popd
+    - script:
+        name: build MONITOR dockerfile
+        code: |
+          pushd dockerfile-monitor
+          sbt clean assembly dockerFileTask
+          rm -R ./docker
+          mv target/docker .
+          popd
+    - script:
+        name: git push
+        code: |
+          git status
+          echo "GIT ADD"
+          git add --all .
+          echo "GIT COMMIT"
+          git commit -a -m "${WERCKER_GIT_COMMIT} at ${WERCKER_MAIN_PIPELINE_STARTED} by WERCKER"
+          echo "GIT STATUS"
+          git status
+          echo "GIT PUSH"
+          git push origin HEAD:master_docker
