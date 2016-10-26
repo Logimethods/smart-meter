@@ -24,7 +24,7 @@ build:
         code: |
           pushd dockerfile-app-streaming
           sbt clean assembly dockerFileTask
-          -rm -R ./docker
+          rm -Rf ./docker
           mv target/docker .
           popd
     - script:
@@ -32,7 +32,7 @@ build:
         code: |
           pushd dockerfile-inject
           sbt clean assembly dockerFileTask
-          -rm -R ./docker
+          rm -Rf ./docker
           mv target/docker .
           popd
     - script:
@@ -40,7 +40,7 @@ build:
         code: |
           pushd dockerfile-monitor
           sbt clean assembly dockerFileTask
-          -rm -R ./docker
+          rm -Rf ./docker
           mv target/docker .
           popd
     - script:
