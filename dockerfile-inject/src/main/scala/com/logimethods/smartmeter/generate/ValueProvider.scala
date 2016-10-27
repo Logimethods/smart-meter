@@ -8,7 +8,7 @@
 
 package com.logimethods.smartmeter.generate
 
-class IncrementalValueProvider {
+class LoopingValueProvider {
   
   val incr = 10
   val basedValue = 100 -incr
