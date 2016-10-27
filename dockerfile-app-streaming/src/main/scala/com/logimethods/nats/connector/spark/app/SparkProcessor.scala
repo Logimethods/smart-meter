@@ -70,8 +70,8 @@ object SparkProcessor extends App {
     }
   val messages = ssc.receiverStream(stream);
   
-  val integers = messages.map({ str => Integer.parseInt(str) })
-  val max = integers.reduce({ (int1, int2) => Math.max(int1, int2) })
+  val floats = messages.map({ str => str.toFloat })
+  val max = floats.reduce({ (int1, int2) => Math.max(int1, int2) })
 
   if (logLevel.equals("DEBUG")) { 
     max.print()
