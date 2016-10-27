@@ -21,10 +21,9 @@ class LoopingValueProvider {
   }
 }
 
-class ConsumerValueProvider {
+class ConsumerInterpolatedVoltageProvider {
   import java.time._
   
-  val profile = ConsumerInterpolatedVoltageProfile
   val usagePointPK = 1
   val rndValue = 0
   
@@ -33,6 +32,6 @@ class ConsumerValueProvider {
   
   override def toString(): String = {
     date = date.plusMinutes(incr)
-    return ConsumerInterpolatedDemandProfile.valueAtDayAndHour(usagePointPK, date.getDayOfWeek().ordinal(), date.getHour(), rndValue).toString()
+    return ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(usagePointPK, date.getDayOfWeek().ordinal(), date.getHour(), rndValue).toString()
   }
 }

@@ -34,7 +34,7 @@ class NatsInjection extends Simulation {
     println("Will emit messages to " + subject)
     val natsProtocol = NatsProtocol(properties, subject)
     
-    val natsScn = scenario("NATS call").exec(NatsBuilder(new ConsumerValueProvider()))
+    val natsScn = scenario("NATS call").exec(NatsBuilder(new ConsumerInterpolatedVoltageProvider()))
    
     setUp(
       natsScn.inject(constantUsersPerSec(15) during (1 minute))
