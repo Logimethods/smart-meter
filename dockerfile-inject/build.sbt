@@ -11,7 +11,7 @@ name := "docker-" + rootName + "-inject"
 organization := "logimethods"
 val tag = "inject"
 
-version := "0.3.0-SNAPSHOT"
+version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.11.8"
 val gatlingVersion = "2.2.2"
 val natsConnectorGatlingVersion = "0.3.0-SNAPSHOT"
