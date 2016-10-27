@@ -51,4 +51,4 @@ docker service create \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:inject \
-		--no-reports -s com.logimethods.nats.demo.NatsInjection
+		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection

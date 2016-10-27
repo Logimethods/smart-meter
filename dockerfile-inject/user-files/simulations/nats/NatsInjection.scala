@@ -6,7 +6,7 @@
  * http://opensource.org/licenses/MIT
  *******************************************************************************/
 
-package com.logimethods.nats.demo
+package com.logimethods.smartmeter.inject
 
 import akka.actor.{ActorRef, Props}
 import io.gatling.core.Predef._
