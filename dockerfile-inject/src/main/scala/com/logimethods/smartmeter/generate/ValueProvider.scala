@@ -8,6 +8,8 @@
 
 package com.logimethods.smartmeter.generate
 
+import com.logimethods.connector.gatling.to_nats.NatsMessage
+
 class LoopingValueProvider {
   
   val incr = 10
@@ -21,8 +23,9 @@ class LoopingValueProvider {
   }
 }
 
-class ConsumerInterpolatedVoltageProvider {
+class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   import java.time._
+  import scala.math._
   
   val usagePointPK = 1
   val rndValue = 0
@@ -30,8 +33,13 @@ class ConsumerInterpolatedVoltageProvider {
   val incr = 15
   var date = LocalDateTime.now()
   
-  override def toString(): String = {
+  def getSubject(): String = {
+    return "." + usagePointPK.toString()
+  }
+  
+  def getPayload(): Array[Byte] = {
     date = date.plusMinutes(incr)
-    return ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(usagePointPK, date.getDayOfWeek().ordinal(), date.getHour(), rndValue).toString()
+    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(usagePointPK, date.getDayOfWeek().ordinal(), date.getHour(), rndValue)
+    return value.toString().getBytes()
   }
 }

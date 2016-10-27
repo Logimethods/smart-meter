@@ -32,7 +32,7 @@ docker service create \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:app-streaming \
-		"INPUT" "OUTPUT"
+		"smartmeter.voltage.>" "smartmeter.max"
 
 docker pull logimethods/smart-meter:monitor
 docker service create \
@@ -41,12 +41,12 @@ docker service create \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:monitor \
-		"OUTPUT"
+		"smartmeter.max"
 
 docker pull logimethods/smart-meter:inject
 docker service create \
 	--name inject \
-	-e GATLING_TO_NATS_SUBJECT=INPUT \
+	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage \
 	-e NATS_URI=nats://nats:4222 \
 	--network smart-meter-net \
 	--replicas=1 \

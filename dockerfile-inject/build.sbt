@@ -16,7 +16,7 @@ scalaVersion := "2.11.8"
 val gatlingVersion = "2.2.2"
 val natsConnectorGatlingVersion = "0.3.0-SNAPSHOT"
 
-libraryDependencies ++= Seq("com.logimethods" %% "nats-connector-gatling" % natsConnectorGatlingVersion)
+libraryDependencies += "com.logimethods" %% "nats-connector-gatling" % natsConnectorGatlingVersion changing()
 // https://mvnrepository.com/artifact/org.scalanlp/breeze_2.11
 libraryDependencies += "org.scalanlp" % "breeze_2.11" % "0.12"
 libraryDependencies += "io.gatling" % "gatling-core" % gatlingVersion
