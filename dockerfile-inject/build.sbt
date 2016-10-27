@@ -31,13 +31,17 @@ imageNames in docker := Seq(
 
 // Define a Dockerfile
 dockerfile in docker := {
+  val jarFile: File = sbt.Keys.`package`.in(Compile, packageBin).value
   val classpath = (managedClasspath in Compile).value
+  val jarTarget = s"./lib/${jarFile.getName}"
 
   new Dockerfile {
     // Use a base image that contain Gatling
 	from("denvazh/gatling:" + gatlingVersion)
     // Add all files on the classpath
     add(classpath.files, "./lib/")
+    // Add the JAR file
+    copy(jarFile, jarTarget)
     // Add Gatling User Files
     add(baseDirectory.value / "user-files", "./user-files")
     
@@ -55,13 +59,17 @@ dockerFileTask := {
   val artifact: File = assembly.value
   val artifactTargetPath = s"/app/${artifact.name}"
 
+  val jarFile: File = sbt.Keys.`package`.in(Compile, packageBin).value
   val classpath = (managedClasspath in Compile).value
+  val jarTarget = s"./lib/${jarFile.getName}"
 
   val dockerFile = new Dockerfile {
     // Use a base image that contain Gatling
 	from("denvazh/gatling:" + gatlingVersion)
     // Add all files on the classpath
     add(classpath.files, "./lib/")
+    // Add the JAR file
+    copy(jarFile, jarTarget)
     // Add Gatling User Files
     add(baseDirectory.value / "user-files", "./user-files")
 
