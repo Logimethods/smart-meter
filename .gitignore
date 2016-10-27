@@ -16,6 +16,11 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
+# Wercker
+_builds/
+_projects/
+_steps/
+
 # Eclipse
 .cache-main
 .classpath
