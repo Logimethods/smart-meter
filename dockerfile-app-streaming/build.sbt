@@ -9,7 +9,7 @@ logLevel := Level.Debug
 val rootName = "smart-meter"
 name := "docker-" + rootName + "-streaming-app"
 organization := "logimethods"
-val tag = "app"
+val tag = "streaming-app"
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"

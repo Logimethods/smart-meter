@@ -6,9 +6,10 @@
  * http://opensource.org/licenses/MIT
  *******************************************************************************/
 
-package com.logimethods.nats.demo
+package com.logimethods.smartmeter.generate
 
-class ValueProvider {
+class IncrementalValueProvider {
+  
   val incr = 10
   val basedValue = 100 -incr
   val maxIncr = 50
@@ -17,5 +18,21 @@ class ValueProvider {
   override def toString(): String = {
     actualIncr = (actualIncr % (maxIncr + incr)) + incr
     (basedValue + actualIncr).toString()
+  }
+}
+
+class ConsumerValueProvider {
+  import java.time._
+  
+  val profile = ConsumerInterpolatedVoltageProfile
+  val usagePointPK = 1
+  val rndValue = 0
+  
+  val incr = 15
+  var date = LocalDateTime.now()
+  
+  override def toString(): String = {
+    date = date.plusMinutes(incr)
+    return ConsumerInterpolatedDemandProfile.valueAtDayAndHour(usagePointPK, date.getDayOfWeek().ordinal(), date.getHour(), rndValue).toString()
   }
 }

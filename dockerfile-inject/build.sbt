@@ -6,7 +6,8 @@ import sbt.Keys.{artifactPath, libraryDependencies, mainClass, managedClasspath,
 
 logLevel := Level.Debug
 
-name := "nats-connector-spark"
+val rootName = "smart-meter"
+name := "docker-" + rootName + "-inject"
 organization := "logimethods"
 val tag = "inject"
 
@@ -16,6 +17,8 @@ val gatlingVersion = "2.2.2"
 val natsConnectorGatlingVersion = "0.3.0-SNAPSHOT"
 
 libraryDependencies ++= Seq("com.logimethods" %% "nats-connector-gatling" % natsConnectorGatlingVersion)
+// https://mvnrepository.com/artifact/org.scalanlp/breeze_2.11
+libraryDependencies += "org.scalanlp" % "breeze_2.11" % "0.12"
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"
@@ -23,7 +26,7 @@ resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/
 enablePlugins(DockerPlugin)
 
 imageNames in docker := Seq(
-  ImageName(s"${organization.value}/${name.value}:${tag}")
+  ImageName(s"${organization.value}/${rootName}:${tag}")
 )
 
 // Define a Dockerfile

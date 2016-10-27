@@ -18,6 +18,8 @@ import scala.concurrent.duration._
 import java.util.Properties
 import io.nats.client.Constants.PROP_URL
 
+import com.logimethods.smartmeter.generate._
+
 class NatsInjection extends Simulation {
   
   val properties = new Properties()
@@ -32,7 +34,7 @@ class NatsInjection extends Simulation {
     println("Will emit messages to " + subject)
     val natsProtocol = NatsProtocol(properties, subject)
     
-    val natsScn = scenario("NATS call").exec(NatsBuilder(new ValueProvider()))
+    val natsScn = scenario("NATS call").exec(NatsBuilder(new ConsumerValueProvider()))
    
     setUp(
       natsScn.inject(constantUsersPerSec(15) during (1 minute))

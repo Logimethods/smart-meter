@@ -18,6 +18,8 @@ import scala.concurrent.duration._
 import java.util.Properties
 import io.nats.client.Constants.PROP_URL
 
+import com.logimethods.smartmeter.generate._
+
 class NatsStreamingInjection extends Simulation {
   
   val natsUrl = System.getenv("NATS_URI")
