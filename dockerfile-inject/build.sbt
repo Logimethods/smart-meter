@@ -19,6 +19,7 @@ val natsConnectorGatlingVersion = "0.3.0-SNAPSHOT"
 libraryDependencies ++= Seq("com.logimethods" %% "nats-connector-gatling" % natsConnectorGatlingVersion)
 // https://mvnrepository.com/artifact/org.scalanlp/breeze_2.11
 libraryDependencies += "org.scalanlp" % "breeze_2.11" % "0.12"
+libraryDependencies += "io.gatling" % "gatling-core" % gatlingVersion
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"
