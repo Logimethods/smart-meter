@@ -40,9 +40,9 @@ abstract class InterpolatedProfile {
   }
 
   def valueAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = dayInWeek match {
-    case 2 | 3 | 4 | 5 | 6 => 
+    case 1 | 2 | 3 | 4 | 5 => 
             math.abs((bias(usagePointPK, dayInWeek, hourInDay, rndValue, weekRange) + weekFunction(hourInDay)).toFloat)
-    case 7 | 1 => 
+    case 0 | 6 => 
             math.abs((bias(usagePointPK, dayInWeek, hourInDay, rndValue, weekendRange) + weekendFunction(hourInDay)).toFloat)
   }  
 }
