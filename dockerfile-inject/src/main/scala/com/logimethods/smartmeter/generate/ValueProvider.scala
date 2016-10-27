@@ -27,19 +27,23 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   import java.time._
   import scala.math._
   
-  val usagePointPK = 1
+  var usagePoint = 0
   val rndValue = 0
   
   val incr = 15
   var date = LocalDateTime.now()
   
   def getSubject(): String = {
-    return "." + usagePointPK.toString()
+    return "." + usagePoint.toString()
   }
   
   def getPayload(): Array[Byte] = {
-    date = date.plusMinutes(incr)
-    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(usagePointPK, date.getDayOfWeek().ordinal(), date.getHour(), rndValue)
+    usagePoint += 1
+    if (usagePoint > 3) {
+      usagePoint = 1
+      date = date.plusMinutes(incr)
+    }
+    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(usagePoint, date.getDayOfWeek().ordinal(), date.getHour(), rndValue)
     return value.toString().getBytes()
   }
 }
