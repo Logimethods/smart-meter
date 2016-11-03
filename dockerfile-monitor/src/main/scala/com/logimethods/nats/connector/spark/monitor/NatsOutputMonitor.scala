@@ -51,7 +51,7 @@ object NatsOutputMonitor extends App {
       })          
     } else { // REGULAR mode
       conn.subscribe(inputSubject, (msg: Msg) => {
-        println("Received message: " + msg.body)
+        println(s"Received message: (${msg.subject}, ${msg.body})")
       })    
     }
   }

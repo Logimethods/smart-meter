@@ -6,7 +6,7 @@ import sbt.Keys.{artifactPath, libraryDependencies, mainClass, managedClasspath,
 
 logLevel := Level.Debug
 
-val rootName = "nats-connector-spark"
+val rootName = "smart-meter"
 name := "docker-" + rootName + "-monitor"
 organization := "logimethods"
 val tag = "monitor"
