@@ -11,48 +11,48 @@ package com.logimethods.smartmeter.generate
 import math._
 
 trait Profile extends Serializable {
-  def demandAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float  
-  def voltageAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float
+  def demandAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float  
+  def voltageAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float
 }
 
 class DefaultProfile extends Profile {
-  def demandAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = {
-    math.abs(rndValue * (usagePointPK % 1000))
+  def demandAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = {
+    math.abs(rndValue * (usagePointPK.hashCode() % 1000))
   }
 
-  def voltageAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = {
+  def voltageAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = {
     ((rndValue * 2) + (hourInDay / 2.4) + 113).toFloat
   } 
 }
 
 class RandnProfile extends Profile {
-  def demandAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = {
+  def demandAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = {
     rndValue
   }
 
-  def voltageAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = {
+  def voltageAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = {
     rndValue
   } 
 }
 
 class ProfileByUsagePoint extends Profile {
   val caseNb = 10
-  val caseFn = (usagePointPK: Long) => usagePointPK % caseNb
+  val caseFn = (usagePointPK: String) => usagePointPK.hashCode() % caseNb
 
-  def demandAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
-    case 0 => math.abs(rndValue * (usagePointPK % 100))
-    case 1 => math.abs(rndValue * (usagePointPK % 150))
-    case 2 => math.abs(rndValue * (usagePointPK % 200))
-    case 3 => math.abs(rndValue * (usagePointPK % 250))
-    case 4 => math.abs(rndValue * (usagePointPK % 300))
-    case 5 => math.abs(rndValue * (usagePointPK % 800))
-    case 6 => math.abs(rndValue * (usagePointPK % 850))
-    case 7 => math.abs(rndValue * (usagePointPK % 900))
-    case 8 => math.abs(rndValue * (usagePointPK % 950))
-    case 9 => math.abs(rndValue * (usagePointPK % 1000))
+  def demandAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
+    case 0 => math.abs(rndValue * (usagePointPK.hashCode() % 100))
+    case 1 => math.abs(rndValue * (usagePointPK.hashCode() % 150))
+    case 2 => math.abs(rndValue * (usagePointPK.hashCode() % 200))
+    case 3 => math.abs(rndValue * (usagePointPK.hashCode() % 250))
+    case 4 => math.abs(rndValue * (usagePointPK.hashCode() % 300))
+    case 5 => math.abs(rndValue * (usagePointPK.hashCode() % 800))
+    case 6 => math.abs(rndValue * (usagePointPK.hashCode() % 850))
+    case 7 => math.abs(rndValue * (usagePointPK.hashCode() % 900))
+    case 8 => math.abs(rndValue * (usagePointPK.hashCode() % 950))
+    case 9 => math.abs(rndValue * (usagePointPK.hashCode() % 1000))
   }
 
-  def voltageAtDayAndHour(usagePointPK: Long, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
+  def voltageAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
     case 0 => ((rndValue * 2) + (hourInDay / 2.4) + 100).toFloat
     case 1 => ((rndValue * 2) + (hourInDay / 2.4) + 101).toFloat
     case 2 => ((rndValue * 2) + (hourInDay / 2.4) + 102).toFloat

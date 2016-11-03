@@ -35,7 +35,7 @@ class NatsStreamingInjection extends Simulation {
     val natsScn = scenario("NATS call").exec(NatsStreamingBuilder(new ConsumerInterpolatedVoltageProvider()))
    
     setUp(
-      natsScn.inject(constantUsersPerSec(15) during (1 minute))
+      natsScn.inject(constantUsersPerSec(27) during (1 minute))
     ).protocols(natsProtocol)
   }
 }

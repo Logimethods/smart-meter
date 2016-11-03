@@ -26,24 +26,40 @@ class LoopingValueProvider {
 class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   import java.time._
   import scala.math._
-  
-  var usagePoint = 0
+
   val rndValue = 0
+
+  var line = 1
+  var transformer = 1
+  var usagePoint = 1
+  var point = line + "." + usagePoint + "." + usagePoint
   
   val incr = 15
   var date = LocalDateTime.now()
   
   def getSubject(): String = {
-    return "." + usagePoint.toString()
+    return "." + point
   }
   
   def getPayload(): Array[Byte] = {
-    usagePoint += 1
     if (usagePoint > 3) {
       usagePoint = 1
+      transformer += 1
+    }
+    if (transformer > 3) {
+      transformer = 1
+      line += 1
+    }
+    if (line > 3) {
+      line = 1
       date = date.plusMinutes(incr)
     }
-    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(usagePoint, date.getDayOfWeek().ordinal(), date.getHour(), rndValue)
+    
+    point = line + "." + usagePoint + "." + usagePoint
+    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point, date.getDayOfWeek().ordinal(), date.getHour(), rndValue)
+    
+    usagePoint += 1
+
     return value.toString().getBytes()
   }
 }
