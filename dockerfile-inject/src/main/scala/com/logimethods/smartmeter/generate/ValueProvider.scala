@@ -32,13 +32,12 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   var line = 1
   var transformer = 1
   var usagePoint = 1
-  var point = line + "." + usagePoint + "." + usagePoint
   
   val incr = 15
   var date = LocalDateTime.now()
   
   def getSubject(): String = {
-    return "." + point
+    return "." + point()
   }
   
   def getPayload(): Array[Byte] = {
@@ -55,11 +54,15 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
       date = date.plusMinutes(incr)
     }
     
-    point = line + "." + usagePoint + "." + usagePoint
-    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point, date.getDayOfWeek().ordinal(), date.getHour(), rndValue)
+    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), rndValue)
     
     usagePoint += 1
 
     return value.toString().getBytes()
+  }
+  
+  def point(): String = {
+    return (line + "." + transformer + "." + usagePoint + "." + date.getYear + "." + date.getMonth.ordinal + "." 
+           + date.getDayOfMonth + "." + date.getHour + "." + date.getMinute)
   }
 }

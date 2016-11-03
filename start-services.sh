@@ -1,3 +1,5 @@
+# ./start-services.sh "-local"
+
 #docker network create --driver overlay smart-meter-net
 #docker service rm $(docker service ls -q)
 
@@ -32,7 +34,7 @@ docker service create \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:app-streaming$1 \
-		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.max."
+		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
 
 #docker pull logimethods/smart-meter:monitor
 docker service create \
@@ -41,7 +43,7 @@ docker service create \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:monitor$1 \
-		"smartmeter.voltage.>"
+		"smartmeter.voltage.extract.>"
 
 #docker pull logimethods/smart-meter:inject
 docker service create \
