@@ -74,6 +74,9 @@ object SparkProcessor extends App {
     }
   
   val floats = messages.mapValues(_.toFloat)
+  
+  // MAXIMUM values
+  
   val max = floats.reduceByKey(Math.max(_,_))
 
   if (logLevel.equals("DEBUG")) { 
@@ -94,6 +97,35 @@ object SparkProcessor extends App {
                             .publishToNats(max)
   }
   
+  // ALERTS
+  
+  val OFF_LIMIT_VOLTAGE_COUNT = 3;
+	val OFF_LIMIT_VOLTAGE = 113.5;
+	
+  val offLimits = floats.filter( _._2 >= OFF_LIMIT_VOLTAGE )
+  val offLimitsCount = offLimits.mapValues(_ => 1).reduceByKey(_+_)
+  val alerts = offLimitsCount.filter(_._2 >= OFF_LIMIT_VOLTAGE_COUNT)
+ 
+  if (logLevel.equals("DEBUG")) { 
+    alerts.print()
+  }
+  
+  val outputAlertSubject = outputSubject.replace("max", "alert")
+  if (outputStreaming) {
+    SparkToNatsConnectorPool.newStreamingPool(clusterId)
+                            .withNatsURL(natsUrl)
+                            .withSubjects(outputAlertSubject)
+                            .storedAsKeyValue()
+                            .publishToNats(alerts)
+  } else {
+    SparkToNatsConnectorPool.newPool()
+                            .withProperties(properties)
+                            .withSubjects(outputAlertSubject)
+                            .storedAsKeyValue()
+                            .publishToNats(alerts)
+  }  
+
+  // Start
   ssc.start();		
   
   ssc.awaitTermination()
