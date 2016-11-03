@@ -7,9 +7,9 @@ import sbt.Keys.{artifactPath, libraryDependencies, mainClass, managedClasspath,
 logLevel := Level.Debug
 
 val rootName = "smart-meter"
-name := "docker-" + rootName + "-streaming-app"
+name := "docker-" + rootName + "-app-streaming"
 organization := "logimethods"
-val tag = "streaming-app"
+val tag = "app-streaming-local"
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"

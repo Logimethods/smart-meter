@@ -9,7 +9,7 @@ logLevel := Level.Debug
 val rootName = "smart-meter"
 name := "docker-" + rootName + "-monitor"
 organization := "logimethods"
-val tag = "monitor"
+val tag = "monitor-local"
 
 version := "0.3.0-SNAPSHOT"
 scalaVersion := "2.10.6"

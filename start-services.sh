@@ -31,8 +31,8 @@ docker service create \
 	-e LOG_LEVEL=DEBUG \
 	--network smart-meter-net \
 	--replicas=1 \
-	logimethods/smart-meter:app-streaming \
-		"smartmeter.voltage.>" "smartmeter.max."
+	logimethods/smart-meter:app-streaming$1 \
+		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.max."
 
 #docker pull logimethods/smart-meter:monitor
 docker service create \
@@ -40,15 +40,15 @@ docker service create \
 	-e NATS_URI=nats://nats:4222 \
 	--network smart-meter-net \
 	--replicas=1 \
-	logimethods/smart-meter:monitor \
-		"smartmeter.max.>"
+	logimethods/smart-meter:monitor$1 \
+		"smartmeter.voltage.>"
 
 #docker pull logimethods/smart-meter:inject
 docker service create \
 	--name inject \
-	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage \
+	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
 	-e NATS_URI=nats://nats:4222 \
 	--network smart-meter-net \
 	--replicas=1 \
-	logimethods/smart-meter:inject \
+	logimethods/smart-meter:inject$1 \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection
