@@ -56,24 +56,22 @@ object SparkProcessor extends App {
   
   val clusterId = System.getenv("NATS_CLUSTER_ID")
   
-  val messages =
+  val floats =
     if (inputStreaming) {
       NatsToSparkConnector
-        .receiveFromNatsStreaming(StorageLevel.MEMORY_ONLY, clusterId)
+        .receiveFromNatsStreaming(classOf[Float], StorageLevel.MEMORY_ONLY, clusterId)
         .withNatsURL(natsUrl)
         .withSubjects(inputSubject)
         .storedAsKeyValue()
         .asStreamOf(ssc)
     } else {
       NatsToSparkConnector
-        .receiveFromNats(StorageLevel.MEMORY_ONLY)
+        .receiveFromNats(classOf[Float], StorageLevel.MEMORY_ONLY)
         .withProperties(properties)
         .withSubjects(inputSubject)
         .storedAsKeyValue()
         .asStreamOf(ssc)
     }
-  
-  val floats = messages.mapValues(_.toFloat)
   
   // MAXIMUM values
   

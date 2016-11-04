@@ -9,6 +9,7 @@
 package com.logimethods.smartmeter.generate
 
 import com.logimethods.connector.gatling.to_nats.NatsMessage
+import java.nio.ByteBuffer
 
 class LoopingValueProvider {
   
@@ -58,11 +59,14 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
     
     usagePoint += 1
 
-    return value.toString().getBytes()
+    // https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html
+    val buffer = ByteBuffer.allocate(4);
+    buffer.putFloat(value)
+    
+    return buffer.array()
   }
   
   def point(): String = {
-    return (line + "." + transformer + "." + usagePoint + "." + date.getYear + "." + date.getMonth.ordinal + "." 
-           + date.getDayOfMonth + "." + date.getHour + "." + date.getMinute)
+    return (line + "." + transformer + "." + usagePoint)
   }
 }
