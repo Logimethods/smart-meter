@@ -1,6 +1,7 @@
 package com.logimethods.nats.connector.spark.monitor;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.TimeoutException;
 
 import io.nats.stan.*;
@@ -13,10 +14,11 @@ public class NatsStreamingOutputMonitor {
 		connectionFactory.setNatsUrl(natsUrl);
 		final Connection connection = connectionFactory.createConnection();
 		connection.subscribe(inputSubject, "NatsStreamingOutputMonitor_QUEUE", new MessageHandler() {
-//			@Override
+			@Override
 			public void onMessage(Message m) {
-				String s = new String(m.getData());
-				System.out.println("Received message: " + s);
+				// TODO Consider Integers
+				final Float f = ByteBuffer.wrap(m.getData()).getFloat();
+				System.out.println("Received message: (" + m.getSubject() + ", " + f + ')');
 			}
 		}, null);
 	}

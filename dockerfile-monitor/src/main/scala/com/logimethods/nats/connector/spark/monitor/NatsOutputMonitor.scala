@@ -10,6 +10,7 @@ package com.logimethods.nats.connector.spark.monitor
 
 import java.util.Properties
 import org.nats._
+import java.nio.ByteBuffer;
 
 // @see https://github.com/tyagihas/scala_nats
 object NatsOutputMonitor extends App {
@@ -33,6 +34,7 @@ object NatsOutputMonitor extends App {
     val conn = Conn.connect(properties)
   
     if (args.length > 1) {// TEST mode
+			// TODO Consider Integers & Floats
       val espectedValue = args(1).toInt
       println("Is especting a value equals to " + espectedValue)
       
@@ -50,8 +52,13 @@ object NatsOutputMonitor extends App {
         }
       })          
     } else { // REGULAR mode
-      conn.subscribe(inputSubject, (msg: Msg) => {
-        println(s"Received message: (${msg.subject}, ${msg.body})")
+      conn.subscribe(inputSubject, (msg: MsgB) => {
+        val f = ByteBuffer.wrap(msg.body)
+        if (msg.subject.contains("max")) {         
+          println(s"Received message: (${msg.subject}, ${f.getFloat()})")
+        } else {
+           println(s"Received message: (${msg.subject}, ${f.getInt()})")
+        }        
       })    
     }
   }
