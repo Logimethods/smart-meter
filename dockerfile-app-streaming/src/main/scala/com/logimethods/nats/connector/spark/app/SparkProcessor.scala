@@ -62,15 +62,13 @@ object SparkProcessor extends App {
         .receiveFromNatsStreaming(classOf[Float], StorageLevel.MEMORY_ONLY, clusterId)
         .withNatsURL(natsUrl)
         .withSubjects(inputSubject)
-        .storedAsKeyValue()
-        .asStreamOf(ssc)
+        .asStreamOfKeyValue(ssc)
     } else {
       NatsToSparkConnector
         .receiveFromNats(classOf[Float], StorageLevel.MEMORY_ONLY)
         .withProperties(properties)
         .withSubjects(inputSubject)
-        .storedAsKeyValue()
-        .asStreamOf(ssc)
+        .asStreamOfKeyValue(ssc)
     }
   
   // MAXIMUM values
@@ -85,14 +83,12 @@ object SparkProcessor extends App {
     SparkToNatsConnectorPool.newStreamingPool(clusterId)
                             .withNatsURL(natsUrl)
                             .withSubjects(outputSubject)
-                            .storedAsKeyValue()
-                            .publishToNats(max)
+                            .publishToNatsAsKeyValue(max)
   } else {
     SparkToNatsConnectorPool.newPool()
                             .withProperties(properties)
                             .withSubjects(outputSubject)
-                            .storedAsKeyValue()
-                            .publishToNats(max)
+                            .publishToNatsAsKeyValue(max)
   }
   
   // ALERTS
@@ -113,14 +109,12 @@ object SparkProcessor extends App {
     SparkToNatsConnectorPool.newStreamingPool(clusterId)
                             .withNatsURL(natsUrl)
                             .withSubjects(outputAlertSubject)
-                            .storedAsKeyValue()
-                            .publishToNats(alerts)
+                            .publishToNatsAsKeyValue(alerts)
   } else {
     SparkToNatsConnectorPool.newPool()
                             .withProperties(properties)
                             .withSubjects(outputAlertSubject)
-                            .storedAsKeyValue()
-                            .publishToNats(alerts)
+                            .publishToNatsAsKeyValue(alerts)
   }  
 
   // Start
