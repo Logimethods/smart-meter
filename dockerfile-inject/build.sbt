@@ -21,6 +21,10 @@ libraryDependencies += "com.logimethods" %% "nats-connector-gatling" % natsConne
 libraryDependencies += "org.scalanlp" % "breeze_2.11" % "0.12"
 libraryDependencies += "io.gatling" % "gatling-core" % gatlingVersion
 
+// http://www.scalatest.org/install
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"
 

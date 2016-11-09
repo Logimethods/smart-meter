@@ -10,6 +10,7 @@ package com.logimethods.nats.connector.spark.app
 
 import java.util.Properties;
 import java.io.File
+import java.io.Serializable
 
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
@@ -22,6 +23,8 @@ import org.apache.log4j.{Level, LogManager, PropertyConfigurator}
 
 import com.logimethods.connector.nats.to_spark._
 import com.logimethods.scala.connector.spark.to_nats._
+
+import java.util.function._
 
 object SparkProcessor extends App {
   val log = LogManager.getRootLogger
@@ -55,27 +58,46 @@ object SparkProcessor extends App {
   properties.put(PROP_URL, natsUrl)
   
   val clusterId = System.getenv("NATS_CLUSTER_ID")
+
+  object dataDecoder extends Serializable {    
+    final val decoder = new java.util.function.Function[Array[Byte],Tuple2[Long,Float]] {
+      override def apply(bytes: Array[Byte]):Tuple2[Long,Float] = {
+        import java.nio.ByteBuffer
+        val buffer = ByteBuffer.wrap(bytes);
+        val epoch = buffer.getLong()
+        val voltage = buffer.getFloat()
+        (epoch, voltage)  
+      }
+    }
+  }  
   
-  val floats =
+  val messages =
     if (inputStreaming) {
       NatsToSparkConnector
-        .receiveFromNatsStreaming(classOf[Float], StorageLevel.MEMORY_ONLY, clusterId)
+        .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
         .withNatsURL(natsUrl)
         .withSubjects(inputSubject)
+        .withDataDecoder(dataDecoder.decoder)
         .asStreamOfKeyValue(ssc)
     } else {
       NatsToSparkConnector
-        .receiveFromNats(classOf[Float], StorageLevel.MEMORY_ONLY)
+        .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
         .withProperties(properties)
         .withSubjects(inputSubject)
+        .withDataDecoder(dataDecoder.decoder)
         .asStreamOfKeyValue(ssc)
     }
+
+  if (logLevel.equals("MESSAGES")) {
+    messages.print()
+  }
   
   // MAXIMUM values
   
+  val floats = messages.map(t => (t._1, t._2._2))
   val max = floats.reduceByKey(Math.max(_,_))
 
-  if (logLevel.equals("DEBUG")) {
+  if (logLevel.equals("MAX")) {
     max.print()
   }
 

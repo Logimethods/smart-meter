@@ -37,6 +37,7 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   
   val incr = 15
   var date = LocalDateTime.now()
+  val zoneId = ZoneId.systemDefault(); 
   
   def getSubject(): String = {
     return "." + point()
@@ -60,11 +61,16 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
     
     usagePoint += 1
 
+    return encodePayload(date, value)
+  }
+  
+  def encodePayload(date: LocalDateTime, value: Float): Array[Byte] = {
     // https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html
-    val buffer = ByteBuffer.allocate(4);
+    val buffer = ByteBuffer.allocate(4+8);
+    buffer.putLong(date.atZone(zoneId).toEpochSecond())
     buffer.putFloat(value)
     
-    return buffer.array()
+    return buffer.array()    
   }
   
   def point(): String = {
