@@ -25,6 +25,8 @@ import com.logimethods.connector.nats.to_spark._
 import com.logimethods.scala.connector.spark.to_nats._
 
 import java.util.function._
+// https://github.com/scala/scala-java8-compat
+import scala.compat.java8.FunctionConverters._
 
 object SparkProcessor extends App {
   val log = LogManager.getRootLogger
@@ -59,7 +61,7 @@ object SparkProcessor extends App {
   
   val clusterId = System.getenv("NATS_CLUSTER_ID")
 
-  object dataDecoder extends Serializable {    
+  object dataDecoderX extends Serializable {    
     final val decoder = new java.util.function.Function[Array[Byte],Tuple2[Long,Float]] {
       override def apply(bytes: Array[Byte]):Tuple2[Long,Float] = {
         import java.nio.ByteBuffer
@@ -71,20 +73,28 @@ object SparkProcessor extends App {
     }
   }  
   
+  val dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
+        import java.nio.ByteBuffer
+        val buffer = ByteBuffer.wrap(bytes);
+        val epoch = buffer.getLong()
+        val voltage = buffer.getFloat()
+        (epoch, voltage)  
+      }
+  
   val messages =
     if (inputStreaming) {
       NatsToSparkConnector
         .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
         .withNatsURL(natsUrl)
         .withSubjects(inputSubject)
-        .withDataDecoder(dataDecoder.decoder)
+        .withDataDecoder(dataDecoder.asJava)
         .asStreamOfKeyValue(ssc)
     } else {
       NatsToSparkConnector
         .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
         .withProperties(properties)
         .withSubjects(inputSubject)
-        .withDataDecoder(dataDecoder.decoder)
+        .withDataDecoder(dataDecoder.asJava)
         .asStreamOfKeyValue(ssc)
     }
 
