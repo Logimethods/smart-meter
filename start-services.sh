@@ -30,7 +30,7 @@ docker service create \
 	--name app-streaming \
 	-e NATS_URI=nats://nats:4222 \
 	-e SPARK_MASTER_URL=spark://spark-master:7077 \
-	-e LOG_LEVEL=DEBUG \
+	-e LOG_LEVEL=INFO \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:app-streaming$1 \

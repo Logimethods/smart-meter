@@ -10,6 +10,7 @@ package com.logimethods.smartmeter.generate
 
 import com.logimethods.connector.gatling.to_nats.NatsMessage
 import java.nio.ByteBuffer
+import math._
 
 class LoopingValueProvider {
   
@@ -28,7 +29,7 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   import java.time._
   import scala.math._
 
-  val rndValue = 0
+  val random = scala.util.Random
 
   var line = 1
   var transformer = 1
@@ -55,7 +56,7 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
       date = date.plusMinutes(incr)
     }
     
-    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), rndValue)
+    val value = InterpolatedProfileByUsagePoint.voltageAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))
     
     usagePoint += 1
 

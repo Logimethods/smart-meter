@@ -75,7 +75,7 @@ object SparkProcessor extends App {
   
   val max = floats.reduceByKey(Math.max(_,_))
 
-  if (logLevel.equals("DEBUG")) { 
+  if (logLevel.equals("DEBUG")) {
     max.print()
   }
 
@@ -93,14 +93,21 @@ object SparkProcessor extends App {
   
   // ALERTS
   
-  val OFF_LIMIT_VOLTAGE_COUNT = 3;
-	val OFF_LIMIT_VOLTAGE = 113.5;
+  final val OFF_LIMIT_VOLTAGE_COUNT = 2
+	final val OFF_LIMIT_VOLTAGE = 120f
 	
-  val offLimits = floats.filter( _._2 >= OFF_LIMIT_VOLTAGE )
+  val offLimits = floats.filter( _._2 > OFF_LIMIT_VOLTAGE )
+  if (logLevel.equals("OFF_LIMIT")) { 
+    offLimits.print()
+  }
+
   val offLimitsCount = offLimits.mapValues(_ => 1).reduceByKey(_+_)
-  val alerts = offLimitsCount.filter(_._2 >= OFF_LIMIT_VOLTAGE_COUNT)
- 
-  if (logLevel.equals("DEBUG")) { 
+  if (logLevel.equals("OFF_LIMIT_COUNT")) { 
+    offLimitsCount.print()
+  }
+  
+  val alerts = offLimitsCount.filter( _._2 >= OFF_LIMIT_VOLTAGE_COUNT ) 
+  if (logLevel.equals("ALERTS")) { 
     alerts.print()
   }
   

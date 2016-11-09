@@ -110,7 +110,7 @@ object IndustryInterpolatedVoltageProfile extends InterpolatedProfile {
 /**
  * InterpolatedProfileByUsagePoint
  */
-class InterpolatedProfileByUsagePoint extends Profile {
+object InterpolatedProfileByUsagePoint extends Profile {
   val caseNb = 10
   val caseFn = (usagePointPK: String) => usagePointPK.hashCode() % caseNb
 
