@@ -23,9 +23,6 @@ libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "prov
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
 libraryDependencies += "com.logimethods"  %% "nats-connector-spark-scala" % natsConnectorSparkVersion changing()
 
-// https://mvnrepository.com/artifact/org.scala-lang.modules/scala-java8-compat_2.11
-libraryDependencies += "org.scala-lang.modules" % "scala-java8-compat_2.11" % "0.8.0"
-
 // @see http://stackoverflow.com/questions/30446984/spark-sbt-assembly-deduplicate-different-file-contents-found-in-the-followi
 assemblyMergeStrategy in assembly := {
     case PathList("com", "esotericsoftware", minlog @ _*) => MergeStrategy.last

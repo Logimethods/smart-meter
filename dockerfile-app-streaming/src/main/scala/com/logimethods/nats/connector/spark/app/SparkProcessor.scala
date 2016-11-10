@@ -60,31 +60,29 @@ object SparkProcessor extends App {
   properties.put(PROP_URL, natsUrl)
   
   val clusterId = System.getenv("NATS_CLUSTER_ID")
-
-  object decoder extends Serializable {    
-    final val dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
+  
+  def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         import java.nio.ByteBuffer
         val buffer = ByteBuffer.wrap(bytes);
         val epoch = buffer.getLong()
         val voltage = buffer.getFloat()
         (epoch, voltage)  
       }
-  }  
-    
+  
   val messages =
     if (inputStreaming) {
       NatsToSparkConnector
         .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
         .withNatsURL(natsUrl)
         .withSubjects(inputSubject)
-        .withDataDecoder(decoder.dataDecoder.asJava)
+        .withDataDecoder(dataDecoder)
         .asStreamOfKeyValue(ssc)
     } else {
       NatsToSparkConnector
         .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
         .withProperties(properties)
         .withSubjects(inputSubject)
-        .withDataDecoder(decoder.dataDecoder.asJava)
+        .withDataDecoder(dataDecoder)
         .asStreamOfKeyValue(ssc)
     }
 
