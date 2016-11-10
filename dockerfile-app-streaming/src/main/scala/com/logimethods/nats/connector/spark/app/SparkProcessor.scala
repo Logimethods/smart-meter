@@ -18,6 +18,7 @@ import org.apache.spark.streaming.Duration
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.storage.StorageLevel;
 import io.nats.client.Constants._
+import java.nio.ByteBuffer
 
 import org.apache.log4j.{Level, LogManager, PropertyConfigurator}
 
@@ -62,7 +63,6 @@ object SparkProcessor extends App {
   val clusterId = System.getenv("NATS_CLUSTER_ID")
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
-        import java.nio.ByteBuffer
         val buffer = ByteBuffer.wrap(bytes);
         val epoch = buffer.getLong()
         val voltage = buffer.getFloat()
@@ -92,23 +92,29 @@ object SparkProcessor extends App {
   
   // MAXIMUM values
   
-  val floats = messages.map(t => (t._1, t._2._2))
-  val max = floats.reduceByKey(Math.max(_,_))
+  val max = messages.reduceByKey((t1, t2) => (Math.max(t1._1,t2._1), Math.max(t1._2,t2._2)))
 
   if (logLevel.equals("MAX")) {
     max.print()
   }
+    
+  def longFloatTupleEncoder: Tuple2[Long,Float] => Array[Byte] = tuple => {        
+        val buffer = ByteBuffer.allocate(4+8);
+        buffer.putLong(tuple._1)
+        buffer.putFloat(tuple._2)        
+        buffer.array()    
+      }
 
   if (outputStreaming) {
     SparkToNatsConnectorPool.newStreamingPool(clusterId)
                             .withNatsURL(natsUrl)
                             .withSubjects(outputSubject)
-                            .publishToNatsAsKeyValue(max)
+                            .publishToNatsAsKeyValue(max, longFloatTupleEncoder)
   } else {
     SparkToNatsConnectorPool.newPool()
                             .withProperties(properties)
                             .withSubjects(outputSubject)
-                            .publishToNatsAsKeyValue(max)
+                            .publishToNatsAsKeyValue(max, longFloatTupleEncoder)
   }
   
   // ALERTS
@@ -116,32 +122,40 @@ object SparkProcessor extends App {
   final val OFF_LIMIT_VOLTAGE_COUNT = 2
 	final val OFF_LIMIT_VOLTAGE = 120f
 	
-  val offLimits = floats.filter( _._2 > OFF_LIMIT_VOLTAGE )
+  val offLimits = messages.filter( _._2._2 > OFF_LIMIT_VOLTAGE )
   if (logLevel.equals("OFF_LIMIT")) { 
     offLimits.print()
   }
 
-  val offLimitsCount = offLimits.mapValues(_ => 1).reduceByKey(_+_)
+  val offLimitsCount = offLimits.mapValues(t => (t._1, 1))
+                                .reduceByKey((t1, t2) => (Math.min(t1._1,t2._1), t1._2 + t2._2))
   if (logLevel.equals("OFF_LIMIT_COUNT")) { 
     offLimitsCount.print()
   }
   
-  val alerts = offLimitsCount.filter( _._2 >= OFF_LIMIT_VOLTAGE_COUNT ) 
+  val alerts = offLimitsCount.filter( _._2._2 >= OFF_LIMIT_VOLTAGE_COUNT ) 
   if (logLevel.equals("ALERTS")) { 
     alerts.print()
   }
+    
+  def longIntTupleEncoder: Tuple2[Long,Int] => Array[Byte] = tuple => {        
+        val buffer = ByteBuffer.allocate(4+8);
+        buffer.putLong(tuple._1)
+        buffer.putInt(tuple._2)        
+        buffer.array()    
+      }
   
   val outputAlertSubject = outputSubject.replace("max", "alert")
   if (outputStreaming) {
     SparkToNatsConnectorPool.newStreamingPool(clusterId)
                             .withNatsURL(natsUrl)
                             .withSubjects(outputAlertSubject)
-                            .publishToNatsAsKeyValue(alerts)
+                            .publishToNatsAsKeyValue(alerts, longIntTupleEncoder)
   } else {
     SparkToNatsConnectorPool.newPool()
                             .withProperties(properties)
                             .withSubjects(outputAlertSubject)
-                            .publishToNatsAsKeyValue(alerts)
+                            .publishToNatsAsKeyValue(alerts, longIntTupleEncoder)
   }  
 
   // Start

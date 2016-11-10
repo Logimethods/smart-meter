@@ -26,7 +26,8 @@ class ValueProviderTest extends FunSuite {
     val tuple = dataDecoder.apply(bytes)    
     // print(tuple)
     
-    assert(date.atZone(ZoneId.systemDefault()).toEpochSecond() == tuple._1)
+    assert(date.atOffset(ZoneOffset.MIN).toEpochSecond() == tuple._1)
+    assert(date.withNano(0) == LocalDateTime.ofEpochSecond(tuple._1, 0, ZoneOffset.MIN))
     assert(value == tuple._2)
   }
 }

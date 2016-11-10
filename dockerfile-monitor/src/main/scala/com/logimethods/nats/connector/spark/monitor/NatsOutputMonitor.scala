@@ -53,11 +53,13 @@ object NatsOutputMonitor extends App {
       })          
     } else { // REGULAR mode
       conn.subscribe(inputSubject, (msg: MsgB) => {
+        import java.time._
+
         val f = ByteBuffer.wrap(msg.body)
         if (msg.subject.contains("max")) {         
-          println(s"Received message: (${msg.subject}, ${f.getFloat()})")
+          println(s"Received message: (${msg.subject}, ${LocalDateTime.ofEpochSecond(f.getLong(), 0, ZoneOffset.MIN)}, ${f.getFloat()})")
         } else if (msg.subject.contains("alert")) {
-           println(s"Received message: (${msg.subject}, ${f.getInt()})")
+           println(s"Received message: (${msg.subject}, ${LocalDateTime.ofEpochSecond(f.getLong(), 0, ZoneOffset.MIN)}, ${f.getInt()})")
         } else {
            println(s"Received message: (${msg.subject}, ${f})")
         }      
