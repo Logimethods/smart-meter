@@ -56,9 +56,11 @@ object NatsOutputMonitor extends App {
         val f = ByteBuffer.wrap(msg.body)
         if (msg.subject.contains("max")) {         
           println(s"Received message: (${msg.subject}, ${f.getFloat()})")
-        } else {
+        } else if (msg.subject.contains("alert")) {
            println(s"Received message: (${msg.subject}, ${f.getInt()})")
-        }        
+        } else {
+           println(s"Received message: (${msg.subject}, ${f})")
+        }      
       })    
     }
   }
