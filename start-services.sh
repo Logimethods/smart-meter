@@ -45,6 +45,14 @@ docker service create \
 	logimethods/smart-meter:monitor$1 \
 		"smartmeter.voltage.extract.>"
 
+#docker pull logimethods/nats-reporter
+docker service create \
+	--name reporter \
+	--network smart-meter-net \
+	--replicas=1 \
+	-p 8888:8080 \
+	logimethods/nats-reporter
+
 #docker pull logimethods/smart-meter:inject
 docker service create \
 	--name inject \

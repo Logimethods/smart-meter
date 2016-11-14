@@ -26,8 +26,8 @@ import com.logimethods.connector.nats.to_spark._
 import com.logimethods.scala.connector.spark.to_nats._
 
 import java.util.function._
-// https://github.com/scala/scala-java8-compat
-import scala.compat.java8.FunctionConverters._
+
+import java.time._
 
 object SparkProcessor extends App {
   val log = LogManager.getRootLogger
@@ -117,6 +117,14 @@ object SparkProcessor extends App {
                             .publishToNatsAsKeyValue(max, longFloatTupleEncoder)
   }
   
+  val maxReport = max.map(
+      {case (subject, (epoch, voltage)) 
+          => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), voltage.toString())) })
+  SparkToNatsConnectorPool.newPool()
+                          .withProperties(properties)
+                          .withSubjects(outputSubject.replace("extract", "report"))
+                          .publishToNatsAsKeyValue(maxReport)
+          
   // ALERTS
   
   final val OFF_LIMIT_VOLTAGE_COUNT = 2
@@ -157,6 +165,14 @@ object SparkProcessor extends App {
                             .withSubjects(outputAlertSubject)
                             .publishToNatsAsKeyValue(alerts, longIntTupleEncoder)
   }  
+  
+  val alertReport = alerts.map(
+      {case (subject, (epoch, alert)) 
+          => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), alert.toString())) })
+  SparkToNatsConnectorPool.newPool()
+                          .withProperties(properties)
+                          .withSubjects(outputAlertSubject.replace("extract", "report"))
+                          .publishToNatsAsKeyValue(alertReport)
 
   // Start
   ssc.start();		
