@@ -1,5 +1,5 @@
 # https://hub.docker.com/_/golang/
-FROM golang:1.6-alpine
+FROM golang:1.7-alpine
 
 # RUN go get github.com/nats-io/nats
 
