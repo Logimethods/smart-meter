@@ -9,6 +9,7 @@ docker service create \
 	--replicas 1 \
 	--network smart-meter-net \
 	-e CASSANDRA_BROADCAST_ADDRESS="cassandra-root" \
+	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
 	cassandra:3.0.9
 
 sleep 5
@@ -20,10 +21,3 @@ docker service create \
 	-e CASSANDRA_SEEDS="cassandra-root" \
 	--network smart-meter-net \
 	cassandra:3.0.9
-
-docker service create \
-	--name cassandra-client \
-	--mode=global \
-	--network smart-meter-net \
-	cassandra:3.0.9
-	sleep infinity
