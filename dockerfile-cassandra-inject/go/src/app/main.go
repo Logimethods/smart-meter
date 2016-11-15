@@ -15,7 +15,12 @@ func main() {
 	nc, _ := nats.Connect(nats.DefaultURL)
 	
 	// Simple Async Subscriber
-	nc.Subscribe("foo", func(m *nats.Msg) {
+	nc.Subscribe(">", func(m *nats.Msg) {
 	    fmt.Printf("Received a message: %s\n", string(m.Data))
 	})
+	
+	fmt.Println("Subscribed")
+
+	for {
+	}
 }

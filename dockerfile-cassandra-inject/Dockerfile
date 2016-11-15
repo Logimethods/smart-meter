@@ -8,7 +8,9 @@ WORKDIR /go/src/app
 
 COPY /go/src/app /go/src/app
 RUN apk add --no-cache git \
-	&& go-wrapper download \
-	&& go-wrapper install
+	&& go-wrapper download
+
+COPY /go/src/app /go/src/app
+RUN go-wrapper install
 
 CMD ["go-wrapper", "run"]

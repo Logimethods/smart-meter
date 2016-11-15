@@ -26,3 +26,7 @@ _steps/
 .cache-main
 .classpath
 .project
+.settings
+
+# GO
+dockerfile-cassandra-inject/go/bin/app
