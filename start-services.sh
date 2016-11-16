@@ -71,7 +71,9 @@ until docker exec -it $(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 
 docker service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
-	-e CASSANDRA_CLUSTER=$(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) \
+	-e NATS_URI=nats://nats:4222 \
+	-e NATS_SUBJECT="smartmeter.voltage.report.>" \
+	-e CASSANDRA_URL=$(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) \
 	logimethods/smart-meter:cassandra-inject$1
 
 #docker pull logimethods/smart-meter:inject

@@ -11,21 +11,25 @@ import (
 )
 
 func main() {
-	fmt.Println("Welcome to the playground!")
+	fmt.Println("Welcome to the NATS to Cassandra Bridge")
 
 	fmt.Println("The time is", time.Now())
 	
-	nc, _ := nats.Connect(nats.DefaultURL)
+	nats_uri := os.Getenv("NATS_URI")
+	nc, _ := nats.Connect(nats_uri)
 	
-	fmt.Println("Subscribed to NATS")
+	fmt.Println("Subscribed to NATS: ", nats_uri)
+
+	nats_subject := os.Getenv("NATS_SUBJECT")
+	fmt.Println("NATS Subject: ", nats_subject)
 	
 	// CASSANDRA
 
-	cluster_ip := os.Getenv("CASSANDRA_CLUSTER")
-	fmt.Printf("cluster IP: ", cluster_ip)
+	cassandra_url := os.Getenv("CASSANDRA_URL")
+	fmt.Printf("Cassandra URL: ", cassandra_url)
 	
     // connect to the cluster
-    cluster := gocql.NewCluster(cluster_ip)
+    cluster := gocql.NewCluster(cassandra_url)
     cluster.Keyspace = "smartmeter"
     cluster.Consistency = gocql.Quorum
     session, _ := cluster.CreateSession()
@@ -40,7 +44,7 @@ func main() {
     }
 	
 	// Simple Async Subscriber
-	nc.Subscribe(">", func(m *nats.Msg) {
+	nc.Subscribe(nats_subject, func(m *nats.Msg) {
 	    fmt.Printf("Received a message: %s\n", string(m.Data))
 	    
 	    // insert a message into Cassandra
