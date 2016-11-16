@@ -1,7 +1,18 @@
 # ./start-services.sh "-local"
 
-#docker network create --driver overlay smart-meter-net
+docker network create --driver overlay smart-meter-net
 #docker service rm $(docker service ls -q)
+
+# https://hub.docker.com/_/cassandra/
+# http://serverfault.com/questions/806649/docker-swarm-and-volumes
+# https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
+docker service create \
+	--name cassandra-root \
+	--replicas 1 \
+	--network smart-meter-net \
+	-e CASSANDRA_BROADCAST_ADDRESS="cassandra-root" \
+	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
+	logimethods/smart-meter:cassandra$1
 
 docker service create \
 	--name spark-master \
@@ -52,6 +63,16 @@ docker service create \
 	--replicas=1 \
 	-p 8888:8080 \
 	logimethods/nats-reporter
+
+# Create the Cassandra Tables
+echo "Will create the Cassandra Messages Table"
+until docker exec -it $(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) cqlsh -f '/cql/create-messages.cql'; do echo "Try again to create the Cassandra Messages Table"; sleep 4; done
+
+docker service create \
+	--name cassandra-inject \
+	--network smart-meter-net \
+	-e CASSANDRA_CLUSTER=$(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) \
+	logimethods/smart-meter:cassandra-inject$1
 
 #docker pull logimethods/smart-meter:inject
 docker service create \
