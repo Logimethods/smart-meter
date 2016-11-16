@@ -2,8 +2,8 @@ docker service create \
 	--name cassandra-client \
 	--mode=global \
 	--network smart-meter-net \
-	cassandra:3.0.9
-	sleep infinity
+	cassandra:3.0.9 \
+		sleep infinity
 	
 sleep 5
 
