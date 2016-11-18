@@ -66,13 +66,13 @@ docker service create \
 
 # Create the Cassandra Tables
 echo "Will create the Cassandra Messages Table"
-until docker exec -it $(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) cqlsh -f '/cql/create-messages.cql'; do echo "Try again to create the Cassandra Messages Table"; sleep 4; done
+until docker exec -it $(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) cqlsh -f '/cql/create-timeseries.cql'; do echo "Try again to create the Cassandra Time Series Table"; sleep 4; done
 
 docker service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
 	-e NATS_URI=nats://nats:4222 \
-	-e NATS_SUBJECT="smartmeter.voltage.report.>" \
+	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
 	-e CASSANDRA_URL=$(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) \
 	logimethods/smart-meter:cassandra-inject$1
 

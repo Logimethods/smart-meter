@@ -65,9 +65,12 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   
   def encodePayload(date: LocalDateTime, value: Float): Array[Byte] = {
     // https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html
-    val buffer = ByteBuffer.allocate(4+8);
+    val buffer = ByteBuffer.allocate(8+4);
     buffer.putLong(date.atOffset(ZoneOffset.MIN).toEpochSecond())
     buffer.putFloat(value)
+    
+    //print(buffer.array().deep)    
+    //println
     
     return buffer.array()    
   }

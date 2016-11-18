@@ -1,0 +1,77 @@
+package main
+
+import (
+    "fmt"
+    "unsafe"
+	"math"
+    "encoding/binary"
+	"time"
+)
+
+func main() {
+	scala := []int8{0, 0, 0, 0, 88, 47, -12, -62, 66, -32, 117, -61}	
+	data := (*(*[12]uint8)(unsafe.Pointer(&scala[0])))[:]  
+	
+//	data := []byte{0, 0, 0, 0, 88, 47, 103, 165, 66, 225, 137, 28}	
+//	data := []byte{0, 0, 0, 0, 0, 0, 0, 1, 66, 225, 137, 28}
+//	data := []byte{0, 0, 0, 0, 0, 0, 0, 1, 63, 128, 0, 0}
+	fmt.Println(data)
+	floatBytes := data[8:]
+	fmt.Println(floatBytes)
+	
+    // all in one go
+    f := (*(*[4]int8)(unsafe.Pointer(&floatBytes[0])))[:]  
+    fmt.Printf("floatBytes=%v p=%v\n", floatBytes, f)
+	
+	bits2 := math.Float32bits(1)
+    bytes2 := make([]byte, 4)
+    binary.LittleEndian.PutUint32(bytes2, bits2)
+	fmt.Printf("bytes2=%v bits2=%v\n", bytes2, bits2)
+
+
+		voltage := math.Float32frombits(binary.BigEndian.Uint32(floatBytes))
+	    fmt.Printf("floatBytes=%v voltage=%v\n", floatBytes, voltage)
+
+	longBytes := data[:8]
+	l := (*(*[8]int8)(unsafe.Pointer(&longBytes[0])))[:]  
+    fmt.Printf("longBytes=%v l=%v\n", longBytes, l)
+
+		epoch := int64(binary.BigEndian.Uint64(longBytes))
+	    fmt.Printf("longBytes=%v epoch=%v\n", longBytes, epoch)
+
+		date := time.Unix(epoch, 0)
+		fmt.Println(date)
+		
+		// https://golang.org/pkg/time/#Time
+		year, month, day := date.Date()			
+		fmt.Printf("year, month, day: %d, %d, %d\n", year, month, day)
+		hour, minute, _ := date.Clock() 
+		day_of_week := date.Weekday()
+		fmt.Printf("hour, minute, day_of_week: %d, %d, %d\n", hour, minute, day_of_week)
+
+//	f := float32(i)
+//	fmt.Println(f)
+}
+
+/*
+scala> val buffer = ByteBuffer.allocate(8+4);
+scala> date.atOffset(ZoneOffset.MIN).toEpochSecond()
+res27: Long = 1479537858
+scala> buffer.putLong(date.atOffset(ZoneOffset.MIN).toEpochSecond())
+scala> buffer.putFloat(112.23f)
+scala> buffer.array.deep
+res26: IndexedSeq[Any] = Array(0, 0, 0, 0, 88, 47, -12, -62, 66, -32, 117, -61)
+*/
+
+/*
+[0 0 0 0 88 47 244 194 66 224 117 195]
+[66 224 117 195]
+floatBytes=[66 224 117 195] p=[66 -32 117 -61]
+bytes2=[0 0 128 63] bits2=1065353216
+floatBytes=[66 224 117 195] voltage=112.23
+longBytes=[0 0 0 0 88 47 244 194] l=[0 0 0 0 88 47 -12 -62]
+longBytes=[0 0 0 0 88 47 244 194] epoch=1479537858
+2016-11-19 01:44:18 -0500 EST
+year, month, day: 2016, 11, 19
+hour, minute, day_of_week: 1, 44, 6
+*/
