@@ -7,38 +7,15 @@ import (
 	"time"
 	"strings"
 
-	"bytes"
+//	"bytes"
     "encoding/binary"
-//    "math"
+    "math"
     "strconv"
+//    "unsafe"
 	
 	"github.com/nats-io/nats"
 	"github.com/gocql/gocql"
 )
-
-// https://golang.org/pkg/encoding/binary/#example_Read
-func Float32frombytes(b []int8) float32 {
-	var result float32
-	buf := bytes.NewReader(b)
-	err := binary.Read(buf, binary.LittleEndian, &result)
-	if err != nil {
-		fmt.Println("binary.Read failed:", err)
-	}
-	fmt.Print(result)
-    return result
-}
-
-// https://golang.org/pkg/encoding/binary/#Varint
-func Int64frombytes(b []int8) int64 {
-    r, n := binary.Varint(b)
-    if n == 0 {
-    	 fmt.Println("buf too small")
-    }	 
-	if n  < 0 {
-		 fmt.Println("value larger than 64 bits (overflow), and -n is the number of bytes read", n)
-	}	 
-    return r
-}
 
 func main() {
 	fmt.Println("Welcome to the NATS to Cassandra Bridge")
@@ -95,32 +72,28 @@ func main() {
 		usagePoint, _ := strconv.ParseInt(subjects[len -1], 10, 32)	//  int,
 		fmt.Printf("usagePoint: %s\n", usagePoint)
 
-		fmt.Println("Data", m.Data)
+		fmt.Println("2 Data", m.Data)
 		
 		floatBytes := m.Data[8:]
 
-	// http://stackoverflow.com/questions/11924196/convert-between-slices-of-different-types
-    // step by step
-    pb := &floatBytes[0]         // to pointer to the first byte of b
-    up := unsafe.Pointer(pb)    // to *special* unsafe.Pointer, it can be converted to any pointer
-    pi := (*[4]int8)(up)      // to pointer to the first uint32 of array of 2 uint32s
-    i := (*pi)[:]           // creates slice to our array of 2 uint32s (optional step)
-    fmt.Printf("floatBytes=%v i=%v\n", floatBytes, i)
+		// http://stackoverflow.com/questions/11924196/convert-between-slices-of-different-types
+//	    voltage := (*(*[4]int8)(unsafe.Pointer(&floatBytes[0])))[:]
+		// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
+		voltage := math.Float32frombits(binary.BigEndian.Uint32(floatBytes))
+	    fmt.Printf("floatBytes=%v voltage=%v\n", floatBytes, voltage)
 
-
-
-		fmt.Println("floatBytes", floatBytes)
-		voltage := Float32frombytes(floatBytes)	//  float,
-		fmt.Println("voltage", voltage)
+//		fmt.Println("floatBytes", floatBytes)
+//		voltage := Float32frombytes(floatBytes)	//  float,
+//		fmt.Println("voltage", voltage)
 		
 		// https://blog.golang.org/go-slices-usage-and-internals
 		//  val buffer = ByteBuffer.allocate(8+4);
 	    //	buffer.putLong(date.atOffset(ZoneOffset.MIN).toEpochSecond())
 	    //	buffer.putFloat(value)
 		
-		longBytes := []int8(m.Data[:8])
+		longBytes := m.Data[:8]
 		fmt.Println("longBytes", longBytes)
-		epoch := Int64frombytes(longBytes)
+		epoch := int64(1) //Int64frombytes(longBytes)
 		date := time.Unix(epoch, 0)
 		fmt.Println(date)
 		
