@@ -30,3 +30,6 @@ _steps/
 
 # GO
 dockerfile-cassandra-inject/go/bin/app
+
+# Cassandra
+dockerfile-cassandra/metastore_db/
