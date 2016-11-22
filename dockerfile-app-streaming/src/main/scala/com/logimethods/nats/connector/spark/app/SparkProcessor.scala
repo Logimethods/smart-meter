@@ -17,7 +17,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.streaming.Duration
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.storage.StorageLevel;
-import io.nats.client.Constants._
+//import io.nats.client.Constants._
+import io.nats.client.ConnectionFactory._
 import java.nio.ByteBuffer
 
 import org.apache.log4j.{Level, LogManager, PropertyConfigurator}
@@ -59,7 +60,7 @@ object SparkProcessor extends App {
   println("NATS_URI = " + natsUrl)
   properties.put("servers", natsUrl)
   properties.put(PROP_URL, natsUrl)
-  
+
   val clusterId = System.getenv("NATS_CLUSTER_ID")
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {

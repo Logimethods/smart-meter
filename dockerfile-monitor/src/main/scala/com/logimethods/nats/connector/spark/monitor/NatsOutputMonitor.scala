@@ -20,7 +20,6 @@ object NatsOutputMonitor extends App {
   println("Will be listening to messages from " + inputSubject)
     
   val natsUrl = System.getenv("NATS_URI")
-  println("NATS_URI = " + natsUrl)
   
   if (inputSubject.toUpperCase().contains("STREAMING")) {
     val clusterID = System.getenv("NATS_CLUSTER_ID");

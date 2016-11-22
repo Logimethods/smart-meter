@@ -1,5 +1,8 @@
 # ./start-services.sh "-local"
 
+NATS_USERNAME="smartmeter"
+NATS_PASSWORD="xyz1234"
+
 docker network create --driver overlay smart-meter-net
 #docker service rm $(docker service ls -q)
 
@@ -34,12 +37,14 @@ docker service create \
 	--name nats \
 	--network smart-meter-net \
 	--replicas=1 \
+	-e NATS_USERNAME=${NATS_USERNAME} \
+	-e NATS_PASSWORD=${NATS_PASSWORD} \
 	nats
 
 #docker pull logimethods/smart-meter:app-streaming
 docker service create \
 	--name app-streaming \
-	-e NATS_URI=nats://nats:4222 \
+	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=spark://spark-master:7077 \
 	-e LOG_LEVEL=INFO \
 	--network smart-meter-net \
@@ -50,7 +55,7 @@ docker service create \
 #docker pull logimethods/smart-meter:monitor
 docker service create \
 	--name monitor \
-	-e NATS_URI=nats://nats:4222 \
+	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:monitor$1 \
@@ -71,7 +76,7 @@ until docker exec -it $(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 
 docker service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
-	-e NATS_URI=nats://nats:4222 \
+	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
 	-e CASSANDRA_URL=$(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) \
 	logimethods/smart-meter:cassandra-inject$1
@@ -80,7 +85,7 @@ docker service create \
 docker service create \
 	--name inject \
 	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
-	-e NATS_URI=nats://nats:4222 \
+	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	--network smart-meter-net \
 	--replicas=1 \
 	logimethods/smart-meter:inject$1 \

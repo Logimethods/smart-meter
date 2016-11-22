@@ -23,3 +23,7 @@ popd
 pushd dockerfile-cassandra-inject
 docker build -t logimethods/smart-meter:cassandra-inject-local .
 popd
+
+pushd dockerfile-nats-server
+docker build -t logimethods/smart-meter:nats-server-local .
+popd
