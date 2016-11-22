@@ -39,7 +39,7 @@ docker service create \
 	--replicas=1 \
 	-e NATS_USERNAME=${NATS_USERNAME} \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
-	nats
+	logimethods/smart-meter:nats-server$1
 
 #docker pull logimethods/smart-meter:app-streaming
 docker service create \
