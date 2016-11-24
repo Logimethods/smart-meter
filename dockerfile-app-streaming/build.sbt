@@ -14,10 +14,10 @@ val tag = "app-streaming-local"
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"
 
-version := "0.1.0-SNAPSHOT"
+version := "0.1.0"
 scalaVersion := "2.11.8"
 val sparkVersion = "2.0.1"
-val natsConnectorSparkVersion = "0.3.0-SNAPSHOT"
+val natsConnectorSparkVersion = "0.3.0"
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion

@@ -11,10 +11,10 @@ name := "docker-" + rootName + "-inject"
 organization := "logimethods"
 val tag = "inject-local"
 
-version := "0.1.0-SNAPSHOT"
+version := "0.1.0"
 scalaVersion := "2.11.8"
 val gatlingVersion = "2.2.2"
-val natsConnectorGatlingVersion = "0.3.0-SNAPSHOT"
+val natsConnectorGatlingVersion = "0.3.0"
 
 libraryDependencies += "com.logimethods" %% "nats-connector-gatling" % natsConnectorGatlingVersion changing()
 // https://mvnrepository.com/artifact/org.scalanlp/breeze_2.11
