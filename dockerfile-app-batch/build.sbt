@@ -16,11 +16,12 @@ resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/
 
 version := "0.4.0-SNAPSHOT"
 scalaVersion := "2.11.8"
-val sparkVersion = "2.0.1"
+val sparkVersion = "2.0.2"
 val natsConnectorSparkVersion = "0.4.0-SNAPSHOT"
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
-libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.0.0-M3"
+libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
+//libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.0.0-M3"
 
 // @see http://stackoverflow.com/questions/30446984/spark-sbt-assembly-deduplicate-different-file-contents-found-in-the-followi
 assemblyMergeStrategy in assembly := {

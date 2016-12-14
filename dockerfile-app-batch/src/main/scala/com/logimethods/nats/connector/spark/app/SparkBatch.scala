@@ -17,21 +17,31 @@ import org.apache.spark.SparkContext
 
 import org.apache.log4j.{Level, LogManager, PropertyConfigurator}
 
-import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.CassandraConnector
+import org.apache.spark.sql.SparkSession
 
-// @see https://github.com/datastax/spark-cassandra-connector
+//import com.datastax.spark.connector._
+//import com.datastax.spark.connector.cql.CassandraConnector
+
+// @see http://stackoverflow.com/questions/39423131/how-to-use-cassandra-context-in-spark-2-0
+// @see https://databricks.com/blog/2016/08/15/how-to-use-sparksession-in-apache-spark-2-0.html
 object SparkBatch extends App {
-  val cassandraUrl = System.getenv("CASSANDRA_URL")
-  println("CASSANDRA_URL = " + cassandraUrl)
-  val conf = new SparkConf(true)
-          .set("spark.cassandra.connection.host", cassandraUrl)
-//          .set("spark.cassandra.auth.username", "cassandra")            
-//          .set("spark.cassandra.auth.password", "cassandra")
-  
-  val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
-  println("SPARK_MASTER_URL = " + sparkMasterUrl)
-  val sc = new SparkContext(sparkMasterUrl, "batch", conf)
-  
-  val connector = CassandraConnector(sc.getConf)
+	val cassandraUrl = System.getenv("CASSANDRA_URL")
+			println("CASSANDRA_URL = " + cassandraUrl)
+
+			val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
+			println("SPARK_MASTER_URL = " + sparkMasterUrl)
+
+			val spark = SparkSession
+    			.builder()
+    			.appName("SparkSessionZipsExample")
+    			//   .config("spark.sql.warehouse.dir", warehouseLocation)
+    			.enableHiveSupport()
+    			.getOrCreate()
+
+			spark
+    			.read
+    			.format("org.apache.spark.sql.cassandra")
+    			.options(Map("keyspace" -> "test", "table" -> "words"))
+    			.load
+    			.createOrReplaceTempView("words")
 }
