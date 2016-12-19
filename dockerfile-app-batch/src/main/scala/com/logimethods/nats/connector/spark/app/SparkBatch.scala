@@ -24,6 +24,7 @@ import org.apache.spark.sql.SparkSession
 
 // @see http://stackoverflow.com/questions/39423131/how-to-use-cassandra-context-in-spark-2-0
 // @see https://databricks.com/blog/2016/08/15/how-to-use-sparksession-in-apache-spark-2-0.html
+// @see https://dzone.com/articles/cassandra-with-spark-20-building-rest-api
 object SparkBatch extends App {
 	val cassandraUrl = System.getenv("CASSANDRA_URL")
 			println("CASSANDRA_URL = " + cassandraUrl)
@@ -34,6 +35,7 @@ object SparkBatch extends App {
 			val spark = SparkSession
     			.builder()
     			.appName("SparkSessionZipsExample")
+    			.config("spark.cassandra.connection.host", cassandraUrl)
     			//   .config("spark.sql.warehouse.dir", warehouseLocation)
     			.enableHiveSupport()
     			.getOrCreate()

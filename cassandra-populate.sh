@@ -17,22 +17,6 @@ docker service create \
 	-e CASSANDRA_BROADCAST_ADDRESS="cassandra-root" \
 	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
 	logimethods/smart-meter:cassandra$1
-
-docker service create \
-	--name spark-master \
-	-e SERVICE_NAME=spark-master \
-	--network smart-meter-net \
-	--constraint 'node.role == manager' \
-	--log-driver=json-file \
-	gettyimages/spark:2.0.2-hadoop-2.7
-	
-docker service create \
-	--name spark-slave \
-	-e SERVICE_NAME=spark-slave \
-	--network smart-meter-net \
-	--replicas=2 \
-	gettyimages/spark:2.0.2-hadoop-2.7 \
-		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
 		
 docker service create \
 	--name nats \
@@ -42,35 +26,8 @@ docker service create \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
 	logimethods/smart-meter:nats-server$1
 
-#docker pull logimethods/smart-meter:app-streaming
-docker service create \
-	--name app-streaming \
-	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
-	-e SPARK_MASTER_URL=spark://spark-master:7077 \
-	-e LOG_LEVEL=INFO \
-	--network smart-meter-net \
-	--replicas=1 \
-	logimethods/smart-meter:app-streaming$1 \
-		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
-
-#docker pull logimethods/smart-meter:monitor
-docker service create \
-	--name monitor \
-	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
-	--network smart-meter-net \
-	--replicas=1 \
-	logimethods/smart-meter:monitor$1 \
-		"smartmeter.voltage.extract.>"
-
-#docker pull logimethods/nats-reporter
-docker service create \
-	--name reporter \
-	--network smart-meter-net \
-	--replicas=1 \
-	-p 8888:8080 \
-	logimethods/nats-reporter
-
 # Create the Cassandra Tables
+# https://github.com/docker/docker/blob/master/docs/reference/commandline/service_create.md#add-bind-mounts-or-volumes
 echo "Will create the Cassandra Messages Table"
 until docker exec -it $(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) cqlsh -f '/cql/create-timeseries.cql'; do echo "Try again to create the Cassandra Time Series Table"; sleep 4; done
 
