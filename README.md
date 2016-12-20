@@ -13,7 +13,7 @@ To demonstrate a Smart Meter Big Data Application.
 
 ### Create a SDN File
 
-* Define a SDN file, as [excel/cassandra.dsn](excel/cassandra.dsn)
+* Define a SDN file, such as [excel/cassandra.dsn](excel/cassandra.dsn)
 * You could load & test it directly through the iODBC Administrator App:
 ![iODBC_test_sdn_file.png](excel/iODBC_test_sdn_file.png)
 
