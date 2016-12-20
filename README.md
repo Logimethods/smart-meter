@@ -20,3 +20,6 @@ To demonstrate a Smart Meter Big Data Application.
 ### Connect to the External Data from Excel using the `iODBC Data Source Chooser` (File DSN)
 
 * You might use the SQL syntax, such as `select * from raw_voltage_data limit 10;`
+* Et Voilà!
+
+![from_Cassandra_2_Excel.png](excel/from_Cassandra_2_Excel.png)
