@@ -15,7 +15,7 @@ To demonstrate a Smart Meter Big Data Application.
 
 * Define a SDN file, as `excel/cassandra.sdn`
 * You could load & test it directly through the iODBC Administrator App:
-![excel/iODBC_test_sdn_file.png](iODBC_test_sdn_file.png)
+![iODBC_test_sdn_file.png](excel/iODBC_test_sdn_file.png)
 
 ### Connect to the External Data from Excel using the `iODBC Data Source Chooser` (File DSN)
 
