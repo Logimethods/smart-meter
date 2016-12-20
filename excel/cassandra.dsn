@@ -1,0 +1,7 @@
+[ODBC]
+; Specify any global ODBC configuration here such as ODBC tracing.
+DRIVER=Simba Cassandra ODBC Driver
+Host=127.0.0.1
+Port=9042
+DefaultKeyspace=smartmeter
+AuthMech=0
