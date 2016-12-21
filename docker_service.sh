@@ -35,7 +35,7 @@ docker service create \
 	--replicas=${replicas} \
 	--network smart-meter-net \
 	--mount type=volume,source=cassandra-volume,destination=/var/lib/cassandra \
-	-e CASSANDRA_BROADCAST_ADDRESS="cassandra-root" \
+	-e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
 	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
 	-p 9042:9042 \
 	-p 9160:9160 \
@@ -104,10 +104,10 @@ docker service create \
 	logimethods/nats-reporter
 }
 
-create_cassandra_cassandra-inject() {
+create_cassandra_tables() {
 # Create the Cassandra Tables
 echo "Will create the Cassandra Messages Table"
-until docker exec -it $(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) cqlsh -f '/cql/create-timeseries.cql'; do echo "Try again to create the Cassandra Time Series Table"; sleep 4; done
+until docker exec -it $(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f '/cql/create-timeseries.cql'; do echo "Try again to create the Cassandra Time Series Table"; sleep 4; done
 }
 
 create_service_cassandra-inject() {
@@ -117,7 +117,7 @@ docker service create \
 	--replicas=${replicas} \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
-	-e CASSANDRA_URL=$(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) \
+	-e CASSANDRA_URL=$(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
 	logimethods/smart-meter:cassandra-inject$1
 }
 
