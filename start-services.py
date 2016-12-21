@@ -13,6 +13,6 @@ NATS_PASSWORD="xyz1234"
 
 client.networks.create("smart-meter-net", driver="overlay")
 
-from subprocess import run
-subprocess.run(["bash", "docker_service", "create_service_cassandra", "-local"])
+import subprocess
+subprocess.run(["bash", "docker_service.sh", "-r", "3", "create_service_cassandra", "-local"])
 

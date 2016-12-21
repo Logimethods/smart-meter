@@ -1,3 +1,20 @@
+#!/bin/bash
+
+replicas=1
+
+while getopts ":r:" opt; do
+  case $opt in
+    r) replicas="$OPTARG"
+    shift; shift
+    ;;
+    \?) echo "Invalid option -$OPTARG"
+    ;;
+  esac
+done
+
+printf "Number of requested replicas is %s\n" "$replicas"
+
+
 # See http://stackoverflow.com/questions/8818119/linux-how-can-i-run-a-function-from-a-script-in-command-line
 # ./start-services.sh "-local"
 
@@ -15,7 +32,7 @@ create_service_cassandra() {
 # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
 docker service create \
 	--name cassandra-root \
-	--replicas 1 \
+	--replicas=${replicas} \
 	--network smart-meter-net \
 	--mount type=volume,source=cassandra-volume,destination=/var/lib/cassandra \
 	-e CASSANDRA_BROADCAST_ADDRESS="cassandra-root" \
@@ -38,7 +55,7 @@ docker service create \
 	--name spark-slave \
 	-e SERVICE_NAME=spark-slave \
 	--network smart-meter-net \
-	--replicas=2 \
+	--replicas=${replicas} \
 	gettyimages/spark:2.0.2-hadoop-2.7 \
 		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
 }
@@ -47,7 +64,7 @@ create_service_nats() {
 docker service create \
 	--name nats \
 	--network smart-meter-net \
-	--replicas=1 \
+	--replicas=${replicas} \
 	-e NATS_USERNAME=${NATS_USERNAME} \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
 	logimethods/smart-meter:nats-server$1
@@ -61,7 +78,7 @@ docker service create \
 	-e SPARK_MASTER_URL=spark://spark-master:7077 \
 	-e LOG_LEVEL=INFO \
 	--network smart-meter-net \
-	--replicas=1 \
+	--replicas=${replicas} \
 	logimethods/smart-meter:app-streaming$1 \
 		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
 }
@@ -72,7 +89,7 @@ docker service create \
 	--name monitor \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	--network smart-meter-net \
-	--replicas=1 \
+	--replicas=${replicas} \
 	logimethods/smart-meter:monitor$1 \
 		"smartmeter.voltage.extract.>"
 }
@@ -82,7 +99,7 @@ create_service_cassandra() {
 docker service create \
 	--name reporter \
 	--network smart-meter-net \
-	--replicas=1 \
+	--replicas=${replicas} \
 	-p 8888:8080 \
 	logimethods/nats-reporter
 }
@@ -97,6 +114,7 @@ create_service_cassandra() {
 docker service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
+	--replicas=${replicas} \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
 	-e CASSANDRA_URL=$(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) \
@@ -110,7 +128,7 @@ docker service create \
 	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	--network smart-meter-net \
-	--replicas=1 \
+	--replicas=${replicas} \
 	logimethods/smart-meter:inject$1 \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection
 }
