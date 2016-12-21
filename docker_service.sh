@@ -31,7 +31,7 @@ create_service_cassandra() {
 # http://serverfault.com/questions/806649/docker-swarm-and-volumes
 # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
 docker service create \
-	--name cassandra-root \
+	--name cassandra \
 	--replicas=${replicas} \
 	--network smart-meter-net \
 	--mount type=volume,source=cassandra-volume,destination=/var/lib/cassandra \
@@ -52,8 +52,8 @@ docker service create \
 	gettyimages/spark:2.0.2-hadoop-2.7
 
 docker service create \
-	--name spark-slave \
-	-e SERVICE_NAME=spark-slave \
+	--name spark \
+	-e SERVICE_NAME=spark \
 	--network smart-meter-net \
 	--replicas=${replicas} \
 	gettyimages/spark:2.0.2-hadoop-2.7 \
@@ -94,7 +94,7 @@ docker service create \
 		"smartmeter.voltage.extract.>"
 }
 
-create_service_cassandra() {
+create_service_reporter() {
 #docker pull logimethods/nats-reporter
 docker service create \
 	--name reporter \
@@ -110,7 +110,7 @@ echo "Will create the Cassandra Messages Table"
 until docker exec -it $(docker ps | grep "cassandra-root" | rev | cut -d' ' -f1 | rev) cqlsh -f '/cql/create-timeseries.cql'; do echo "Try again to create the Cassandra Time Series Table"; sleep 4; done
 }
 
-create_service_cassandra() {
+create_service_cassandra-inject() {
 docker service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
@@ -131,6 +131,10 @@ docker service create \
 	--replicas=${replicas} \
 	logimethods/smart-meter:inject$1 \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection
+}
+
+update_service_scale() {
+	docker service scale SERVICE=REPLICAS
 }
 		
 "$@"
