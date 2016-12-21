@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE
+import subprocess
 import docker
 client = docker.from_env()
 
@@ -8,11 +8,16 @@ if (len(sys.argv) > 1):
 else:
 	postfix = ""
 
-NATS_USERNAME="smartmeter"
-NATS_PASSWORD="xyz1234"
+def update_replicas(service, replicas):
+	param = service.name + "=" + str(replicas)
+	subprocess.run(["docker", "service", "scale", param])
+	
+def create_service(name, replicas, postfix)
+	subprocess.run(["bash", "docker_service.sh", "-r", str(replicas), "create_service_" + name, postfix])
 
 client.networks.create("smart-meter-net", driver="overlay")
 
-import subprocess
-subprocess.run(["bash", "docker_service.sh", "-r", "3", "create_service_cassandra", "-local"])
+
+services = client.services.list()
+
 
