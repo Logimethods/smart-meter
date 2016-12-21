@@ -42,18 +42,21 @@ docker service create \
 	logimethods/smart-meter:cassandra$1
 }
 
-create_service_spark() {
+create_service_spark-master() {
 docker service create \
 	--name spark-master \
 	-e SERVICE_NAME=spark-master \
 	--network smart-meter-net \
+	--replicas=${replicas} \
 	--constraint 'node.role == manager' \
 	--log-driver=json-file \
 	gettyimages/spark:2.0.2-hadoop-2.7
+}
 
+create_service_spark-slave() {
 docker service create \
-	--name spark \
-	-e SERVICE_NAME=spark \
+	--name spark-slave \
+	-e SERVICE_NAME=spark-slave \
 	--network smart-meter-net \
 	--replicas=${replicas} \
 	gettyimages/spark:2.0.2-hadoop-2.7 \
