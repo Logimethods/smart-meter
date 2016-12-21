@@ -38,13 +38,6 @@ def create_or_update_service(name, replicas, postfix):
 def create_network():
 	client.networks.create("smart-meter-net", driver="overlay")
 
-def run_scenario(steps):
-	for step in steps:
-		if step[0] == "create_service" :
-			create_or_update_service(step[1], step[2], postfix)
-		else:
-			create(step[1])
-
 create_network = ["create", "network"]
 create_service_cassandra = ["create_service", "cassandra", 1]
 create_service_spark_master = ["create_service", "spark-master", 1]
@@ -81,7 +74,18 @@ all_steps = [
 	create_service_inject
 	]
 
+def run_scenario(steps):
+	if not isinstance(steps[0], list):
+		steps = [steps]
+	for step in steps:
+		if step[0] == "create_service" :
+			create_or_update_service(step[1], step[2], postfix)
+		else:
+			create(step[1])
+
 def run_or_kill_scenario(steps):
+	if not isinstance(steps[0], list):
+		steps = [steps]
 	# Collect all existing services names
 	all_remaining_services = []
 	for step in all_steps:
