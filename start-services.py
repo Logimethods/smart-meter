@@ -47,8 +47,8 @@ def run_scenario(steps):
 
 create_network = ["create", "network"]
 create_service_cassandra = ["create_service", "cassandra", 1]
-create_service_spark-master = ["create_service", "spark-master", 1]
-create_service_spark-slave = ["create_service", "spark-slave", 2]
+create_service_spark_master = ["create_service", "spark-master", 1]
+create_service_spark_slave = ["create_service", "spark-slave", 2]
 create_service_nats = ["create_service", "nats", 1]
 create_service_app_streaming = ["create_service", "app-streaming", 1]
 create_service_monitor = ["create_service", "monitor", 1]
@@ -58,8 +58,8 @@ create_service_cassandra_inject = ["create_service", "cassandra-inject", 1]
 create_service_inject = ["create_service", "inject", 1]
 
 stop_service_cassandra = ["create_service", "cassandra", 0]
-stop_service_spark-master = ["create_service", "spark-master", 0]
-stop_service_spark-slave = ["create_service", "spark-slave", 0]
+stop_service_spark_master = ["create_service", "spark-master", 0]
+stop_service_spark_slave = ["create_service", "spark-slave", 0]
 stop_service_nats = ["create_service", "nats", 0]
 stop_service_app_streaming = ["create_service", "app-streaming", 0]
 stop_service_monitor = ["create_service", "monitor", 0]
@@ -70,8 +70,8 @@ stop_service_inject = ["create_service", "inject", 0]
 all_steps = [
 	create_network,
 	create_service_cassandra,
-	create_service_spark-master,
-	create_service_spark-slave,
+	create_service_spark_master,
+	create_service_spark_slave,
 	create_service_nats,
 	create_service_app_streaming,
 	create_service_monitor,
@@ -100,3 +100,13 @@ def run_or_kill_scenario(steps):
 
 def run_all_steps():
 	run_scenario(all_steps)
+
+def run_inject_raw_data_into_cassandra():
+	run_or_kill_scenario([
+		create_network,
+		create_service_cassandra,
+		create_service_nats,
+		create_cassandra_tables,
+		create_service_cassandra_inject,
+		create_service_inject
+		])
