@@ -2,19 +2,23 @@
 
 replicas=1
 postfix=""
+shift_nb=0
 
 while getopts ":r:p:" opt; do
   case $opt in
     r) replicas="$OPTARG"
-    shift; shift
+    ((shift_nb+=2))
     ;;
-    p) postfix="$OPTARG"
-    shift; shift
+    p) postfix="-$OPTARG"
+    ((shift_nb+=2))
     ;;
     \?) echo "Invalid option -$OPTARG"
+    ((shift_nb+=1))
     ;;
   esac
 done
+
+shift $shift_nb
 
 # ./start-services.sh "-local"
 
