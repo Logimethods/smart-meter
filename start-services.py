@@ -16,10 +16,10 @@ def update_replicas(service, replicas):
 
 def create_service(name, replicas, postfix):
 	if replicas > 0:
-		subprocess.run(["bash", "docker_service.sh", "-r", str(replicas), "create_service_" + name, postfix])
+		subprocess.run(["bash", "docker_service.sh", "-r", str(replicas), "-p", postfix, "create_service_" + name])
 
 def call(type, name, parameters):
-	subprocess.run(["bash", "docker_service.sh", type + "_" + name] + parameters)
+	subprocess.run(["bash", "docker_service.sh", "-p", postfix, type + "_" + name] + parameters)
 
 def get_service(name):
 	services = client.services.list()
@@ -47,7 +47,7 @@ create_service_app_streaming = ["create_service", "app-streaming", 1]
 create_service_monitor = ["create_service", "monitor", 1]
 create_service_reporter = ["create_service", "reporter", 1]
 create_cassandra_tables = ["call", "cassandra_cql", "/cql/create-timeseries.cql"]
-create_service_cassandra_inject = ["create_service", "cassandra-inject", 1]
+create_service_cassandra_populate = ["create_service", "cassandra-populate", 1]
 create_service_inject = ["create_service", "inject", 1]
 create_service_app_batch = ["create_service", "app-batch", 1]
 
@@ -58,7 +58,7 @@ stop_service_nats = ["create_service", "nats", 0]
 stop_service_app_streaming = ["create_service", "app-streaming", 0]
 stop_service_monitor = ["create_service", "monitor", 0]
 stop_service_reporter = ["create_service", "reporter", 0]
-stop_service_cassandra_inject = ["create_service", "cassandra-inject", 0]
+stop_service_cassandra_populate = ["create_service", "cassandra-populate", 0]
 stop_service_inject = ["create_service", "inject", 0]
 stop_service_app_batch = ["create_service", "app-batch", 0]
 
@@ -72,7 +72,7 @@ all_steps = [
 	create_service_monitor,
 	create_service_reporter,
 	create_cassandra_tables,
-	create_service_cassandra_inject,
+	create_service_cassandra_populate,
 	create_service_inject,
 	create_service_app_batch
 	]
@@ -114,8 +114,10 @@ def run_inject_raw_data_into_cassandra():
 		create_service_cassandra,
 		create_service_nats,
 		create_cassandra_tables,
-		create_service_cassandra_inject,
+		create_service_cassandra_populate,
 		create_service_inject
+		["wait", "service", "inject"],
+		["logs", "service", "inject"]
 		])
 
 def run_app_batch():
@@ -128,8 +130,6 @@ def run_app_batch():
 		["wait", "service", "spark-master"],
 		create_service_spark_slave,
 		["wait", "service", "cassandra"],
-		create_service_app_batch,
-		["wait", "service", "app-batch"],
-		["logs", "service", "app-batch"]
+		["run", "image", "app-batch"],
 		])
 

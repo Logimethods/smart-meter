@@ -1,10 +1,14 @@
 #!/bin/bash
 
 replicas=1
+postfix=""
 
-while getopts ":r:" opt; do
+while getopts ":r:p:" opt; do
   case $opt in
     r) replicas="$OPTARG"
+    shift; shift
+    ;;
+    p) postfix="$OPTARG"
     shift; shift
     ;;
     \?) echo "Invalid option -$OPTARG"
@@ -18,9 +22,11 @@ NATS_USERNAME="smartmeter"
 NATS_PASSWORD="xyz1234"
 
 create_network() {
-docker network create --driver overlay smart-meter-net
+	docker network create --driver overlay --attachable smart-meter-net
 #docker service rm $(docker service ls -q)
 }
+
+### Create Service ###
 
 create_service_cassandra() {
 # https://hub.docker.com/_/cassandra/
@@ -35,7 +41,7 @@ docker service create \
 	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
 	-p 9042:9042 \
 	-p 9160:9160 \
-	logimethods/smart-meter:cassandra$1
+	logimethods/smart-meter:cassandra${postfix}
 }
 
 create_service_spark-master() {
@@ -66,7 +72,7 @@ docker service create \
 	--replicas=${replicas} \
 	-e NATS_USERNAME=${NATS_USERNAME} \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
-	logimethods/smart-meter:nats-server$1
+	logimethods/smart-meter:nats-server${postfix}
 }
 
 create_service_app-streaming() {
@@ -78,7 +84,7 @@ docker service create \
 	-e LOG_LEVEL=INFO \
 	--network smart-meter-net \
 	--replicas=${replicas} \
-	logimethods/smart-meter:app-streaming$1 \
+	logimethods/smart-meter:app-streaming${postfix} \
 		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
 }
 
@@ -91,7 +97,7 @@ docker service create \
 	-e CASSANDRA_URL=$(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
 	--network smart-meter-net \
 	--replicas=${replicas} \
-	logimethods/smart-meter:app-batch$1 
+	logimethods/smart-meter:app-batch${postfix} 
 }
 
 create_service_monitor() {
@@ -101,7 +107,7 @@ docker service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	--network smart-meter-net \
 	--replicas=${replicas} \
-	logimethods/smart-meter:monitor$1 \
+	logimethods/smart-meter:monitor${postfix} \
 		"smartmeter.voltage.extract.>"
 }
 
@@ -115,11 +121,7 @@ docker service create \
 	logimethods/nats-reporter
 }
 
-call_cassandra_cql() {
-	until docker exec -it $(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
-}
-
-create_service_cassandra-inject() {
+create_service_cassandra-populate() {
 docker service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
@@ -127,7 +129,7 @@ docker service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
 	-e CASSANDRA_URL=$(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
-	logimethods/smart-meter:cassandra-inject$1
+	logimethods/smart-meter:cassandra-populate${postfix}
 }
 
 create_service_inject() {
@@ -138,12 +140,25 @@ docker service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	--network smart-meter-net \
 	--replicas=${replicas} \
-	logimethods/smart-meter:inject$1 \
+	logimethods/smart-meter:inject${postfix} \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection
+}
+
+
+call_cassandra_cql() {
+	until docker exec -it $(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
 }
 
 update_service_scale() {
 	docker service scale SERVICE=REPLICAS
+}
+
+### RUN DOCKER ###
+
+run_image() {
+	name=${1}
+	shift
+	echo "docker run --network smart-meter-net logimethods/smart-meter:${name}${postfix} $@"
 }
 
 ### BUILDS ###
