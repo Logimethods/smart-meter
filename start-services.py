@@ -96,7 +96,7 @@ def run_or_kill_scenario(steps):
 			all_remaining_services.append(step[1])
 	# Remove all requested services
 	for step in steps:
-		if step[0] == "create_service" :
+		if (step[0] == "create_service") and (step[2] > 0):
 			all_remaining_services.remove(step[1])
 	#
 	print("All of those services will be desactivated: " + str(all_remaining_services))
@@ -121,6 +121,7 @@ def run_inject_raw_data_into_cassandra():
 def run_app_batch():
 	run_or_kill_scenario([
 		create_network,
+		stop_service_app_batch,
 		create_service_cassandra,
 		create_service_spark_master,
 		create_service_spark_slave,
