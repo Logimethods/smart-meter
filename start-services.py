@@ -18,8 +18,8 @@ def create_service(name, replicas, postfix):
 	if replicas > 0:
 		subprocess.run(["bash", "docker_service.sh", "-r", str(replicas), "create_service_" + name, postfix])
 
-def call(type, name):
-	subprocess.run(["bash", "docker_service.sh", type + "_" + name])
+def call(type, name, parameters):
+	subprocess.run(["bash", "docker_service.sh", type + "_" + name] + parameters)
 
 def get_service(name):
 	services = client.services.list()
@@ -84,7 +84,7 @@ def run_scenario(steps):
 		if step[0] == "create_service" :
 			create_or_update_service(step[1], step[2], postfix)
 		else:
-			call(step[0], step[1])
+			call(step[0], step[1], step[2:])
 
 def run_or_kill_scenario(steps):
 	if not isinstance(steps[0], list):
@@ -125,7 +125,9 @@ def run_app_batch():
 		["build", "app-batch"],
 		create_service_cassandra,
 		create_service_spark_master,
+		["wait", "service", "spark-master"]
 		create_service_spark_slave,
+		["wait", "service", "cassandra"]
 		create_service_app_batch
 		])
 	

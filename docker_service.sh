@@ -192,7 +192,32 @@ build_nats-server() {
 	popd
 }
 
+### WAIT ###
+
+service_is_ready() {
+	line=$(docker service ls | grep $1)
+	tokens=( $line )
+	replicas=${tokens[3]}
+	actual=${replicas%%/*}
+	expected=${replicas##*/}
+	#echo "$actual : $expected"
+	if [ "$actual" == "$expected" ] ; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+wait_service() {
+	echo "Waiting for the $1 Service to Start"
+	until service_is_ready $1
+	do 
+		sleep 2
+	done
+}
+
 ### Actual CMD ###
 
 # See http://stackoverflow.com/questions/8818119/linux-how-can-i-run-a-function-from-a-script-in-command-line
+echo "!!! $@ !!!"
 "$@"
