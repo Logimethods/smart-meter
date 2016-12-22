@@ -115,7 +115,7 @@ def run_inject_raw_data_into_cassandra():
 		create_service_nats,
 		create_cassandra_tables,
 		create_service_cassandra_populate,
-		create_service_inject
+		create_service_inject,
 		["wait", "service", "inject"],
 		["logs", "service", "inject"]
 		])

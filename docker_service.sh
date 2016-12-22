@@ -212,17 +212,23 @@ build_nats-server() {
 ### WAIT ###
 
 service_is_ready() {
-	line=$(docker service ls | grep $1)
-	tokens=( $line )
-	replicas=${tokens[3]}
-	actual=${replicas%%/*}
-	expected=${replicas##*/}
-	#echo "$actual : $expected"
-	if [ "$actual" == "$expected" ] ; then
-		return 0
-	else
-		return 1
-	fi
+	docker service ls | while read -r line
+	do
+		tokens=( $line )
+		name=${tokens[1]}
+		if [ "$name" == "$1" ] ; then
+			replicas=${tokens[3]}
+			actual=${replicas%%/*}
+			expected=${replicas##*/}
+			#echo "$actual : $expected"
+			if [ "$actual" == "$expected" ] ; then
+				return 0
+			else
+				return 1
+			fi
+		fi
+	done
+	return 1
 }
 
 wait_service() {
