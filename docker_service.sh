@@ -86,6 +86,18 @@ docker service create \
 		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
 }
 
+create_service_app-batch() {
+#docker pull logimethods/smart-meter:app-batch
+docker service create \
+	--name app-batch \
+	-e SPARK_MASTER_URL=spark://spark-master:7077 \
+	-e LOG_LEVEL=INFO \
+	-e CASSANDRA_URL=$(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
+	--network smart-meter-net \
+	--replicas=${replicas} \
+	logimethods/smart-meter:app-batch$1 
+}
+
 create_service_monitor() {
 #docker pull logimethods/smart-meter:monitor
 docker service create \

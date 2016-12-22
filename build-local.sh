@@ -10,6 +10,12 @@ sbt docker
 sbt eclipse
 popd
 
+pushd dockerfile-app-batch
+sbt update
+sbt docker
+sbt eclipse
+popd
+
 pushd dockerfile-monitor
 sbt update
 sbt docker

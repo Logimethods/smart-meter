@@ -49,6 +49,7 @@ create_service_reporter = ["create_service", "reporter", 1]
 create_cassandra_tables = ["create", "cassandra_tables", 1]
 create_service_cassandra_inject = ["create_service", "cassandra-inject", 1]
 create_service_inject = ["create_service", "inject", 1]
+create_service_app_batch = ["create_service", "app-batch", 1]
 
 stop_service_cassandra = ["create_service", "cassandra", 0]
 stop_service_spark_master = ["create_service", "spark-master", 0]
@@ -59,6 +60,7 @@ stop_service_monitor = ["create_service", "monitor", 0]
 stop_service_reporter = ["create_service", "reporter", 0]
 stop_service_cassandra_inject = ["create_service", "cassandra-inject", 0]
 stop_service_inject = ["create_service", "inject", 0]
+stop_service_app_batch = ["create_service", "app-batch", 0]
 
 all_steps = [
 	create_network,
@@ -71,7 +73,8 @@ all_steps = [
 	create_service_reporter,
 	create_cassandra_tables,
 	create_service_cassandra_inject,
-	create_service_inject
+	create_service_inject,
+	create_service_app_batch
 	]
 
 def run_scenario(steps):
@@ -114,3 +117,13 @@ def run_inject_raw_data_into_cassandra():
 		create_service_cassandra_inject,
 		create_service_inject
 		])
+
+def run_app_batch():
+	run_or_kill_scenario([
+		create_network,
+		create_service_cassandra,
+		create_service_spark_master,
+		create_service_spark_slave,
+		create_service_app_batch
+		])
+	
