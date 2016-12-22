@@ -12,10 +12,6 @@ while getopts ":r:" opt; do
   esac
 done
 
-printf "Number of requested replicas is %s\n" "$replicas"
-
-
-# See http://stackoverflow.com/questions/8818119/linux-how-can-i-run-a-function-from-a-script-in-command-line
 # ./start-services.sh "-local"
 
 NATS_USERNAME="smartmeter"
@@ -151,5 +147,52 @@ docker service create \
 update_service_scale() {
 	docker service scale SERVICE=REPLICAS
 }
-		
+
+### BUILDS ###
+
+build_inject() {
+	pushd dockerfile-inject
+	sbt --warn update docker
+	popd
+}
+
+build_app-streaming() {
+	pushd dockerfile-app-streaming
+	sbt --warn update docker
+	popd
+}
+
+build_app-batch() {
+	pushd dockerfile-app-batch
+	sbt --warn update docker
+	popd
+}
+
+build_monitor() {
+	pushd dockerfile-monitor
+	sbt --warn update docker
+	popd
+}
+
+build_cassandra() {
+	pushd dockerfile-cassandra
+	docker build -t logimethods/smart-meter:cassandra-local .
+	popd
+}
+
+build_cassandra-inject() {
+	pushd dockerfile-cassandra-inject
+	docker build -t logimethods/smart-meter:cassandra-inject-local .
+	popd
+}
+
+build_nats-server() {
+	pushd dockerfile-nats-server
+	docker build -t logimethods/smart-meter:nats-server-local .
+	popd
+}
+
+### Actual CMD ###
+
+# See http://stackoverflow.com/questions/8818119/linux-how-can-i-run-a-function-from-a-script-in-command-line
 "$@"

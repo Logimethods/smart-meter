@@ -4,7 +4,7 @@
 
 import sbt.Keys.{artifactPath, libraryDependencies, mainClass, managedClasspath, name, organization, packageBin, resolvers, version}
 
-logLevel := Level.Debug
+// logLevel := Level.WARN
 
 val rootName = "smart-meter"
 name := "docker-" + rootName + "-app-batch"
