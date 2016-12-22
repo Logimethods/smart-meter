@@ -115,10 +115,8 @@ docker service create \
 	logimethods/nats-reporter
 }
 
-create_cassandra_tables() {
-# Create the Cassandra Tables
-echo "Will create the Cassandra Messages Table"
-until docker exec -it $(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f '/cql/create-timeseries.cql'; do echo "Try again to create the Cassandra Time Series Table"; sleep 4; done
+call_cassandra_cql() {
+	until docker exec -it $(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
 }
 
 create_service_cassandra-inject() {
