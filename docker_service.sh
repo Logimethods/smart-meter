@@ -216,6 +216,12 @@ wait_service() {
 	done
 }
 
+### LOGS ###
+
+logs_service() {
+	docker logs $(docker ps | grep "$1" | rev | cut -d' ' -f1 | rev)
+}
+
 ### Actual CMD ###
 
 # See http://stackoverflow.com/questions/8818119/linux-how-can-i-run-a-function-from-a-script-in-command-line

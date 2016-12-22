@@ -125,9 +125,11 @@ def run_app_batch():
 		["build", "app-batch"],
 		create_service_cassandra,
 		create_service_spark_master,
-		["wait", "service", "spark-master"]
+		["wait", "service", "spark-master"],
 		create_service_spark_slave,
-		["wait", "service", "cassandra"]
-		create_service_app_batch
+		["wait", "service", "cassandra"],
+		create_service_app_batch,
+		["wait", "service", "app-batch"],
+		["logs", "service", "app-batch"]
 		])
-	
+
