@@ -211,40 +211,41 @@ build_nats-server() {
 
 ### WAIT ###
 
-service_is_ready() {
-	docker ps | while read -r line
-	do
-		tokens=( $line )
-		full_name=${tokens[1]}
-		name=${full_name##*:}
-		if [ "$name" == "$1" ] ; then
-			return 0
-		fi
-	done
-
-	docker service ls | while read -r line
-	do
-		tokens=( $line )
-		name=${tokens[1]}
-		if [ "$name" == "$1" ] ; then
-			replicas=${tokens[3]}
-			actual=${replicas%%/*}
-			expected=${replicas##*/}
-			#echo "$actual : $expected"
-			if [ "$actual" == "$expected" ] ; then
-				return 0
-			else
-				return 1
-			fi
-		fi
-	done
-	return 1
-}
-
 wait_service() {
+	# http://unix.stackexchange.com/questions/213110/exiting-a-shell-script-with-nested-loops
 	echo "Waiting for the $1 Service to Start"
-	until service_is_ready $1
-	do 
+	while : 
+	do
+		echo "--------- $1 ----------"
+		docker ps | while read -r line
+		do
+			tokens=( $line )
+			full_name=${tokens[1]}
+			name=${full_name##*:}
+			if [ "$name" == "$1" ] ; then
+				exit 1
+			fi
+		done
+		[[ $? != 0 ]] && exit 0
+	
+		docker service ls | while read -r line
+		do
+			tokens=( $line )
+			name=${tokens[1]}
+			if [ "$name" == "$1" ] ; then
+				replicas=${tokens[3]}
+				actual=${replicas%%/*}
+				expected=${replicas##*/}
+				#echo "$actual : $expected"
+				if [ "$actual" == "$expected" ] ; then
+					exit 1
+				else
+					break
+				fi
+			fi
+		done
+		[[ $? != 0 ]] && exit 0
+		
 		sleep 2
 	done
 }
