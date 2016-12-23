@@ -130,6 +130,12 @@ def run_app_batch():
 		["wait", "service", "spark-master"],
 		create_service_spark_slave,
 		["wait", "service", "cassandra"],
-		["run", "image", "app-batch"],
+		["run", "image", 
+			"-e", "SPARK_MASTER_URL=spark://spark-master:7077", 
+#			"-e", "CASSANDRA_URL=\"$(docker ps | grep \'cassandra\' | rev | cut -d' ' -f1 | rev)\"", 
+			"-e", "CASSANDRA_URL=cassandra", 
+			"logimethods/smart-meter:app-batch-"+postfix],
+#		["wait", "service", "app-batch"],
+#		["logs", "service", "app-batch"]
 		])
 

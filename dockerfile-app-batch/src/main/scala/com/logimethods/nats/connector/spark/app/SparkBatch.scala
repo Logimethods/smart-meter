@@ -34,16 +34,17 @@ object SparkBatch extends App {
 
 			val spark = SparkSession
     			.builder()
+    			.master(sparkMasterUrl)
     			.appName("SparkSessionZipsExample")
     			.config("spark.cassandra.connection.host", cassandraUrl)
     			//   .config("spark.sql.warehouse.dir", warehouseLocation)
-    			.enableHiveSupport()
+    			//.enableHiveSupport()
     			.getOrCreate()
 
 			spark
     			.read
     			.format("org.apache.spark.sql.cassandra")
-    			.options(Map("keyspace" -> "test", "table" -> "words"))
+    			.options(Map("keyspace" -> "smartmeter", "table" -> "raw_voltage_data"))
     			.load
     			.createOrReplaceTempView("words")
 }

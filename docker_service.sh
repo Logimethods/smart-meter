@@ -160,10 +160,10 @@ update_service_scale() {
 ### RUN DOCKER ###
 
 run_image() {
-	name=${1}
-	shift
-	echo "docker run --network smart-meter-net logimethods/smart-meter:${name}${postfix} $@"
-	docker run --network smart-meter-net logimethods/smart-meter:${name}${postfix} $@
+#	name=${1}
+#	shift
+	echo "docker run --network smart-meter-net $@"
+	docker run --network smart-meter-net $@
 }
 
 ### BUILDS ###
