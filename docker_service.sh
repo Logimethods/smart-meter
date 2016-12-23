@@ -163,6 +163,7 @@ run_image() {
 	name=${1}
 	shift
 	echo "docker run --network smart-meter-net logimethods/smart-meter:${name}${postfix} $@"
+	docker run --network smart-meter-net logimethods/smart-meter:${name}${postfix} $@
 }
 
 ### BUILDS ###
