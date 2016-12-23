@@ -21,7 +21,7 @@ val natsConnectorSparkVersion = "0.4.0-SNAPSHOT"
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
 libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
-//libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.0.0-M3"
+libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % "2.0.0-M3"
 
 // @see http://stackoverflow.com/questions/30446984/spark-sbt-assembly-deduplicate-different-file-contents-found-in-the-followi
 assemblyMergeStrategy in assembly := {
