@@ -212,6 +212,16 @@ build_nats-server() {
 ### WAIT ###
 
 service_is_ready() {
+	docker ps | while read -r line
+	do
+		tokens=( $line )
+		full_name=${tokens[1]}
+		name=${full_name##*:}
+		if [ "$name" == "$1" ] ; then
+			return 0
+		fi
+	done
+
 	docker service ls | while read -r line
 	do
 		tokens=( $line )
