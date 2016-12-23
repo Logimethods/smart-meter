@@ -46,5 +46,7 @@ object SparkBatch extends App {
     			.format("org.apache.spark.sql.cassandra")
     			.options(Map("keyspace" -> "smartmeter", "table" -> "raw_voltage_data"))
     			.load
-    			.createOrReplaceTempView("words")
+    			.createOrReplaceTempView("raw_voltage_data")
+    			
+    	spark.sql("select * from raw_voltage_data").collect.foreach(println)
 }
