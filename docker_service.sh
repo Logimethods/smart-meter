@@ -7,12 +7,14 @@ shift_nb=0
 while getopts ":r:p:" opt; do
   case $opt in
     r) replicas="$OPTARG"
+    echo "replicas: $replicas"
     ((shift_nb+=2))
     ;;
-    p) postfix="-$OPTARG"
+    p) postfix="$OPTARG"
+    echo "postfix: $postfix"
     ((shift_nb+=2))
     ;;
-    \?) echo "Invalid option -$OPTARG"
+    \?) echo "Invalid option $OPTARG"
     ((shift_nb+=1))
     ;;
   esac
