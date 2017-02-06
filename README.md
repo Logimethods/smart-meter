@@ -3,6 +3,16 @@ To demonstrate a Smart Meter Big Data Application.
 
 ![SmartMeter.png](SmartMeter.png "SmartMeter Architecture")
 
+## Python CLI
+See [start-services.py](start-services.py)
+```
+> python3 -i start-services.py
+>>> run_or_kill_scenario([create_service_cassandra])
+...
+>>> run_app_batch()
+...
+```
+
 ## Excel
 
 ### Install the ODBC Driver
