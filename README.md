@@ -11,6 +11,8 @@ See [start-services.py](start-services.py)
 >>> run_app_batch()
 ...
 >>> run_or_kill_scenario([create_service_cassandra])
+...
+>>> exit()
 ```
 Then, to access to the RAW Voltage Data:
 ```
