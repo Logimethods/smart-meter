@@ -7,10 +7,10 @@ To demonstrate a Smart Meter Big Data Application.
 See [start-services.py](start-services.py)
 ```
 > python3 -i start-services.py
->>> run_or_kill_scenario([create_service_cassandra])
-...
+>>> run_inject_raw_data_into_cassandra()
 >>> run_app_batch()
 ...
+>>> run_or_kill_scenario([create_service_cassandra])
 ```
 
 ## Excel
