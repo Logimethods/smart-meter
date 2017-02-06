@@ -35,3 +35,6 @@ dockerfile-cassandra-inject/go/bin/app
 dockerfile-cassandra/metastore_db/
 
 ~$smartmert_data.xlsx
+
+# Python
+__pycache__/
