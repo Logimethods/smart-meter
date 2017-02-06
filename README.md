@@ -12,6 +12,19 @@ See [start-services.py](start-services.py)
 ...
 >>> run_or_kill_scenario([create_service_cassandra])
 ```
+Then, to access to the RAW Voltage Data:
+```
+> ./cqlsh.sh 
+Connected to Smartmeter Cluster at 127.0.0.1:9042.
+[cqlsh 5.0.1 | Cassandra 3.5 | CQL spec 3.4.0 | Native protocol v4]
+Use HELP for help.
+cqlsh> select * from smartmeter.raw_voltage_data limit 2;
+
+ line | transformer | usagepoint | year | month | day | hour | minute | day_of_week | voltage
+------+-------------+------------+------+-------+-----+------+--------+-------------+-----------
+    3 |           2 |          2 | 2016 |    12 |  24 |    3 |     16 |           6 | 121.15018
+    3 |           2 |          2 | 2016 |    12 |  24 |    3 |      1 |           6 | 121.66259
+```
 
 ## Excel
 
@@ -29,7 +42,7 @@ See [start-services.py](start-services.py)
 
 ### Connect to the External Data from Excel using the `iODBC Data Source Chooser` (File DSN)
 
-* You might use the SQL syntax, such as `select * from raw_voltage_data limit 10;`
+* You might use the SQL syntax, such as `select * from smartmeter.raw_voltage_data limit 10;`
 * Et Voilà!
 
 ![from_Cassandra_2_Excel.png](excel/from_Cassandra_2_Excel.png)
