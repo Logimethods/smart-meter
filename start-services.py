@@ -15,7 +15,7 @@ def update_replicas(service, replicas):
 	param = service.name + "=" + str(replicas)
 	subprocess.run(["docker", "service", "scale", param])
 
-def create_service(name, replicas, postfix):
+def run_service(name, replicas, postfix):
 	if replicas > 0:
 		subprocess.run(["bash", "docker_service.sh", "-r", str(replicas), "-p", postfix, "create_service_" + name])
 
@@ -29,12 +29,12 @@ def get_service(name):
 			return service
 	return None
 
-def create_or_update_service(name, replicas, postfix):
+def create_service(name, replicas, postfix):
 	service = get_service(name)
 	if service is not None:
 		update_replicas(service, replicas)
 	else:
-		create_service(name, replicas, postfix)
+		run_service(name, replicas, postfix)
 
 def create_network():
 	client.networks.create("smart-meter-net", driver="overlay")
@@ -83,7 +83,7 @@ def run_scenario(steps):
 		steps = [steps]
 	for step in steps:
 		if step[0] == "create_service" :
-			create_or_update_service(step[1], step[2], postfix)
+			create_service(step[1], step[2], postfix)
 		else:
 			call(step[0], step[1], step[2:])
 
@@ -102,7 +102,7 @@ def run_or_kill_scenario(steps):
 	#
 	print("All of those services will be desactivated: " + str(all_remaining_services))
 	for name in all_remaining_services:
-		create_or_update_service(name, 0, postfix)
+		create_service(name, 0, postfix)
 	# Finaly, run the requested scenario
 	run_scenario(steps)
 
@@ -131,12 +131,11 @@ def run_app_batch():
 		["wait", "service", "spark-master"],
 		create_service_spark_slave,
 		["wait", "service", "cassandra"],
-		["run", "image", 
-			"-e", "SPARK_MASTER_URL=spark://spark-master:7077", 
-#			"-e", "CASSANDRA_URL=\"$(docker ps | grep \'cassandra\' | rev | cut -d' ' -f1 | rev)\"", 
-			"-e", "CASSANDRA_URL=cassandra", 
+		["run", "image",
+			"-e", "SPARK_MASTER_URL=spark://spark-master:7077",
+#			"-e", "CASSANDRA_URL=\"$(docker ps | grep \'cassandra\' | rev | cut -d' ' -f1 | rev)\"",
+			"-e", "CASSANDRA_URL=cassandra",
 			"logimethods/smart-meter:app-batch"+postfix],
 #		["wait", "service", "app-batch"],
 #		["logs", "service", "app-batch"]
 		])
-
