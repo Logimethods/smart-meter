@@ -16,7 +16,7 @@ See [start-services.py](start-services.py)
 ```
 Then, to access to the RAW Voltage Data:
 ```
-> ./cqlsh.sh 
+> ./cqlsh.sh
 Connected to Smartmeter Cluster at 127.0.0.1:9042.
 [cqlsh 5.0.1 | Cassandra 3.5 | CQL spec 3.4.0 | Native protocol v4]
 Use HELP for help.
@@ -26,6 +26,15 @@ cqlsh> select * from smartmeter.raw_voltage_data limit 2;
 ------+-------------+------------+------+-------+-----+------+--------+-------------+-----------
     3 |           2 |          2 | 2016 |    12 |  24 |    3 |     16 |           6 | 121.15018
     3 |           2 |          2 | 2016 |    12 |  24 |    3 |      1 |           6 | 121.66259
+```
+
+## Local DEV
+```
+> ./build-local.sh
+> ./stop.sh
+> python3 -i start-services.py "local"
+Images will be postfixed by -local
+>>>
 ```
 
 ## Excel
