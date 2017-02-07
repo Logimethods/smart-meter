@@ -3,6 +3,15 @@
 //@see https://velvia.github.io/Docker-Scala-Sbt/
 
 import sbt.Keys.{artifactPath, libraryDependencies, mainClass, managedClasspath, name, organization, packageBin, resolvers, version}
+import com.typesafe.config.{ConfigFactory, Config}
+import java.util.Properties
+
+val appProperties = settingKey[Properties]("The application properties")
+appProperties := {
+  val prop = new Properties()
+  IO.load(prop, new File("../configuration.properties"))
+  prop
+}
 
 // logLevel := Level.Debug
 
@@ -16,12 +25,28 @@ resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/
 
 version := "0.4.0-SNAPSHOT"
 scalaVersion := "2.11.8"
-val sparkVersion = "2.0.1"
-val natsConnectorSparkVersion = "0.4.0-SNAPSHOT"
 
-libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion % "provided"
-libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion
-libraryDependencies += "com.logimethods"  %% "nats-connector-spark-scala" % natsConnectorSparkVersion changing()
+lazy val sparkVersion = settingKey[String]("sparkVersion")
+sparkVersion := {
+  try {
+    appProperties.value.getProperty("spark_version")
+  } catch {
+    case _: Exception => "<empty>"
+  }
+}
+
+lazy val natsConnectorSparkVersion = settingKey[String]("natsConnectorSparkVersion")
+natsConnectorSparkVersion := {
+  try {
+    appProperties.value.getProperty("nats_connector_spark_version")
+  } catch {
+    case _: Exception => "<empty>"
+  }
+}
+
+libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
+libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion.value
+libraryDependencies += "com.logimethods"  %% "nats-connector-spark-scala" % natsConnectorSparkVersion.value changing()
 
 // @see http://stackoverflow.com/questions/30446984/spark-sbt-assembly-deduplicate-different-file-contents-found-in-the-followi
 assemblyMergeStrategy in assembly := {
@@ -61,7 +86,7 @@ dockerfile in docker := {
     // Use a base image that contain Scala
 //    from("williamyeh/scala:2.10.4")
     from("frolvlad/alpine-scala:2.11")
-    
+
     // Set the log4j.properties
     run("mkdir", "-p", "/usr/local/spark/conf")
     env("SPARK_HOME", "/usr/local/spark")
@@ -72,7 +97,7 @@ dockerfile in docker := {
     copy(classpath.files, "/app/")
     // Add the JAR file
     copy(jarFile, jarTarget)
-    
+
     // On launch run Scala with the classpath and the main class
     // @see https://mail-archives.apache.org/mod_mbox/spark-dev/201312.mbox/%3CCAPh_B=ass2NcrN41t7KTSoF1SFGce=N57YMVyukX4hPcO5YN2Q@mail.gmail.com%3E
     // @see http://apache-spark-user-list.1001560.n3.nabble.com/spark-1-6-Issue-td25893.html
@@ -102,7 +127,7 @@ dockerFileTask := {
     // Use a base image that contain Scala
 //    from("williamyeh/scala:2.10.4")
     from("frolvlad/alpine-scala:2.11")
-        
+
     // Set the log4j.properties
     run("mkdir", "-p", "/usr/local/spark/conf")
     env("SPARK_HOME", "/usr/local/spark")
@@ -113,7 +138,7 @@ dockerFileTask := {
     copy(classpath.files, "/app/")
     // Add the JAR file
     copy(jarFile, jarTarget)
-    
+
     // On launch run Scala with the classpath and the main class
     // @see https://mail-archives.apache.org/mod_mbox/spark-dev/201312.mbox/%3CCAPh_B=ass2NcrN41t7KTSoF1SFGce=N57YMVyukX4hPcO5YN2Q@mail.gmail.com%3E
     // @see http://apache-spark-user-list.1001560.n3.nabble.com/spark-1-6-Issue-td25893.html
@@ -129,4 +154,3 @@ dockerFileTask := {
 }
 
 dockerFileTask <<= dockerFileTask.dependsOn(compile in Compile, dockerfile in docker)
-

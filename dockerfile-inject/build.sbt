@@ -3,6 +3,15 @@
 //@see https://velvia.github.io/Docker-Scala-Sbt/
 
 import sbt.Keys.{artifactPath, libraryDependencies, mainClass, managedClasspath, name, organization, packageBin, resolvers, version}
+import com.typesafe.config.{ConfigFactory, Config}
+import java.util.Properties
+
+val appProperties = settingKey[Properties]("The application properties")
+appProperties := {
+  val prop = new Properties()
+  IO.load(prop, new File("../configuration.properties"))
+  prop
+}
 
 logLevel := Level.Debug
 
@@ -13,13 +22,29 @@ val tag = "inject-local"
 
 version := "0.4.0-SNAPSHOT"
 scalaVersion := "2.11.8"
-val gatlingVersion = "2.2.2"
-val natsConnectorGatlingVersion = "0.4.0-SNAPSHOT"
 
-libraryDependencies += "com.logimethods" %% "nats-connector-gatling" % natsConnectorGatlingVersion changing()
+lazy val gatlingVersion = settingKey[String]("gatlingVersion")
+gatlingVersion := {
+  try {
+    appProperties.value.getProperty("gatling_version")
+  } catch {
+    case _: Exception => "<empty>"
+  }
+}
+
+lazy val natsConnectorGatlingVersion = settingKey[String]("natsConnectorGatlingVersion")
+natsConnectorGatlingVersion := {
+  try {
+    appProperties.value.getProperty("nats_connector_gatling_version")
+  } catch {
+    case _: Exception => "<empty>"
+  }
+}
+
+libraryDependencies += "com.logimethods" %% "nats-connector-gatling" % natsConnectorGatlingVersion.value changing()
 // https://mvnrepository.com/artifact/org.scalanlp/breeze_2.11
 libraryDependencies += "org.scalanlp" % "breeze_2.11" % "0.12"
-libraryDependencies += "io.gatling" % "gatling-core" % gatlingVersion
+libraryDependencies += "io.gatling" % "gatling-core" % gatlingVersion.value
 
 // http://www.scalatest.org/install
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0"
@@ -49,7 +74,7 @@ dockerfile in docker := {
     copy(jarFile, jarTarget)
     // Add Gatling User Files
     add(baseDirectory.value / "user-files", "./user-files")
-    
+
 //    cmd("--no-reports", "-s", "com.logimethods.smartmeter.inject.NatsInjection")
   }
 }

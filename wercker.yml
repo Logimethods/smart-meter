@@ -1,6 +1,10 @@
 box: hseeberger/scala-sbt
 build:
   steps:
+    - script:
+        name: Set properties to Dockerfile
+        code: |
+        ./set_properties_to_dockerfile_templates.sh
     - install-packages:
         name: install git
         packages: git vim

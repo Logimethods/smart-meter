@@ -1,4 +1,4 @@
 # https://hub.docker.com/_/cassandra/
-FROM cassandra:3.5
+FROM cassandra:${cassandra_version}
 
 COPY /cql /cql

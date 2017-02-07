@@ -1,3 +1,7 @@
+#!/bin/bash
+
+. set_properties_to_dockerfile_templates.sh
+
 pushd dockerfile-inject
 sbt update
 sbt docker

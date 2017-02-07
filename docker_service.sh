@@ -22,10 +22,9 @@ done
 
 shift $shift_nb
 
-# ./start-services.sh "-local"
-
-NATS_USERNAME="smartmeter"
-NATS_PASSWORD="xyz1234"
+# source the properties:
+# https://coderanch.com/t/419731/read-properties-file-script
+. configuration.properties
 
 create_network() {
 	docker network create --driver overlay --attachable smart-meter-net
@@ -58,7 +57,7 @@ docker service create \
 	--replicas=${replicas} \
 	--constraint 'node.role == manager' \
 	--log-driver=json-file \
-	gettyimages/spark:2.0.2-hadoop-2.7
+	gettyimages/spark:${spark_version}-hadoop-${hadoop_version}
 }
 
 create_service_spark-slave() {
@@ -67,7 +66,7 @@ docker service create \
 	-e SERVICE_NAME=spark-slave \
 	--network smart-meter-net \
 	--replicas=${replicas} \
-	gettyimages/spark:2.0.2-hadoop-2.7 \
+	gettyimages/spark:${spark_version}-hadoop-${hadoop_version} \
 		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
 }
 
@@ -103,7 +102,7 @@ docker service create \
 	-e CASSANDRA_URL=$(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
 	--network smart-meter-net \
 	--replicas=${replicas} \
-	logimethods/smart-meter:app-batch${postfix} 
+	logimethods/smart-meter:app-batch${postfix}
 }
 
 create_service_monitor() {
@@ -217,7 +216,7 @@ build_nats-server() {
 wait_service() {
 	# http://unix.stackexchange.com/questions/213110/exiting-a-shell-script-with-nested-loops
 	echo "Waiting for the $1 Service to Start"
-	while : 
+	while :
 	do
 		echo "--------- $1 ----------"
 		docker ps | while read -r line
@@ -230,7 +229,7 @@ wait_service() {
 			fi
 		done
 		[[ $? != 0 ]] && exit 0
-	
+
 		docker service ls | while read -r line
 		do
 			tokens=( $line )
@@ -248,7 +247,7 @@ wait_service() {
 			fi
 		done
 		[[ $? != 0 ]] && exit 0
-		
+
 		sleep 2
 	done
 }
