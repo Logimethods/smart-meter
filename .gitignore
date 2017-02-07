@@ -39,4 +39,4 @@ dockerfile-cassandra/metastore_db/
 # Python
 __pycache__/
 
-dockerfile-cassandra/Dockerfile
+# dockerfile-cassandra/Dockerfile
