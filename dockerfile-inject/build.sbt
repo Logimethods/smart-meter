@@ -67,7 +67,7 @@ dockerfile in docker := {
 
   new Dockerfile {
     // Use a base image that contain Gatling
-	from("denvazh/gatling:" + gatlingVersion)
+	from("denvazh/gatling:" + gatlingVersion.value)
     // Add all files on the classpath
     add(classpath.files, "./lib/")
     // Add the JAR file
@@ -95,7 +95,7 @@ dockerFileTask := {
 
   val dockerFile = new Dockerfile {
     // Use a base image that contain Gatling
-	from("denvazh/gatling:" + gatlingVersion)
+	from("denvazh/gatling:" + gatlingVersion.value)
     // Add all files on the classpath
     add(classpath.files, "./lib/")
     // Add the JAR file
