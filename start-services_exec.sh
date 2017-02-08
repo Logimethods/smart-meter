@@ -182,9 +182,11 @@ build_app-streaming() {
 }
 
 build_app-batch() {
-	pushd dockerfile-app-batch
-	sbt --warn update docker
-	popd
+  ./set_properties_to_dockerfile_templates.sh
+  pushd dockerfile-app-batch
+  sbt update assembly
+  docker build -t logimethods/smart-meter:app-batch-local .
+  popd
 }
 
 build_monitor() {
@@ -194,18 +196,21 @@ build_monitor() {
 }
 
 build_cassandra() {
+  ./set_properties_to_dockerfile_templates.sh
 	pushd dockerfile-cassandra
 	docker build -t logimethods/smart-meter:cassandra-local .
 	popd
 }
 
 build_cassandra-inject() {
+  ./set_properties_to_dockerfile_templates.sh
 	pushd dockerfile-cassandra-inject
 	docker build -t logimethods/smart-meter:cassandra-inject-local .
 	popd
 }
 
 build_nats-server() {
+  ./set_properties_to_dockerfile_templates.sh
 	pushd dockerfile-nats-server
 	docker build -t logimethods/smart-meter:nats-server-local .
 	popd

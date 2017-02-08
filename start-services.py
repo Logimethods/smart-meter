@@ -125,7 +125,7 @@ def run_app_batch():
 	run_or_kill_scenario([
 		create_network,
 		stop_service_app_batch,
-		["build", "app-batch"],
+#		["build", "app-batch"],
 		create_service_cassandra,
 		create_service_spark_master,
 		["wait", "service", "spark-master"],

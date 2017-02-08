@@ -47,6 +47,6 @@ object SparkBatch extends App {
     			.options(Map("keyspace" -> "smartmeter", "table" -> "raw_voltage_data"))
     			.load
     			.createOrReplaceTempView("raw_voltage_data")
-    			
-    	spark.sql("select * from raw_voltage_data").collect.foreach(println)
+
+    	spark.sql("select * from raw_voltage_data limit 10").collect.foreach(println)
 }

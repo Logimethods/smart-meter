@@ -15,9 +15,8 @@ sbt eclipse
 popd
 
 pushd dockerfile-app-batch
-sbt update
-sbt docker
-sbt eclipse
+sbt update assembly eclipse
+docker build -t logimethods/smart-meter:app-batch-local .
 popd
 
 pushd dockerfile-monitor
