@@ -57,7 +57,7 @@ docker service create \
 	--replicas=${replicas} \
 	--constraint 'node.role == manager' \
 	--log-driver=json-file \
-	gettyimages/spark:${spark_version}-hadoop-${hadoop_version}
+	${spark_image}:${spark_version}-hadoop-${hadoop_version}
 }
 
 create_service_spark-slave() {
@@ -66,7 +66,7 @@ docker service create \
 	-e SERVICE_NAME=spark-slave \
 	--network smart-meter-net \
 	--replicas=${replicas} \
-	gettyimages/spark:${spark_version}-hadoop-${hadoop_version} \
+	${spark_image}:${spark_version}-hadoop-${hadoop_version} \
 		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
 }
 
