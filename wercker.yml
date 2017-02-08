@@ -35,7 +35,8 @@ build:
         name: build APP BATCH dockerfile
         code: |
           pushd dockerfile-app-batch
-          sbt clean assembly
+          sbt clean update assembly
+          rm -Rf ./docker
           popd
     - script:
         name: build INJECT dockerfile
