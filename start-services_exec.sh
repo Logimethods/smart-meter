@@ -182,11 +182,18 @@ build_app-streaming() {
 }
 
 build_app-batch() {
-  ./set_properties_to_dockerfile_templates.sh
-  pushd dockerfile-app-batch
-  sbt update assembly
-  docker build -t logimethods/smart-meter:app-batch-local .
-  popd
+  if [ "${postfix}" == "local" ]
+  then
+    ./set_properties_to_dockerfile_templates.sh
+    pushd dockerfile-app-batch
+    echo "docker build -t logimethods/smart-meter:app-batch-local ."
+    sbt update assembly
+    docker build -t logimethods/smart-meter:app-batch-local .
+    popd
+  else
+    echo "docker pull logimethods/smart-meter:app-batch${postfix}"
+    docker pull logimethods/smart-meter:app-batch${postfix}
+  fi
 }
 
 build_monitor() {
