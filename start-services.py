@@ -17,10 +17,10 @@ def update_replicas(service, replicas):
 
 def run_service(name, replicas, postfix):
 	if replicas > 0:
-		subprocess.run(["bash", "docker_service.sh", "-r", str(replicas), "-p", postfix, "create_service_" + name])
+		subprocess.run(["bash", "start-services_exec.sh", "-r", str(replicas), "-p", postfix, "create_service_" + name])
 
 def call(type, name, parameters):
-	subprocess.run(["bash", "docker_service.sh", "-p", postfix, type + "_" + name] + parameters)
+	subprocess.run(["bash", "start-services_exec.sh", "-p", postfix, type + "_" + name] + parameters)
 
 def get_service(name):
 	services = client.services.list()
