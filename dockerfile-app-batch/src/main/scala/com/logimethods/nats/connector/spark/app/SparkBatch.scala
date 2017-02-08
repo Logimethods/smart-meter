@@ -41,12 +41,45 @@ object SparkBatch extends App {
     			//.enableHiveSupport()
     			.getOrCreate()
 
-			spark
+  		spark
     			.read
     			.format("org.apache.spark.sql.cassandra")
     			.options(Map("keyspace" -> "smartmeter", "table" -> "raw_voltage_data"))
     			.load
     			.createOrReplaceTempView("raw_voltage_data")
 
-    	spark.sql("select * from raw_voltage_data limit 10").collect.foreach(println)
+			val rawVoltageData = spark.sql("select * from raw_voltage_data")
+			rawVoltageData.show(10)
+      /**
+      > ./run_spark_shell.sh
+      scala> rawVoltageData.show(10)
+      +----+-----------+----------+----+-----+---+----+------+-----------+----------+ 
+      |line|transformer|usagepoint|year|month|day|hour|minute|day_of_week|   voltage|
+      +----+-----------+----------+----+-----+---+----+------+-----------+----------+
+      |   1|          1|         2|2016|   12| 24|   3|    16|          6| 118.69983|
+      |   1|          1|         2|2016|   12| 24|   3|     1|          6| 118.20401|
+      |   1|          1|         2|2016|   12| 24|   2|    46|          6|116.174644|
+      |   1|          1|         2|2016|   12| 24|   2|    31|          6| 118.22744|
+
+      **/
+    	   	
+      val byTransformer = rawVoltageData.groupBy("line", "transformer", "year", "month", "day")
+      val avgByTransformer = byTransformer.avg("voltage").withColumnRenamed("avg(voltage)", "voltage_avg")
+      avgByTransformer.show(10)
+      /**
+      scala> byTransformer.avg("voltage").show()
+      +----+-----------+----+-----+---+------------------+                            
+      |line|transformer|year|month|day|      avg(voltage)|
+      +----+-----------+----+-----+---+------------------+
+      |   1|          2|2016|   12| 24|115.20123254685174|
+      |   3|          2|2016|   12| 24|119.44731685093471|
+      |   1|          2|2016|   12| 23|114.10264686916186|
+      |   2|          3|2016|   12| 24|117.94807270595005|
+          	
+      **/
+    	
+      // @see http://stackoverflow.com/questions/40324153/what-is-the-best-way-to-insert-update-rows-in-cassandra-table-via-java-spark
+      //Save data to Cassandra
+      import org.apache.spark.sql.SaveMode
+      avgByTransformer.write.format("org.apache.spark.sql.cassandra").options(Map("keyspace" -> "smartmeter", "table" -> "avg_voltage_by_transformer")).mode(SaveMode.Overwrite).save();
 }

@@ -55,6 +55,6 @@ natsConnectorSparkVersion := {
 
  libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
  libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion.value % "provided"
-// libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % sparkCassandraConnectorVersion.value
+ libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % sparkCassandraConnectorVersion.value
 
 assemblyJarName in assembly := "docker-smart-meter-app-batch-assembly.jar"
