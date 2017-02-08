@@ -188,6 +188,8 @@ build_app-batch() {
     pushd dockerfile-app-batch
     echo "docker build -t logimethods/smart-meter:app-batch-local ."
     sbt update assembly
+    mkdir -p libs
+    mv target/scala-*/*.jar libs/
     docker build -t logimethods/smart-meter:app-batch-local .
     popd
   else

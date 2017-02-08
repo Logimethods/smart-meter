@@ -37,6 +37,8 @@ build:
           pushd dockerfile-app-batch
           sbt clean update assembly
           rm -Rf ./docker
+          mkdir -p libs
+          mv target/scala-*/*.jar libs/
           popd
     - script:
         name: build INJECT dockerfile

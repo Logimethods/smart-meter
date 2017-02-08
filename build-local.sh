@@ -16,6 +16,8 @@ popd
 
 pushd dockerfile-app-batch
 sbt update assembly eclipse
+mkdir -p libs
+mv target/scala-*/*.jar libs/
 docker build -t logimethods/smart-meter:app-batch-local .
 popd
 
