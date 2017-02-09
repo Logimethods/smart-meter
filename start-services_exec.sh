@@ -126,7 +126,7 @@ docker service create \
 	logimethods/nats-reporter
 }
 
-create_service_cassandra-populate() {
+create_service_cassandra-inject() {
 docker service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
@@ -134,7 +134,7 @@ docker service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
 	-e CASSANDRA_URL=$(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
-	logimethods/smart-meter:cassandra-populate${postfix}
+	logimethods/smart-meter:cassandra-inject${postfix}
 }
 
 create_service_inject() {

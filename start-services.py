@@ -48,7 +48,7 @@ create_service_app_streaming = ["create_service", "app-streaming", 1]
 create_service_monitor = ["create_service", "monitor", 1]
 create_service_reporter = ["create_service", "reporter", 1]
 create_cassandra_tables = ["call", "cassandra_cql", "/cql/create-timeseries.cql"]
-create_service_cassandra_populate = ["create_service", "cassandra-populate", 1]
+create_service_cassandra_inject = ["create_service", "cassandra-inject", 1]
 create_service_inject = ["create_service", "inject", 1]
 create_service_app_batch = ["create_service", "app-batch", 1]
 
@@ -59,7 +59,7 @@ stop_service_nats = ["create_service", "nats", 0]
 stop_service_app_streaming = ["create_service", "app-streaming", 0]
 stop_service_monitor = ["create_service", "monitor", 0]
 stop_service_reporter = ["create_service", "reporter", 0]
-stop_service_cassandra_populate = ["create_service", "cassandra-populate", 0]
+stop_service_cassandra_inject = ["create_service", "cassandra-inject", 0]
 stop_service_inject = ["create_service", "inject", 0]
 stop_service_app_batch = ["create_service", "app-batch", 0]
 
@@ -73,7 +73,7 @@ all_steps = [
 	create_service_monitor,
 	create_service_reporter,
 	create_cassandra_tables,
-	create_service_cassandra_populate,
+	create_service_cassandra_inject,
 	create_service_inject,
 	create_service_app_batch
 	]
@@ -116,7 +116,7 @@ def run_inject_raw_data_into_cassandra():
 		create_service_cassandra,
 		create_service_nats,
 		create_cassandra_tables,
-		create_service_cassandra_populate,
+		create_service_cassandra_inject,
 		create_service_inject,
 		["wait", "service", "inject"],
 		["logs", "service", "inject"]
