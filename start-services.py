@@ -36,6 +36,9 @@ def create_service(name, replicas, postfix):
 	else:
 		run_service(name, replicas, postfix)
 
+def rm_service(name):
+	subprocess.run(["docker", "service", "rm", name])
+
 def create_network():
 	client.networks.create("smart-meter-net", driver="overlay")
 
@@ -63,6 +66,17 @@ stop_service_cassandra_inject = ["create_service", "cassandra-inject", 0]
 stop_service_inject = ["create_service", "inject", 0]
 stop_service_app_batch = ["create_service", "app-batch", 0]
 
+rm_service_cassandra = ["rm_service", "cassandra"]
+rm_service_spark_master = ["rm_service", "spark-master"]
+rm_service_spark_slave = ["rm_service", "spark-slave"]
+rm_service_nats = ["rm_service", "nats"]
+rm_service_app_streaming = ["rm_service", "app-streaming"]
+rm_service_monitor = ["rm_service", "monitor"]
+rm_service_reporter = ["rm_service", "reporter"]
+rm_service_cassandra_inject = ["rm_service", "cassandra-inject"]
+rm_service_inject = ["rm_service", "inject"]
+rm_service_app_batch = ["rm_service", "app-batch"]
+
 all_steps = [
 	create_network,
 	create_service_cassandra,
@@ -84,6 +98,8 @@ def run_scenario(steps):
 	for step in steps:
 		if step[0] == "create_service" :
 			create_service(step[1], step[2], postfix)
+		elif step[0] == "rm_service" :
+			rm_service(step[1])
 		else:
 			call(step[0], step[1], step[2:])
 
@@ -112,14 +128,27 @@ def run_all_steps():
 def run_inject_raw_data_into_cassandra():
 	run_or_kill_scenario([
 		create_network,
+		rm_service_inject,
+		rm_service_cassandra_inject,
 		["build", "inject"],
 		create_service_cassandra,
 		create_service_nats,
-		create_cassandra_tables,
+		["wait", "service", "cassandra"],
 		create_service_cassandra_inject,
+		["wait", "service", "nats"],
+		["wait", "service", "cassandra-inject"],
 		create_service_inject,
 		["wait", "service", "inject"],
-		["logs", "service", "inject"]
+		["logs", "service", "cassandra-inject-local"],
+		["logs", "service", "gatling"]
+		])
+
+def run_setup_cassandra():
+	run_or_kill_scenario([
+		create_network,
+		["build", "inject"],
+		create_service_cassandra,
+		create_cassandra_tables,
 		])
 
 def run_app_batch():

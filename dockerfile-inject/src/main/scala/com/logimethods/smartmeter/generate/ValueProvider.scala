@@ -90,6 +90,9 @@ object ProviderUtil {
     val transformerNb = (lineNtransformer / lineNb).toInt
     val usagePointNb = (usersPerSec / (lineNb * transformerNb)).toInt
     
+    print("computeNbOfElements: ")
+    println (lineNb, transformerNb, usagePointNb)
+    
     (lineNb, transformerNb, usagePointNb)
   }  
 }
