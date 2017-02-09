@@ -161,6 +161,27 @@ echo "-----------------------------------------------------------------"
 eval $cmd
 }
 
+run_inject() {
+  echo "GATLING_USERS_PER_SEC: ${GATLING_USERS_PER_SEC}"
+  echo "GATLING_DURATION: ${GATLING_DURATION}"
+  echo "Replicas: $@"
+
+  #docker pull logimethods/smart-meter:inject
+  cmd="docker run \
+    -it \
+  	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
+  	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+    -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
+    -e GATLING_DURATION=${GATLING_DURATION} \
+  	--network smart-meter-net \
+  	logimethods/smart-meter:inject${postfix} \
+  	--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
+}
+
 
 call_cassandra_cql() {
 	until docker exec -it $(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done

@@ -42,6 +42,40 @@ def rm_service(name):
 def create_network():
 	client.networks.create("smart-meter-net", driver="overlay")
 
+## RUN SCENARIO ##
+
+def run(steps):
+	if not isinstance(steps[0], list):
+		steps = [steps]
+	for step in steps:
+		if step[0] == "create_service" :
+			create_service(step[1], step[2], postfix)
+		elif step[0] == "rm_service" :
+			rm_service(step[1])
+		else:
+			call(step[0], step[1], step[2:])
+
+def run_or_kill_scenario(steps):
+	if not isinstance(steps[0], list):
+		steps = [steps]
+	# Collect all existing services names
+	all_remaining_services = []
+	for step in all_steps:
+		if step[0] == "create_service" :
+			all_remaining_services.append(step[1])
+	# Remove all requested services
+	for step in steps:
+		if (step[0] == "create_service") and (step[2] > 0):
+			all_remaining_services.remove(step[1])
+	#
+	print("All of those services will be desactivated: " + str(all_remaining_services))
+	for name in all_remaining_services:
+		create_service(name, 0, postfix)
+	# Finaly, run the requested scenario
+	run(steps)
+
+## PREDEFINED STEPS ##
+
 create_network = ["create", "network"]
 create_service_cassandra = ["create_service", "cassandra", 1]
 create_service_spark_master = ["create_service", "spark-master", 1]
@@ -92,36 +126,6 @@ all_steps = [
 	create_service_app_batch
 	]
 
-def run(steps):
-	if not isinstance(steps[0], list):
-		steps = [steps]
-	for step in steps:
-		if step[0] == "create_service" :
-			create_service(step[1], step[2], postfix)
-		elif step[0] == "rm_service" :
-			rm_service(step[1])
-		else:
-			call(step[0], step[1], step[2:])
-
-def run_or_kill_scenario(steps):
-	if not isinstance(steps[0], list):
-		steps = [steps]
-	# Collect all existing services names
-	all_remaining_services = []
-	for step in all_steps:
-		if step[0] == "create_service" :
-			all_remaining_services.append(step[1])
-	# Remove all requested services
-	for step in steps:
-		if (step[0] == "create_service") and (step[2] > 0):
-			all_remaining_services.remove(step[1])
-	#
-	print("All of those services will be desactivated: " + str(all_remaining_services))
-	for name in all_remaining_services:
-		create_service(name, 0, postfix)
-	# Finaly, run the requested scenario
-	run(steps)
-
 ## PREDEFINED SCENARII ##
 
 def run_all_steps():
@@ -139,10 +143,9 @@ def run_inject_raw_data_into_cassandra():
 		create_service_cassandra_inject,
 		["wait", "service", "nats"],
 		["wait", "service", "cassandra-inject"],
-		create_service_inject,
-		["wait", "service", "inject"],
+#		create_service_inject,
+		["run", "inject", "2"],
 		["logs", "service", "cassandra-inject-local"],
-		["logs", "service", "gatling"]
 		])
 
 def run_setup_cassandra():
