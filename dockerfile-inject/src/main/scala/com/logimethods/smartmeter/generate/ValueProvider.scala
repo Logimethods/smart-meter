@@ -54,8 +54,10 @@ class ConsumerInterpolatedVoltageProvider(usersPerSec: Double) extends NatsMessa
       line += 1
     }
     if (line > lineNb) {
+//      println(s"$line, $transformer, $usagePoint")
       line = 1
       date = date.plusMinutes(incr)
+//      println(date)
     }
     
     val value = InterpolatedProfileByUsagePoint.voltageAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))

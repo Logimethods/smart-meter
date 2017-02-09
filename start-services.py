@@ -92,7 +92,7 @@ all_steps = [
 	create_service_app_batch
 	]
 
-def run_scenario(steps):
+def run(steps):
 	if not isinstance(steps[0], list):
 		steps = [steps]
 	for step in steps:
@@ -120,10 +120,12 @@ def run_or_kill_scenario(steps):
 	for name in all_remaining_services:
 		create_service(name, 0, postfix)
 	# Finaly, run the requested scenario
-	run_scenario(steps)
+	run(steps)
+
+## PREDEFINED SCENARII ##
 
 def run_all_steps():
-	run_scenario(all_steps)
+	run(all_steps)
 
 def run_inject_raw_data_into_cassandra():
 	run_or_kill_scenario([

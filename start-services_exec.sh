@@ -127,13 +127,15 @@ docker service create \
 }
 
 create_service_cassandra-inject() {
+CASSANDRA_URL=$(docker ps | grep "cassandra.1" | rev | cut -d' ' -f1 | rev)
+echo "CASSANDRA_URL: ${CASSANDRA_URL}"
 docker service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
 	--replicas=${replicas} \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
-	-e CASSANDRA_URL=$(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
+	-e CASSANDRA_URL=${CASSANDRA_URL} \
 	logimethods/smart-meter:cassandra-inject${postfix}
 }
 
@@ -143,7 +145,7 @@ echo "GATLING_USERS_PER_SEC: ${GATLING_USERS_PER_SEC}"
 echo "GATLING_DURATION: ${GATLING_DURATION}"
 
 #docker pull logimethods/smart-meter:inject
-docker service create \
+cmd="docker service create \
 	--name inject \
 	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
@@ -152,7 +154,11 @@ docker service create \
 	--network smart-meter-net \
 	--replicas=${replicas} \
 	logimethods/smart-meter:inject${postfix} \
-		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection
+		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
+echo "-----------------------------------------------------------------"
+echo "$cmd"
+echo "-----------------------------------------------------------------"
+eval $cmd
 }
 
 
