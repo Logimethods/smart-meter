@@ -25,7 +25,7 @@ import math._
   }
 }*/
 
-class ConsumerInterpolatedVoltageProvider(usersPerSec: Double) extends NatsMessage {
+class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double) extends NatsMessage {
   import java.time._
   import scala.math._
 
@@ -101,7 +101,7 @@ class ConsumerInterpolatedVoltageProvider(usersPerSec: Double) extends NatsMessa
   }
   
   def point(): String = {
-    return (line + "." + transformer + "." + usagePoint)
+    return ((10*slot) + line + "." + transformer + "." + usagePoint)
   }
 }
 

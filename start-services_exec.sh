@@ -151,6 +151,12 @@ cmd="docker service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
   -e GATLING_DURATION=${GATLING_DURATION} \
+  -e SERVICE_ID={{.Service.ID}}
+  -e SERVICE_NAME={{.Service.Name}}
+  -e SERVICE_LABELS={{.Service.Labels}}
+  -e TASK_ID={{.Task.ID}}
+  -e TASK_NAME={{.Task.Name}}
+  -e TASK_SLOT={{.Task.Slot}}
 	--network smart-meter-net \
 	--replicas=${replicas} \
 	logimethods/smart-meter:inject${postfix} \
@@ -173,13 +179,14 @@ run_inject() {
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
+    -e TASK_SLOT={{.Task.Slot}}
   	--network smart-meter-net \
   	logimethods/smart-meter:inject${postfix} \
   	--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  eval $cmd
+  exec $cmd
 }
 
 
