@@ -63,6 +63,27 @@ class ConsumerInterpolatedVoltageProvider(usersPerSec: Double) extends NatsMessa
     usagePoint += 1
 
     return encodePayload(date, value)
+
+    /*
+    val rnd = (random.nextFloat() - 0.5f)
+    try { 
+      val value = InterpolatedProfileByUsagePoint.voltageAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), rnd);
+      usagePoint += 1
+    		  
+      return encodePayload(date, value)      
+    } 
+    catch {
+      case e: Throwable => 
+            val p = point()
+            val o = date.getDayOfWeek().ordinal()
+            val h = date.getHour()
+            println(s"voltageAtDayAndHour FAILED: point= $p , ordinal = $o , hour = $h , random = $rnd")
+            e.printStackTrace()
+            
+    	      usagePoint += 1   	      
+    	      return encodePayload(date, 0.0f)      
+    }   
+    */
   }
   
   def encodePayload(date: LocalDateTime, value: Float): Array[Byte] = {

@@ -37,7 +37,7 @@ class RandnProfile extends Profile {
 
 class ProfileByUsagePoint extends Profile {
   val caseNb = 10
-  val caseFn = (usagePointPK: String) => usagePointPK.hashCode() % caseNb
+  val caseFn = (usagePointPK: String) => usagePointPK.hashCode().abs % caseNb
 
   def demandAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
     case 0 => math.abs(rndValue * (usagePointPK.hashCode() % 100))
