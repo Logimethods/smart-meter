@@ -112,6 +112,7 @@ def run_all_steps():
 def run_inject_raw_data_into_cassandra():
 	run_or_kill_scenario([
 		create_network,
+		["build", "inject"],
 		create_service_cassandra,
 		create_service_nats,
 		create_cassandra_tables,

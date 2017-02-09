@@ -32,10 +32,13 @@ class NatsStreamingInjection extends Simulation {
     println("Will emit messages to " + subject)
     val natsProtocol = NatsStreamingProtocol(natsUrl, clusterID, subject)
     
-    val natsScn = scenario("NATS call").exec(NatsStreamingBuilder(new ConsumerInterpolatedVoltageProvider()))
+    val usersPerSec = System.getenv("GATLING_USERS_PER_SEC").toDouble
+    val duration = System.getenv("GATLING_DURATION").toInt
+	    
+    val natsScn = scenario("NATS call").exec(NatsStreamingBuilder(new ConsumerInterpolatedVoltageProvider(usersPerSec)))
    
     setUp(
-      natsScn.inject(constantUsersPerSec(27) during (1 minute))
+      natsScn.inject(constantUsersPerSec(usersPerSec) during (duration minute))
     ).protocols(natsProtocol)
   }
 }

@@ -20,7 +20,7 @@ class ValueProviderTest extends FunSuite {
     val date = LocalDateTime.now()
     val value = 12345.6789f
     
-    val bytes = new ConsumerInterpolatedVoltageProvider().encodePayload(date, value)
+    val bytes = new ConsumerInterpolatedVoltageProvider(100).encodePayload(date, value)
     // print(new String(ByteBuffer.wrap(bytes).array()))
     
     val tuple = dataDecoder.apply(bytes)    
@@ -30,4 +30,18 @@ class ValueProviderTest extends FunSuite {
     assert(date.withNano(0) == LocalDateTime.ofEpochSecond(tuple._1, 0, ZoneOffset.MIN))
     assert(value == tuple._2)
   }
+
+  test("computeNbOfElements(usersPerSec: Double)") {
+      for(i <- 1 to 21){
+         val nb = math.pow(2, i)
+         val (lineNb, transformerNb, usagePointNb) = ProviderUtil.computeNbOfElements(nb)
+         assert(lineNb > 0)
+         assert(transformerNb > 0)
+         assert(usagePointNb > 0)
+         
+         assert(usagePointNb >= transformerNb)
+         assert(transformerNb >= lineNb)
+      }    
+  }
+
 }

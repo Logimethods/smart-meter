@@ -138,11 +138,17 @@ docker service create \
 }
 
 create_service_inject() {
+
+echo "GATLING_USERS_PER_SEC: ${GATLING_USERS_PER_SEC}"
+echo "GATLING_DURATION: ${GATLING_DURATION}"
+
 #docker pull logimethods/smart-meter:inject
 docker service create \
 	--name inject \
 	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+  -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
+  -e GATLING_DURATION=${GATLING_DURATION} \
 	--network smart-meter-net \
 	--replicas=${replicas} \
 	logimethods/smart-meter:inject${postfix} \

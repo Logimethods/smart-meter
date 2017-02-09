@@ -12,7 +12,7 @@ import com.logimethods.connector.gatling.to_nats.NatsMessage
 import java.nio.ByteBuffer
 import math._
 
-class LoopingValueProvider {
+/*class LoopingValueProvider {
   
   val incr = 10
   val basedValue = 100 -incr
@@ -23,13 +23,15 @@ class LoopingValueProvider {
     actualIncr = (actualIncr % (maxIncr + incr)) + incr
     (basedValue + actualIncr).toString()
   }
-}
+}*/
 
-class ConsumerInterpolatedVoltageProvider extends NatsMessage {
+class ConsumerInterpolatedVoltageProvider(usersPerSec: Double) extends NatsMessage {
   import java.time._
   import scala.math._
 
   val random = scala.util.Random
+  
+  val (lineNb, transformerNb, usagePointNb) = ProviderUtil.computeNbOfElements(usersPerSec)
 
   var line = 1
   var transformer = 1
@@ -37,21 +39,21 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   
   val incr = 15
   var date = LocalDateTime.now()
-  
+      
   def getSubject(): String = {
     return "." + point()
   }
   
   def getPayload(): Array[Byte] = {
-    if (usagePoint > 3) {
+    if (usagePoint > usagePointNb) {
       usagePoint = 1
       transformer += 1
     }
-    if (transformer > 3) {
+    if (transformer > transformerNb) {
       transformer = 1
       line += 1
     }
-    if (line > 3) {
+    if (line > lineNb) {
       line = 1
       date = date.plusMinutes(incr)
     }
@@ -78,4 +80,16 @@ class ConsumerInterpolatedVoltageProvider extends NatsMessage {
   def point(): String = {
     return (line + "." + transformer + "." + usagePoint)
   }
+}
+
+object ProviderUtil {
+  
+  def computeNbOfElements(usersPerSec: Double) = {
+    val lineNtransformer = (math.cbrt(usersPerSec)).toInt
+    val lineNb = (math.cbrt(lineNtransformer)).toInt
+    val transformerNb = (lineNtransformer / lineNb).toInt
+    val usagePointNb = (usersPerSec / (lineNb * transformerNb)).toInt
+    
+    (lineNb, transformerNb, usagePointNb)
+  }  
 }
