@@ -179,7 +179,7 @@ run_inject() {
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
-    -e TASK_SLOT={{.Task.Slot}}
+    -e TASK_SLOT=1
   	--network smart-meter-net \
   	logimethods/smart-meter:inject${postfix} \
   	--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
@@ -189,6 +189,35 @@ run_inject() {
   exec $cmd
 }
 
+run_metrics_grafana() {
+  cmd="docker run -d \
+  -p ${METRICS_GRAFANA_WEB_PORT}:80 -p ${METRICS_GRAPHITE_WEB_PORT}:81 \
+  -p 8125:8125/udp -p 8126:8126 \
+  --network smart-meter-net \
+  --name metrics \
+  kamon/grafana_graphite"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
+}
+
+run_metrics() {
+  cmd="docker run -d\
+   --name metrics\
+   --restart=always\
+   --network smart-meter-net \
+   -p ${METRICS_WEB_PORT}:80\
+   -p 2003-2004:2003-2004\
+   -p 2023-2024:2023-2024\
+   -p 8125:8125/udp\
+   -p 8126:8126\
+   hopsoft/graphite-statsd"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
+}
 
 call_cassandra_cql() {
 	until docker exec -it $(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done

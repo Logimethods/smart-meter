@@ -74,6 +74,8 @@ dockerfile in docker := {
     copy(jarFile, jarTarget)
     // Add Gatling User Files
     add(baseDirectory.value / "user-files", "./user-files")
+    // Add Gatling Configuration Files
+    add(baseDirectory.value / "conf", "./conf")
 
 //    cmd("--no-reports", "-s", "com.logimethods.smartmeter.inject.NatsInjection")
   }
@@ -102,6 +104,8 @@ dockerFileTask := {
     copy(jarFile, jarTarget)
     // Add Gatling User Files
     add(baseDirectory.value / "user-files", "./user-files")
+    // Add Gatling Configuration Files
+    add(baseDirectory.value / "conf", "./conf")
 
 //    cmd("--no-reports", "-s", "com.logimethods.smartmeter.inject.NatsInjection")
   }
