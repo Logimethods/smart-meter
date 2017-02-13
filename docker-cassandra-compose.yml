@@ -1,0 +1,55 @@
+# https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
+version: '2'
+services:
+  cassandra-1:
+    image: logimethods/smart-meter:cassandra
+    container_name: cassandra-1
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-1"
+    ports:
+    - 7000
+    volumes:
+    - "cassandra1:/var/lib/cassandra"
+    restart: always
+  cassandra-2:
+    image: logimethods/smart-meter:cassandra
+    container_name: cassandra-2
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-2"
+      CASSANDRA_SEEDS: "cassandra-1"
+    ports:
+    - 7000:7000
+    depends_on:
+      - cassandra-1
+    volumes:
+    - "cassandra2:/var/lib/cassandra"
+    restart: always
+  cassandra-3:
+    image: logimethods/smart-meter:cassandra
+    container_name: cassandra-3
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: "cassandra-3"
+      CASSANDRA_SEEDS: "cassandra-1"
+    ports:
+    - 7000
+    depends_on:
+      - cassandra-2
+    volumes:
+    - "cassandra3:/var/lib/cassandra"
+    restart: always
+
+volumes:
+  cassandra1:
+    external:
+        name: cassandra-volume-1
+  cassandra2:
+    external:
+        name: cassandra-volume-2
+  cassandra3:
+    external:
+        name: cassandra-volume-3
+
+networks:
+  default:
+    external:
+       name: smart-meter-net
