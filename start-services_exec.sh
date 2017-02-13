@@ -34,7 +34,7 @@ fi
 . configuration.properties
 
 create_network() {
-	docker ${remote} network create --driver overlay --attachable smart-meter-net
+	docker ${remote} network create --driver overlay --attachable smartmeter
 #docker ${remote} service rm $(docker ${remote} service ls -q)
 }
 
@@ -56,7 +56,7 @@ docker-compose ${remote} -f docker-cassandra-compose.yml down
 
 call_cassandra_cql() {
 	# until docker ${remote} exec -it $(docker ${remote} ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
-  docker ${remote} run --rm --net=smart-meter-net logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
+  docker ${remote} run --rm --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
 }
 
 ZZZ_create_service_cassandra() {
@@ -66,7 +66,7 @@ ZZZ_create_service_cassandra() {
 docker ${remote} service create \
 	--name cassandra \
 	--replicas=${replicas} \
-	--network smart-meter-net \
+	--network smartmeter \
 	--mount type=volume,source=cassandra-volume,destination=/var/lib/cassandra \
 	-e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
 	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
@@ -81,7 +81,7 @@ create_service_spark-master() {
 docker ${remote} service create \
 	--name spark-master \
 	-e SERVICE_NAME=spark-master \
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	--constraint 'node.role == manager' \
 	--log-driver=json-file \
@@ -92,7 +92,7 @@ create_service_spark-slave() {
 docker ${remote} service create \
 	--name spark-slave \
 	-e SERVICE_NAME=spark-slave \
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	${spark_image}:${spark_version}-hadoop-${hadoop_version} \
 		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
@@ -101,7 +101,7 @@ docker ${remote} service create \
 create_service_nats() {
 docker ${remote} service create \
 	--name nats \
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	-e NATS_USERNAME=${NATS_USERNAME} \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
@@ -116,7 +116,7 @@ docker ${remote} service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=spark://spark-master:7077 \
 	-e LOG_LEVEL=INFO \
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:app-streaming${postfix} \
 		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
@@ -129,7 +129,7 @@ docker ${remote} service create \
 	-e SPARK_MASTER_URL=spark://spark-master:7077 \
 	-e LOG_LEVEL=INFO \
 	-e CASSANDRA_URL=$(docker ${remote} ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:app-batch${postfix}
 }
@@ -139,7 +139,7 @@ create_service_monitor() {
 docker ${remote} service create \
 	--name monitor \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:monitor${postfix} \
 		"smartmeter.voltage.extract.>"
@@ -149,7 +149,7 @@ create_service_reporter() {
 #docker ${remote} pull logimethods/nats-reporter
 docker ${remote} service create \
 	--name reporter \
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	-p 8888:8080 \
 	logimethods/nats-reporter
@@ -160,7 +160,7 @@ CASSANDRA_URL=$(docker ${remote} ps | grep "cassandra.1" | rev | cut -d' ' -f1 |
 echo "CASSANDRA_URL: ${CASSANDRA_URL}"
 docker ${remote} service create \
 	--name cassandra-inject \
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
@@ -186,7 +186,7 @@ cmd="docker ${remote} service create \
   -e TASK_ID={{.Task.ID}}
   -e TASK_NAME={{.Task.Name}}
   -e TASK_SLOT={{.Task.Slot}}
-	--network smart-meter-net \
+	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:inject${postfix} \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
@@ -209,7 +209,7 @@ run_inject() {
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
     -e TASK_SLOT=1
-  	--network smart-meter-net \
+  	--network smartmeter \
   	logimethods/smart-meter:inject${postfix} \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
   echo "-----------------------------------------------------------------"
@@ -226,7 +226,7 @@ run_metrics_grafana() {
   cmd="docker ${remote} run -d \
   -p ${METRICS_GRAFANA_WEB_PORT}:80 -p ${METRICS_GRAPHITE_WEB_PORT}:81 \
   -p 8125:8125/udp -p 8126:8126 \
-  --network smart-meter-net \
+  --network smartmeter \
   --name metrics \
   kamon/grafana_graphite"
   echo "-----------------------------------------------------------------"
@@ -239,7 +239,7 @@ run_metrics_graphite() {
   cmd="docker ${remote} run -d\
    --name metrics\
    --restart=always\
-   --network smart-meter-net \
+   --network smartmeter \
    -p ${METRICS_WEB_PORT}:80\
    -p 2003-2004:2003-2004\
    -p 2023-2024:2023-2024\
@@ -261,8 +261,8 @@ update_service_scale() {
 run_image() {
 #	name=${1}
 #	shift
-	echo "docker ${remote} run --network smart-meter-net $@"
-	docker ${remote} run --network smart-meter-net $@
+	echo "docker ${remote} run --network smartmeter $@"
+	docker ${remote} run --network smartmeter $@
 }
 
 ### BUILDS ###
