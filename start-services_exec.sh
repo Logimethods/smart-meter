@@ -22,22 +22,48 @@ done
 
 shift $shift_nb
 
+if [ "${postfix}" == "-remote" ]
+then
+  postfix=""
+  remote=" -H localhost:2374 "
+  echo "Will use a REMOTE Docker Cluster"
+fi
+
 # source the properties:
 # https://coderanch.com/t/419731/read-properties-file-script
 . configuration.properties
 
 create_network() {
-	docker network create --driver overlay --attachable smart-meter-net
-#docker service rm $(docker service ls -q)
+	docker ${remote} network create --driver overlay --attachable smart-meter-net
+#docker ${remote} service rm $(docker ${remote} service ls -q)
 }
 
-### Create Service ###
+### Cassandra ###
 
-create_service_cassandra() {
+create_volumes_cassandra() {
+  docker ${remote} volume create --name cassandra-volume-1 -o size=10G
+  docker ${remote} volume create --name cassandra-volume-2 -o size=10G
+  docker ${remote} volume create --name cassandra-volume-3 -o size=10G
+}
+
+create_cluster_cassandra() {
+docker-compose ${remote} -f docker-cassandra-compose.yml up -d
+}
+
+kill_cluster_cassandra() {
+docker-compose ${remote} -f docker-cassandra-compose.yml down
+}
+
+call_cassandra_cql() {
+	# until docker ${remote} exec -it $(docker ${remote} ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
+  docker ${remote} run --rm --net=smart-meter-net logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
+}
+
+ZZZ_create_service_cassandra() {
 # https://hub.docker.com/_/cassandra/
 # http://serverfault.com/questions/806649/docker-swarm-and-volumes
 # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
-docker service create \
+docker ${remote} service create \
 	--name cassandra \
 	--replicas=${replicas} \
 	--network smart-meter-net \
@@ -49,8 +75,10 @@ docker service create \
 	logimethods/smart-meter:cassandra${postfix}
 }
 
+### Create Service ###
+
 create_service_spark-master() {
-docker service create \
+docker ${remote} service create \
 	--name spark-master \
 	-e SERVICE_NAME=spark-master \
 	--network smart-meter-net \
@@ -61,7 +89,7 @@ docker service create \
 }
 
 create_service_spark-slave() {
-docker service create \
+docker ${remote} service create \
 	--name spark-slave \
 	-e SERVICE_NAME=spark-slave \
 	--network smart-meter-net \
@@ -71,18 +99,19 @@ docker service create \
 }
 
 create_service_nats() {
-docker service create \
+docker ${remote} service create \
 	--name nats \
 	--network smart-meter-net \
 	--replicas=${replicas} \
 	-e NATS_USERNAME=${NATS_USERNAME} \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
-	logimethods/smart-meter:nats-server${postfix}
+  -p 8222:8222 \
+	logimethods/smart-meter:nats-server${postfix}  -m 8222
 }
 
 create_service_app-streaming() {
-#docker pull logimethods/smart-meter:app-streaming
-docker service create \
+#docker ${remote} pull logimethods/smart-meter:app-streaming
+docker ${remote} service create \
 	--name app-streaming \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=spark://spark-master:7077 \
@@ -94,20 +123,20 @@ docker service create \
 }
 
 create_service_app-batch() {
-#docker pull logimethods/smart-meter:app-batch
-docker service create \
+#docker ${remote} pull logimethods/smart-meter:app-batch
+docker ${remote} service create \
 	--name app-batch \
 	-e SPARK_MASTER_URL=spark://spark-master:7077 \
 	-e LOG_LEVEL=INFO \
-	-e CASSANDRA_URL=$(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
+	-e CASSANDRA_URL=$(docker ${remote} ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
 	--network smart-meter-net \
 	--replicas=${replicas} \
 	logimethods/smart-meter:app-batch${postfix}
 }
 
 create_service_monitor() {
-#docker pull logimethods/smart-meter:monitor
-docker service create \
+#docker ${remote} pull logimethods/smart-meter:monitor
+docker ${remote} service create \
 	--name monitor \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	--network smart-meter-net \
@@ -117,8 +146,8 @@ docker service create \
 }
 
 create_service_reporter() {
-#docker pull logimethods/nats-reporter
-docker service create \
+#docker ${remote} pull logimethods/nats-reporter
+docker ${remote} service create \
 	--name reporter \
 	--network smart-meter-net \
 	--replicas=${replicas} \
@@ -127,9 +156,9 @@ docker service create \
 }
 
 create_service_cassandra-inject() {
-CASSANDRA_URL=$(docker ps | grep "cassandra.1" | rev | cut -d' ' -f1 | rev)
+CASSANDRA_URL=$(docker ${remote} ps | grep "cassandra.1" | rev | cut -d' ' -f1 | rev)
 echo "CASSANDRA_URL: ${CASSANDRA_URL}"
-docker service create \
+docker ${remote} service create \
 	--name cassandra-inject \
 	--network smart-meter-net \
 	--replicas=${replicas} \
@@ -144,8 +173,8 @@ create_service_inject() {
 echo "GATLING_USERS_PER_SEC: ${GATLING_USERS_PER_SEC}"
 echo "GATLING_DURATION: ${GATLING_DURATION}"
 
-#docker pull logimethods/smart-meter:inject
-cmd="docker service create \
+#docker ${remote} pull logimethods/smart-meter:inject
+cmd="docker ${remote} service create \
 	--name inject \
 	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
@@ -172,8 +201,8 @@ run_inject() {
   echo "GATLING_DURATION: ${GATLING_DURATION}"
   echo "Replicas: $@"
 
-  #docker pull logimethods/smart-meter:inject
-  cmd="docker run \
+  #docker ${remote} pull logimethods/smart-meter:inject
+  cmd="docker ${remote} run \
     -it \
   	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
@@ -182,15 +211,19 @@ run_inject() {
     -e TASK_SLOT=1
   	--network smart-meter-net \
   	logimethods/smart-meter:inject${postfix} \
-  	--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
+		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
   exec $cmd
 }
 
+run_metrics() {
+  run_metrics_grafana
+}
+
 run_metrics_grafana() {
-  cmd="docker run -d \
+  cmd="docker ${remote} run -d \
   -p ${METRICS_GRAFANA_WEB_PORT}:80 -p ${METRICS_GRAPHITE_WEB_PORT}:81 \
   -p 8125:8125/udp -p 8126:8126 \
   --network smart-meter-net \
@@ -202,8 +235,8 @@ run_metrics_grafana() {
   exec $cmd
 }
 
-run_metrics() {
-  cmd="docker run -d\
+run_metrics_graphite() {
+  cmd="docker ${remote} run -d\
    --name metrics\
    --restart=always\
    --network smart-meter-net \
@@ -219,12 +252,8 @@ run_metrics() {
   exec $cmd
 }
 
-call_cassandra_cql() {
-	until docker exec -it $(docker ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
-}
-
 update_service_scale() {
-	docker service scale SERVICE=REPLICAS
+	docker ${remote} service scale SERVICE=REPLICAS
 }
 
 ### RUN DOCKER ###
@@ -232,8 +261,8 @@ update_service_scale() {
 run_image() {
 #	name=${1}
 #	shift
-	echo "docker run --network smart-meter-net $@"
-	docker run --network smart-meter-net $@
+	echo "docker ${remote} run --network smart-meter-net $@"
+	docker ${remote} run --network smart-meter-net $@
 }
 
 ### BUILDS ###
@@ -262,8 +291,8 @@ build_app-batch() {
     docker build -t logimethods/smart-meter:app-batch-local .
     popd
   else
-    echo "docker pull logimethods/smart-meter:app-batch${postfix}"
-    docker pull logimethods/smart-meter:app-batch${postfix}
+    echo "docker ${remote} pull logimethods/smart-meter:app-batch${postfix}"
+    docker ${remote} pull logimethods/smart-meter:app-batch${postfix}
   fi
 }
 
@@ -302,7 +331,7 @@ wait_service() {
 	while :
 	do
 		echo "--------- $1 ----------"
-		docker ps | while read -r line
+		docker ${remote} ps | while read -r line
 		do
 			tokens=( $line )
 			full_name=${tokens[1]}
@@ -313,7 +342,7 @@ wait_service() {
 		done
 		[[ $? != 0 ]] && exit 0
 
-		docker service ls | while read -r line
+		docker ${remote} service ls | while read -r line
 		do
 			tokens=( $line )
 			name=${tokens[1]}
@@ -338,7 +367,7 @@ wait_service() {
 ### LOGS ###
 
 logs_service() {
-	docker logs $(docker ps | grep "$1" | rev | cut -d' ' -f1 | rev)
+	docker ${remote} logs $(docker ${remote} ps | grep "$1" | rev | cut -d' ' -f1 | rev)
 }
 
 ### Actual CMD ###
