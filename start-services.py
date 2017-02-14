@@ -13,7 +13,8 @@ else:
 
 def update_replicas(service, replicas):
 	param = service.name + "=" + str(replicas)
-	subprocess.run(["docker", "service", "scale", param])
+	# subprocess.run(["docker", "service", "scale", param])
+	subprocess.run(["bash", "start-services_exec.sh", "-r", str(replicas), "-p", postfix, "scale_service", param])
 
 def run_service(name, replicas, postfix):
 	if replicas > 0:
@@ -36,11 +37,13 @@ def create_service(name, replicas, postfix):
 	else:
 		run_service(name, replicas, postfix)
 
-def rm_service(name):
-	subprocess.run(["docker", "service", "rm", name])
+def rm_service(name, postfix):
+	# subprocess.run(["docker", "service", "rm", name])
+	print("RM " + name)
+	subprocess.run(["bash", "start-services_exec.sh", "-p", postfix, "rm_service", name])
 
 def create_network():
-	client.networks.create("smart-meter-net", driver="overlay")
+	client.networks.create("smartmeter", driver="overlay")
 
 ## RUN SCENARIO ##
 
@@ -51,7 +54,7 @@ def run(steps):
 		if step[0] == "create_service" :
 			create_service(step[1], step[2], postfix)
 		elif step[0] == "rm_service" :
-			rm_service(step[1])
+			rm_service(step[1], postfix)
 		else:
 			call(step[0], step[1], step[2:])
 
@@ -68,9 +71,9 @@ def run_or_kill_scenario(steps):
 		if (step[0] == "create_service") and (step[2] > 0):
 			all_remaining_services.remove(step[1])
 	#
-	print("All of those services will be desactivated: " + str(all_remaining_services))
+	print("All of those services will be deleted: " + str(all_remaining_services))
 	for name in all_remaining_services:
-		create_service(name, 0, postfix)
+		rm_service(name, postfix)
 	# Finaly, run the requested scenario
 	run(steps)
 
@@ -136,7 +139,7 @@ def run_inject_raw_data_into_cassandra():
 		create_network,
 		rm_service_inject,
 		rm_service_cassandra_inject,
-		["build", "inject"],
+#		["build", "inject"],
 		create_service_cassandra,
 		create_service_nats,
 		["wait", "service", "cassandra"],

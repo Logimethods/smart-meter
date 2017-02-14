@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+
 replicas=1
 postfix=""
 shift_nb=0
@@ -59,7 +61,7 @@ call_cassandra_cql() {
   docker ${remote} run --rm --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
 }
 
-ZZZ_create_service_cassandra() {
+create_service_cassandra() {
 # https://hub.docker.com/_/cassandra/
 # http://serverfault.com/questions/806649/docker-swarm-and-volumes
 # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
@@ -323,6 +325,26 @@ build_nats-server() {
 	popd
 }
 
+### SCALE ###
+
+scale_service() {
+  cmd="docker ${remote} service scale $1"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
+}
+
+### RM ###
+
+rm_service() {
+  cmd="docker ${remote} service rm $1"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
+}
+
 ### WAIT ###
 
 wait_service() {
@@ -375,3 +397,5 @@ logs_service() {
 # See http://stackoverflow.com/questions/8818119/linux-how-can-i-run-a-function-from-a-script-in-command-line
 echo "!!! $@ !!!"
 "$@"
+
+# echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
