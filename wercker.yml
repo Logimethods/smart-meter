@@ -37,6 +37,7 @@ build:
           pushd dockerfile-app-batch
           sbt clean update assembly
           rm -Rf ./docker
+          rm -Rf libs
           mkdir -p libs
           mv target/scala-*/*.jar libs/
           popd
