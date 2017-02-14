@@ -45,7 +45,6 @@ def create_service(name, replicas, postfix):
 
 def rm_service(name, postfix):
 	# subprocess.run(["docker", "service", "rm", name])
-	print("RM " + name)
 	subprocess.run(["bash", "start-services_exec.sh", "-p", postfix, "rm_service", name])
 
 def create_network():
@@ -64,7 +63,7 @@ def run(steps):
 		else:
 			call(step[0], step[1], step[2:])
 
-def run_or_kill_scenario(steps):
+def run_or_kill(steps):
 	if not isinstance(steps[0], list):
 		steps = [steps]
 	# Collect all existing services names
@@ -95,7 +94,7 @@ create_service_monitor = ["create_service", "monitor", 1]
 create_service_reporter = ["create_service", "reporter", 1]
 create_cassandra_tables = ["call", "cassandra_cql", "/cql/create-timeseries.cql"]
 create_service_cassandra_inject = ["create_service", "cassandra-inject", 1]
-create_service_inject = ["create_service", "inject", 3]
+create_service_inject = ["create_service", "inject", 1]
 create_service_app_batch = ["create_service", "app-batch", 1]
 
 stop_service_cassandra = ["create_service", "cassandra", 0]
@@ -140,8 +139,16 @@ all_steps = [
 def run_all_steps():
 	run(all_steps)
 
+def run_setup_cassandra():
+	run_or_kill([
+		create_network,
+		create_service_cassandra,
+		["wait", "service", "cassandra"],
+		create_cassandra_tables,
+		])
+
 def run_inject_raw_data_into_cassandra():
-	run_or_kill_scenario([
+	run_or_kill([
 		create_network,
 		rm_service_inject,
 		rm_service_cassandra_inject,
@@ -157,16 +164,8 @@ def run_inject_raw_data_into_cassandra():
 		["logs", "service", "cassandra-inject-local"],
 		])
 
-def run_setup_cassandra():
-	run_or_kill_scenario([
-		create_network,
-		create_service_cassandra,
-		["wait", "service", "cassandra"],
-		create_cassandra_tables,
-		])
-
 def run_app_batch():
-	run_or_kill_scenario([
+	run_or_kill([
 		create_network,
 		stop_service_app_batch,
 		["build", "app-batch"],
