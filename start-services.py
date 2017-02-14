@@ -151,8 +151,8 @@ def run_inject_raw_data_into_cassandra():
 def run_setup_cassandra():
 	run_or_kill_scenario([
 		create_network,
-		["build", "inject"],
 		create_service_cassandra,
+		["wait", "service", "cassandra"],
 		create_cassandra_tables,
 		])
 
