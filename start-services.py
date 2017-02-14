@@ -3,13 +3,19 @@
 import sys
 import subprocess
 import docker
-client = docker.from_env()
 
 if (len(sys.argv) > 1):
 	postfix = "-" + sys.argv[1]
 	print("Images will be postfixed by " + postfix)
 else:
 	postfix = ""
+
+if (sys.argv[1] == "remote"):
+	client = docker.DockerClient(base_url='tcp://localhost:2374')
+	print("Remote Docker Client")
+else:
+	client = docker.from_env()
+	print("Local Docker Client")
 
 def update_replicas(service, replicas):
 	param = service.name + "=" + str(replicas)
