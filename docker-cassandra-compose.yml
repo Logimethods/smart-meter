@@ -18,7 +18,7 @@ services:
       CASSANDRA_BROADCAST_ADDRESS: "cassandra-2"
       CASSANDRA_SEEDS: "cassandra-1"
     ports:
-    - 7000:7000
+    - 7000
     depends_on:
       - cassandra-1
     volumes:
