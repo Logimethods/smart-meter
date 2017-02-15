@@ -167,9 +167,12 @@ object SparkProcessor extends App {
                             .publishToNatsAsKeyValue(alerts, longIntTupleEncoder)
   }  
   
+ /* val alertReport = alerts.map(
+      {case (subject, (epoch, alert)) 
+          => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), alert.toString())) })*/
   val alertReport = alerts.map(
       {case (subject, (epoch, alert)) 
-          => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), alert.toString())) })
+          => (subject, alert.toString()) })
   SparkToNatsConnectorPool.newPool()
                           .withProperties(properties)
                           .withSubjects(outputAlertSubject.replace("extract", "report"))
