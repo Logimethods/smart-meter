@@ -107,6 +107,7 @@ docker ${remote} service create \
 	--replicas=${replicas} \
 	-e NATS_USERNAME=${NATS_USERNAME} \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
+  -p 4222:4222 \
   -p 8222:8222 \
 	logimethods/smart-meter:nats-server${postfix}  -m 8222
 }
@@ -256,6 +257,19 @@ run_metrics_graphite() {
 
 update_service_scale() {
 	docker ${remote} service scale SERVICE=REPLICAS
+}
+
+run_telegraf() {
+   cmd="docker ${remote} run\
+     -d --rm\
+     --network smartmeter \
+     --name telegraf\
+     -v ./dockerfile-telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro\
+     telegraf:1.2.1-alpine"
+    echo "-----------------------------------------------------------------"
+    echo "$cmd"
+    echo "-----------------------------------------------------------------"
+    exec $cmd
 }
 
 ### RUN DOCKER ###
