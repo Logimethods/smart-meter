@@ -119,6 +119,8 @@ rm_service_cassandra_inject = ["rm_service", "cassandra-inject"]
 rm_service_inject = ["rm_service", "inject"]
 rm_service_app_batch = ["rm_service", "app-batch"]
 
+run_metrics = ["run", "metrics"]
+
 all_steps = [
 	create_network,
 	create_service_cassandra,
@@ -131,7 +133,8 @@ all_steps = [
 	create_cassandra_tables,
 	create_service_cassandra_inject,
 	create_service_inject,
-	create_service_app_batch
+	create_service_app_batch,
+	run_metrics
 	]
 
 ## PREDEFINED SCENARII ##
@@ -140,7 +143,7 @@ def run_all_steps():
 	run(all_steps)
 
 def run_setup_cassandra():
-	run_or_kill([
+	run([
 		create_network,
 		create_service_cassandra,
 		["wait", "service", "cassandra"],
@@ -150,6 +153,7 @@ def run_setup_cassandra():
 def run_inject_raw_data_into_cassandra():
 	run_or_kill([
 		create_network,
+		run_metrics,
 		rm_service_inject,
 		rm_service_cassandra_inject,
 #		["build", "inject"],
