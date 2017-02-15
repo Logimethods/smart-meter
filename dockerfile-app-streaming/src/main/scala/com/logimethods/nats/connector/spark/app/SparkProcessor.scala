@@ -118,9 +118,12 @@ object SparkProcessor extends App {
                             .publishToNatsAsKeyValue(max, longFloatTupleEncoder)
   }
   
+/*  val maxReport = max.map(
+      {case (subject, (epoch, voltage)) 
+          => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), voltage.toString())) })*/
   val maxReport = max.map(
       {case (subject, (epoch, voltage)) 
-          => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), voltage.toString())) })
+          => (subject, voltage.toString()) })
   SparkToNatsConnectorPool.newPool()
                           .withProperties(properties)
                           .withSubjects(outputSubject.replace("extract", "report"))
