@@ -57,8 +57,8 @@ docker-compose ${remote} -f docker-cassandra-compose.yml down
 }
 
 call_cassandra_cql() {
-	# until docker ${remote} exec -it $(docker ${remote} ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
-  docker ${remote} run --rm --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
+	until docker ${remote} exec -it $(docker ${remote} ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
+  # docker ${remote} run --rm --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
 }
 
 create_service_cassandra() {
@@ -67,9 +67,9 @@ create_service_cassandra() {
 # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
 docker ${remote} service create \
 	--name cassandra \
-	--replicas=${replicas} \
 	--network smartmeter \
-	--mount type=volume,source=cassandra-volume,destination=/var/lib/cassandra \
+	--mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
+  --constraint 'node.role == manager' \
 	-e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
 	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
 	-p 9042:9042 \
