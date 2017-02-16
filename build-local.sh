@@ -31,6 +31,10 @@ pushd dockerfile-cassandra
 docker build -t logimethods/smart-meter:cassandra-local .
 popd
 
+pushd dockerfile-telegraf
+docker build -t logimethods/smart-meter:telegraf-local .
+popd
+
 pushd dockerfile-cassandra-inject
 docker build -t logimethods/smart-meter:cassandra-inject-local .
 popd

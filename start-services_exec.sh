@@ -260,12 +260,11 @@ update_service_scale() {
 }
 
 run_telegraf() {
-   cmd="docker ${remote} run\
-     -d --rm\
+   cmd="docker ${remote} run -d\
      --network smartmeter \
      --name telegraf\
-     -v ./dockerfile-telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro\
-     telegraf:1.2.1-alpine"
+     logimethods/smart-meter:telegraf${postfix}\
+       telegraf -config /etc/telegraf/$@.conf"
     echo "-----------------------------------------------------------------"
     echo "$cmd"
     echo "-----------------------------------------------------------------"
