@@ -273,9 +273,9 @@ update_service_scale() {
 
 run_telegraf() {
    CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev)
-   cmd="docker ${remote} run -d\
+   cmd="docker ${remote} run -d --rm\
      --network smartmeter \
-     --name telegraf-$@\
+     --name telegraf_$@\
      -e CASSANDRA_URL=${CASSANDRA_URL} \
      logimethods/smart-meter:telegraf${postfix}\
        telegraf -config /etc/telegraf/$@.conf"

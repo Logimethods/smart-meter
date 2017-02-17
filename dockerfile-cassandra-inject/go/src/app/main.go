@@ -82,6 +82,8 @@ func main() {
 		// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
 		voltage := math.Float32frombits(binary.BigEndian.Uint32(floatBytes))
 	    
+	    // fmt.Print(".")
+	    
 	    /** insert the Data into Cassandra **/
 	    
 		query := "INSERT INTO raw_voltage_data (" +
@@ -98,5 +100,7 @@ func main() {
 	fmt.Println("Ready to store NATS messages into CASSANDRA")
 
 	for {
+		time.Sleep(30 * time.Second)
+		// fmt.Println(time.Now())
 	}
 }
