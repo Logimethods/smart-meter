@@ -9,11 +9,11 @@ shift_nb=0
 while getopts ":r:p:" opt; do
   case $opt in
     r) replicas="$OPTARG"
-    echo "replicas: $replicas"
+    # echo "replicas: $replicas"
     ((shift_nb+=2))
     ;;
     p) postfix="$OPTARG"
-    echo "postfix: $postfix"
+    # echo "postfix: $postfix"
     ((shift_nb+=2))
     ;;
     \?) echo "Invalid option $OPTARG"
@@ -28,7 +28,7 @@ if [ "${postfix}" == "-remote" ]
 then
   postfix=""
   remote=" -H localhost:2374 "
-  echo "Will use a REMOTE Docker Cluster"
+  # echo "Will use a REMOTE Docker Cluster"
 fi
 
 # source the properties:
@@ -57,16 +57,29 @@ docker-compose ${remote} -f docker-cassandra-compose.yml down
 }
 
 call_cassandra_cql() {
-	until docker ${remote} exec -it $(docker ${remote} ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
+	until docker ${remote} exec -it $(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
   # docker ${remote} run --rm --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
 }
 
 create_service_cassandra() {
+  cmd="docker ${remote} run -d --rm \
+    --name ${CASSANDRA_NAME} \
+  	--network smartmeter \
+    -p 8778:8778 \
+    -v cassandra-volume-1:/var/lib/cassandra \
+  	logimethods/smart-meter:cassandra${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
+}
+
+create_full_service_cassandra() {
 # https://hub.docker.com/_/cassandra/
 # http://serverfault.com/questions/806649/docker-swarm-and-volumes
 # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
 docker ${remote} service create \
-	--name cassandra \
+	--name ${CASSANDRA_NAME} \
 	--network smartmeter \
 	--mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
   --constraint 'node.role == manager' \
@@ -131,7 +144,7 @@ docker ${remote} service create \
 	--name app-batch \
 	-e SPARK_MASTER_URL=spark://spark-master:7077 \
 	-e LOG_LEVEL=INFO \
-	-e CASSANDRA_URL=$(docker ${remote} ps | grep "cassandra" | rev | cut -d' ' -f1 | rev) \
+	-e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
 	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:app-batch${postfix}
@@ -159,7 +172,7 @@ docker ${remote} service create \
 }
 
 create_service_cassandra-inject() {
-CASSANDRA_URL=$(docker ${remote} ps | grep "cassandra.1" | rev | cut -d' ' -f1 | rev)
+CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev)
 echo "CASSANDRA_URL: ${CASSANDRA_URL}"
 docker ${remote} service create \
 	--name cassandra-inject \
@@ -206,7 +219,6 @@ run_inject() {
 
   #docker ${remote} pull logimethods/smart-meter:inject
   cmd="docker ${remote} run \
-    -it \
   	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
@@ -260,9 +272,11 @@ update_service_scale() {
 }
 
 run_telegraf() {
+   CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev)
    cmd="docker ${remote} run -d\
      --network smartmeter \
-     --name telegraf\
+     --name telegraf-$@\
+     -e CASSANDRA_URL=${CASSANDRA_URL} \
      logimethods/smart-meter:telegraf${postfix}\
        telegraf -config /etc/telegraf/$@.conf"
     echo "-----------------------------------------------------------------"
@@ -336,6 +350,13 @@ build_nats-server() {
 	pushd dockerfile-nats-server
 	docker build -t logimethods/smart-meter:nats-server-local .
 	popd
+}
+
+build_telegraf() {
+  ./set_properties_to_dockerfile_templates.sh
+	pushd dockerfile-telegraf
+  docker build -t logimethods/smart-meter:telegraf-local .
+  popd
 }
 
 ### SCALE ###
