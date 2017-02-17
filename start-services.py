@@ -160,18 +160,29 @@ def run_inject():
 		["wait", "service", "spark-master"],
 		create_service_spark_slave,
 		create_service_app_streaming,
-#		rm_service_cassandra_inject,
+		rm_service_cassandra_inject,
 #		["build", "inject"],
-#		create_service_cassandra,
+		create_service_cassandra,
 		create_service_nats,
 #		["wait", "service", "cassandra"],
-#		create_service_cassandra_inject,
 		["wait", "service", "nats"],
+		create_service_cassandra_inject,
 		run_telegraf_max_voltage,
+		["run", "telegraf", "cassandra"],
 #		["wait", "service", "cassandra-inject"],
-		create_service_inject,
+		create_service_inject
 #		["run", "inject", "2"],
 #		["logs", "service", "cassandra-inject-local"],
+		])
+
+def monitor_cassandra():
+	run_or_kill([
+		create_network,
+		["build", "cassandra"],
+		run_metrics,
+		create_service_cassandra,
+#		["wait", "service", "cassandra"],
+		["run", "telegraf", "cassandra"]
 		])
 
 def run_inject_raw_data_into_cassandra():
