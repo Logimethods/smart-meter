@@ -171,8 +171,81 @@
       "height": "250px",
       "panels": [
         {
-          "aliasColors": {},
+          "title": "Cassandra Writes Count",
+          "error": false,
+          "span": 6,
+          "editable": true,
+          "type": "graph",
+          "isNew": true,
+          "id": 6,
+          "targets": [
+            {
+              "refId": "A",
+              "target": "write_count"
+            }
+          ],
+          "datasource": "Graphite",
+          "renderer": "flot",
+          "yaxes": [
+            {
+              "label": null,
+              "show": true,
+              "logBase": 1,
+              "min": null,
+              "max": null,
+              "format": "short"
+            },
+            {
+              "label": null,
+              "show": true,
+              "logBase": 1,
+              "min": null,
+              "max": null,
+              "format": "short"
+            }
+          ],
+          "xaxis": {
+            "show": true
+          },
+          "grid": {
+            "threshold1": null,
+            "threshold2": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "lines": true,
+          "fill": 1,
+          "linewidth": 2,
+          "points": false,
+          "pointradius": 5,
           "bars": false,
+          "stack": false,
+          "percentage": false,
+          "legend": {
+            "show": true,
+            "values": false,
+            "min": false,
+            "max": false,
+            "current": false,
+            "total": false,
+            "avg": false
+          },
+          "nullPointMode": "connected",
+          "steppedLine": false,
+          "tooltip": {
+            "value_type": "cumulative",
+            "shared": true,
+            "msResolution": true
+          },
+          "timeFrom": null,
+          "timeShift": null,
+          "aliasColors": {},
+          "seriesOverrides": [],
+          "links": []
+        },
+        {
+          "aliasColors": {},
+          "bars": true,
           "datasource": "Graphite",
           "editable": true,
           "error": false,
@@ -183,7 +256,7 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 4,
+          "id": 5,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -194,10 +267,9 @@
             "total": false,
             "values": false
           },
-          "lines": true,
+          "lines": false,
           "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -209,12 +281,12 @@
           "targets": [
             {
               "refId": "A",
-              "target": "cassandra.*.cassandra_main.BytesCompacted.cassandraCompaction.BytesCompacted_Count"
+              "target": "cassandra.*.*.Load.cassandraStorage.Load_Count"
             }
           ],
-          "timeFrom": null,
+          "timeFrom": "12h",
           "timeShift": null,
-          "title": "Compacted Bytes",
+          "title": "Load Count",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -228,7 +300,7 @@
             {
               "format": "short",
               "label": null,
-              "logBase": 10,
+              "logBase": 1,
               "max": null,
               "min": null,
               "show": true
@@ -241,8 +313,17 @@
               "min": null,
               "show": true
             }
-          ]
-        },
+          ],
+          "links": []
+        }
+      ],
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
         {
           "aliasColors": {},
           "bars": false,
@@ -316,18 +397,10 @@
               "show": true
             }
           ]
-        }
-      ],
-      "title": "New row"
-    },
-    {
-      "collapse": false,
-      "editable": true,
-      "height": "250px",
-      "panels": [
+        },
         {
           "aliasColors": {},
-          "bars": true,
+          "bars": false,
           "datasource": "Graphite",
           "editable": true,
           "error": false,
@@ -338,7 +411,7 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 5,
+          "id": 4,
           "isNew": true,
           "legend": {
             "avg": false,
@@ -349,26 +422,27 @@
             "total": false,
             "values": false
           },
-          "lines": false,
+          "lines": true,
           "linewidth": 2,
-          "nullPointMode": "null",
+          "links": [],
+          "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 12,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
               "refId": "A",
-              "target": "cassandra.*.*.Load.cassandraStorage.Load_Count"
+              "target": "cassandra.*.cassandra_main.BytesCompacted.cassandraCompaction.BytesCompacted_Count"
             }
           ],
-          "timeFrom": "12h",
+          "timeFrom": null,
           "timeShift": null,
-          "title": "Load Count",
+          "title": "Compacted Bytes",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -382,7 +456,7 @@
             {
               "format": "short",
               "label": null,
-              "logBase": 1,
+              "logBase": 10,
               "max": null,
               "min": null,
               "show": true
@@ -395,8 +469,7 @@
               "min": null,
               "show": true
             }
-          ],
-          "links": []
+          ]
         }
       ],
       "title": "New row"
@@ -446,6 +519,6 @@
   },
   "refresh": "5s",
   "schemaVersion": 12,
-  "version": 5,
+  "version": 9,
   "links": []
 }

@@ -15,4 +15,10 @@ RUN echo "JVM_OPTS=\"\\\$JVM_OPTS -javaagent:/opt/jolokia/jolokia-jvm-1.3.5-agen
 
 COPY /cql /cql
 
-###
+### JMX ###
+
+# https://support.datastax.com/hc/en-us/articles/204226179-Step-by-step-instructions-for-securing-JMX-authentication-for-nodetool-utility-OpsCenter-and-JConsole
+COPY ./jmxremote.password /etc/cassandra/jmxremote.password
+RUN chown cassandra:cassandra /etc/cassandra/jmxremote.password && \
+    chmod 400 /etc/cassandra/jmxremote.password&& \
+    echo "cassandra readwrite" >> /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/management/jmxremote.access
