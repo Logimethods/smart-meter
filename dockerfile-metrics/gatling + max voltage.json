@@ -36,7 +36,8 @@
             "min": false,
             "show": true,
             "total": false,
-            "values": false
+            "values": false,
+            "alignAsTable": false
           },
           "lines": false,
           "linewidth": 2,
@@ -48,17 +49,18 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "span": 6,
-          "stack": false,
+          "stack": true,
           "steppedLine": false,
           "targets": [
             {
-              "refId": "A",
-              "target": "gatling.natsinjection.users.smartmeter.active"
+              "target": "gatling.natsinjection.users.*.active",
+              "refId": "B",
+              "textEditor": false
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Number of Injectors",
+          "title": "(Combined) Number of Injectors",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -85,7 +87,8 @@
               "min": null,
               "show": true
             }
-          ]
+          ],
+          "transparent": false
         },
         {
           "aliasColors": {},
@@ -519,6 +522,6 @@
   },
   "refresh": "5s",
   "schemaVersion": 12,
-  "version": 9,
+  "version": 18,
   "links": []
 }

@@ -38,7 +38,7 @@ class NatsInjection extends Simulation {
     val duration = System.getenv("GATLING_DURATION").toInt
     val slot = System.getenv("TASK_SLOT").toInt
     	    
-    val natsScn = scenario("smartmeter").exec(NatsBuilder(new ConsumerInterpolatedVoltageProvider(slot, usersPerSec)))
+    val natsScn = scenario("smartmeter_"+slot).exec(NatsBuilder(new ConsumerInterpolatedVoltageProvider(slot, usersPerSec)))
    
     setUp(
       natsScn.inject(constantUsersPerSec(usersPerSec) during (duration minute))
