@@ -234,37 +234,34 @@ run_inject() {
 }
 
 run_metrics() {
+  # https://bronhaim.wordpress.com/2016/07/24/setup-toturial-for-collecting-metrics-with-statsd-and-grafana-containers/
+  run_metrics_graphite
   run_metrics_grafana
 }
 
-run_metrics_grafana() {
-  cmd="docker ${remote} run -d \
-  -p ${METRICS_GRAFANA_WEB_PORT}:80 -p ${METRICS_GRAPHITE_WEB_PORT}:81 \
-  -p 8125:8125/udp -p 8126:8126 \
+run_metrics_graphite() {
+  cmd="docker ${remote} run -d --rm \
   --network smartmeter \
   --name metrics \
-  kamon/grafana_graphite:${grafana_graphite_version}"
+  hopsoft/graphite-statsd:${graphite_statsd_tag}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  sh -c "$cmd"
 }
 
-run_metrics_graphite() {
-  cmd="docker ${remote} run -d\
-   --name metrics\
-   --restart=always\
-   --network smartmeter \
-   -p ${METRICS_WEB_PORT}:80\
-   -p 2003-2004:2003-2004\
-   -p 2023-2024:2023-2024\
-   -p 8125:8125/udp\
-   -p 8126:8126\
-   hopsoft/graphite-statsd"
+run_metrics_grafana() {
+  cmd="docker ${remote} run -d --rm\
+  --network smartmeter \
+  --name grafana \
+  -p ${METRICS_GRAFANA_WEB_PORT}:3000 \
+   -e \"GF_SERVER_ROOT_URL=http://localhost:3000\" \
+   -e \"GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}\" \
+  grafana/grafana:${grafana_tag}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  sh -c "$cmd"
 }
 
 update_service_scale() {
