@@ -30,14 +30,14 @@
           "id": 2,
           "isNew": true,
           "legend": {
+            "alignAsTable": false,
             "avg": false,
             "current": false,
             "max": false,
             "min": false,
             "show": true,
             "total": false,
-            "values": false,
-            "alignAsTable": false
+            "values": false
           },
           "lines": false,
           "linewidth": 2,
@@ -53,8 +53,8 @@
           "steppedLine": false,
           "targets": [
             {
-              "target": "gatling.natsinjection.users.*.active",
               "refId": "B",
+              "target": "gatling.natsinjection.users.*.active",
               "textEditor": false
             }
           ],
@@ -66,6 +66,7 @@
             "shared": true,
             "value_type": "cumulative"
           },
+          "transparent": false,
           "type": "graph",
           "xaxis": {
             "show": true
@@ -87,8 +88,7 @@
               "min": null,
               "show": true
             }
-          ],
-          "transparent": false
+          ]
         },
         {
           "aliasColors": {},
@@ -174,17 +174,17 @@
       "height": "250px",
       "panels": [
         {
-          "title": "Cassandra Writes Count",
+          "title": "Containers CPU Usage",
           "error": false,
           "span": 6,
           "editable": true,
           "type": "graph",
           "isNew": true,
-          "id": 6,
+          "id": 9,
           "targets": [
             {
               "refId": "A",
-              "target": "write_count"
+              "target": "docker.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent"
             }
           ],
           "datasource": "Graphite",
@@ -196,7 +196,7 @@
               "logBase": 1,
               "min": null,
               "max": null,
-              "format": "short"
+              "format": "percent"
             },
             {
               "label": null,
@@ -247,77 +247,62 @@
           "links": []
         },
         {
-          "aliasColors": {},
-          "bars": true,
-          "datasource": "Graphite",
-          "editable": true,
+          "title": "Active Containers",
           "error": false,
-          "fill": 1,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 5,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": false,
-          "linewidth": 2,
-          "nullPointMode": "null",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
           "span": 6,
-          "stack": false,
-          "steppedLine": false,
+          "editable": true,
+          "type": "singlestat",
+          "isNew": true,
+          "id": 8,
           "targets": [
             {
               "refId": "A",
-              "target": "cassandra.*.*.Load.cassandraStorage.Load_Count"
+              "target": "docker.*.moby.docker.n_containers_running"
             }
           ],
-          "timeFrom": "12h",
-          "timeShift": null,
-          "title": "Load Count",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "show": true
-          },
-          "yaxes": [
+          "links": [],
+          "datasource": "Graphite",
+          "maxDataPoints": 100,
+          "interval": null,
+          "cacheTimeout": null,
+          "format": "none",
+          "prefix": "",
+          "postfix": "",
+          "nullText": null,
+          "valueMaps": [
             {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
+              "value": "null",
+              "op": "=",
+              "text": "N/A"
             }
           ],
-          "links": []
+          "nullPointMode": "connected",
+          "valueName": "avg",
+          "prefixFontSize": "50%",
+          "valueFontSize": "80%",
+          "postfixFontSize": "50%",
+          "thresholds": "",
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "sparkline": {
+            "show": false,
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "fillColor": "rgba(31, 118, 189, 0.18)"
+          },
+          "gauge": {
+            "show": false,
+            "minValue": 0,
+            "maxValue": 100,
+            "thresholdMarkers": true,
+            "thresholdLabels": false
+          },
+          "transparent": true
         }
       ],
       "title": "New row"
@@ -481,8 +466,162 @@
       "collapse": false,
       "editable": true,
       "height": "250px",
-      "panels": [],
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "Graphite",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 6,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "refId": "A",
+              "target": "write_count"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Cassandra Writes Count",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": true,
+          "datasource": "Graphite",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 5,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "refId": "A",
+              "target": "cassandra.*.*.Load.cassandraStorage.Load_Count"
+            }
+          ],
+          "timeFrom": "12h",
+          "timeShift": null,
+          "title": "Load Count",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
       "title": "New row"
+    },
+    {
+      "title": "New row",
+      "height": "250px",
+      "editable": true,
+      "collapse": false,
+      "panels": []
     }
   ],
   "time": {
@@ -522,6 +661,6 @@
   },
   "refresh": "5s",
   "schemaVersion": 12,
-  "version": 18,
+  "version": 6,
   "links": []
 }

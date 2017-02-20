@@ -243,7 +243,7 @@ run_metrics_grafana() {
   -p 8125:8125/udp -p 8126:8126 \
   --network smartmeter \
   --name metrics \
-  kamon/grafana_graphite"
+  kamon/grafana_graphite:${grafana_graphite_version}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -272,11 +272,15 @@ update_service_scale() {
 }
 
 run_telegraf() {
+   if [ "$@" == "docker" ]
+     then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
+   fi
    CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev)
    cmd="docker ${remote} run -d --rm\
      --network smartmeter \
      --name telegraf_$@\
      -e CASSANDRA_URL=${CASSANDRA_URL} \
+     $DOCKER_ACCES \
      logimethods/smart-meter:telegraf${postfix}\
        telegraf -config /etc/telegraf/$@.conf"
     echo "-----------------------------------------------------------------"
