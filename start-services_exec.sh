@@ -53,8 +53,8 @@ create_volume_cassandra() {
   fi
 
   docker ${remote} volume create --name cassandra-volume-1 --opt o=size=$cassandra_size
-  docker ${remote} volume create --name cassandra-volume-2 --opt o=size=$cassandra_size
-  docker ${remote} volume create --name cassandra-volume-3 --opt o=size=$cassandra_size
+#  docker ${remote} volume create --name cassandra-volume-2 --opt o=size=$cassandra_size
+#  docker ${remote} volume create --name cassandra-volume-3 --opt o=size=$cassandra_size
 }
 
 create_cluster_cassandra() {
@@ -260,8 +260,10 @@ run_metrics_graphite() {
 }
 
 create_volume_grafana() {
-  # https://github.com/grafana/grafana-docker#grafana-container-with-persistent-storage-recommended
-  docker ${remote} run -d -v /var/lib/grafana --name grafana-storage busybox:latest
+  ## https://github.com/grafana/grafana-docker#grafana-container-with-persistent-storage-recommended
+  #docker ${remote} run -d -v /var/lib/grafana --name grafana-storage --network smartmeter busybox:latest
+
+  docker ${remote} volume create --name grafana-volume
 }
 
 run_metrics_grafana() {
@@ -271,7 +273,7 @@ run_metrics_grafana() {
   -p ${METRICS_GRAFANA_WEB_PORT}:3000 \
   -e \"GF_SERVER_ROOT_URL=http://localhost:3000\" \
   -e \"GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}\" \
-  --volumes-from grafana-storage \
+  -v grafana-volume:/var/lib/grafana \
   grafana/grafana:${grafana_tag}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
