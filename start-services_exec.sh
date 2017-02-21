@@ -42,10 +42,19 @@ create_network() {
 
 ### Cassandra ###
 
-create_volumes_cassandra() {
-  docker ${remote} volume create --name cassandra-volume-1 -o size=10G
-  docker ${remote} volume create --name cassandra-volume-2 -o size=10G
-  docker ${remote} volume create --name cassandra-volume-3 -o size=10G
+create_volume_cassandra() {
+  if [ "${postfix}" == "-remote" ]
+  then
+    cassandra_size=$CASSANDRA_REMOTE_VOLUME_SIZE
+  elif [[ "${postfix}" == "-local" ]]; then
+    cassandra_size=$CASSANDRA_LOCAL_VOLUME_SIZE
+  else
+    cassandra_size=$CASSANDRA_DEFAULT_VOLUME_SIZE
+  fi
+
+  docker ${remote} volume create --name cassandra-volume-1 --opt o=size=$cassandra_size
+  docker ${remote} volume create --name cassandra-volume-2 --opt o=size=$cassandra_size
+  docker ${remote} volume create --name cassandra-volume-3 --opt o=size=$cassandra_size
 }
 
 create_cluster_cassandra() {
