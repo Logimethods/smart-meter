@@ -52,7 +52,7 @@ create_volume_cassandra() {
     cassandra_size=$CASSANDRA_DEFAULT_VOLUME_SIZE
   fi
 
-  docker ${remote} volume create --name cassandra-volume-1 --opt o=size=$cassandra_size
+  docker ${remote} volume create --name cassandra-volume-1
 #  docker ${remote} volume create --name cassandra-volume-2 --opt o=size=$cassandra_size
 #  docker ${remote} volume create --name cassandra-volume-3 --opt o=size=$cassandra_size
 }

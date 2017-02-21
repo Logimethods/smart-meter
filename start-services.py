@@ -148,7 +148,7 @@ def run_setup_cassandra():
 		create_network,
 		["create_volume", "cassandra"],
 		create_service_cassandra,
-		["wait", "service", "cassandra"],
+#		["wait", "service", "cassandra"],
 		create_cassandra_tables,
 		])
 
