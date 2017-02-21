@@ -259,13 +259,19 @@ run_metrics_graphite() {
   sh -c "$cmd"
 }
 
+create_volume_grafana() {
+  # https://github.com/grafana/grafana-docker#grafana-container-with-persistent-storage-recommended
+  docker ${remote} run -d -v /var/lib/grafana --name grafana-storage busybox:latest
+}
+
 run_metrics_grafana() {
   cmd="docker ${remote} run -d --rm\
   --network smartmeter \
   --name grafana \
   -p ${METRICS_GRAFANA_WEB_PORT}:3000 \
-   -e \"GF_SERVER_ROOT_URL=http://localhost:3000\" \
-   -e \"GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}\" \
+  -e \"GF_SERVER_ROOT_URL=http://localhost:3000\" \
+  -e \"GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}\" \
+  --volumes-from grafana-storage \
   grafana/grafana:${grafana_tag}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
