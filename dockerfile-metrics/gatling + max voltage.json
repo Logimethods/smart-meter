@@ -48,7 +48,7 @@
   "rows": [
     {
       "collapse": false,
-      "height": "250px",
+      "height": 250,
       "panels": [
         {
           "aliasColors": {},
@@ -63,6 +63,8 @@
             "alignAsTable": false,
             "avg": false,
             "current": false,
+            "hideEmpty": false,
+            "hideZero": true,
             "max": false,
             "min": false,
             "show": true,
@@ -72,7 +74,7 @@
           "lines": false,
           "linewidth": 2,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -83,6 +85,7 @@
           "steppedLine": false,
           "targets": [
             {
+              "hide": false,
               "refId": "B",
               "target": "gatling.natsinjection.users.smartmeter_*.active",
               "textEditor": true
@@ -91,7 +94,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "(Combined) Number of Injectors",
+          "title": "Raw Voltage Injectors",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -139,7 +142,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -164,9 +167,9 @@
           ],
           "thresholds": [
             {
-              "colorMode": "custom",
+              "colorMode": "warning",
+              "fill": false,
               "line": true,
-              "lineColor": "rgba(223, 69, 17, 0.44)",
               "op": "gt",
               "value": 116
             }
@@ -216,88 +219,16 @@
     },
     {
       "collapse": false,
-      "height": "250px",
+      "height": 230,
       "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": "${DS_GRAPHITE}",
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {},
-          "id": 9,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": true,
-          "steppedLine": false,
-          "targets": [
-            {
-              "refId": "A",
-              "target": "docker.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Containers CPU Usage",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "sort": 0,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "percent",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
-        },
         {
           "cacheTimeout": null,
           "colorBackground": false,
-          "colorValue": false,
+          "colorValue": true,
           "colors": [
-            "rgba(245, 54, 54, 0.9)",
+            "rgba(50, 172, 45, 0.97)",
             "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
+            "rgba(245, 54, 54, 0.9)"
           ],
           "datasource": "${DS_GRAPHITE}",
           "editable": true,
@@ -310,6 +241,7 @@
             "thresholdLabels": false,
             "thresholdMarkers": true
           },
+          "height": "100px",
           "id": 8,
           "interval": null,
           "links": [],
@@ -348,10 +280,11 @@
           "targets": [
             {
               "refId": "A",
-              "target": "docker.*.moby.docker.n_containers_running"
+              "target": "docker.*.moby.docker.n_containers_running",
+              "textEditor": true
             }
           ],
-          "thresholds": "",
+          "thresholds": "15,18",
           "title": "Active Containers",
           "transparent": true,
           "type": "singlestat",
@@ -363,7 +296,7 @@
               "value": "null"
             }
           ],
-          "valueName": "avg"
+          "valueName": "current"
         },
         {
           "aliasColors": {},
@@ -374,9 +307,11 @@
           "legend": {
             "avg": false,
             "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -391,11 +326,12 @@
           "seriesOverrides": [],
           "span": 5,
           "stack": false,
-          "steppedLine": false,
+          "steppedLine": true,
           "targets": [
             {
               "refId": "A",
-              "target": "docker.*.moby.docker.n_containers_running"
+              "target": "docker.*.moby.docker.n_containers_running",
+              "textEditor": true
             }
           ],
           "thresholds": [],
@@ -432,176 +368,7 @@
               "show": true
             }
           ]
-        }
-      ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "New row",
-      "titleSize": "h6"
-    },
-    {
-      "collapse": false,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": "${DS_GRAPHITE}",
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {},
-          "id": 3,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "hide": false,
-              "refId": "A",
-              "target": "cassandra.*.cassandra_main.smartmeter.TotalDiskSpaceUsed.raw_voltage_data.cassandraTable.TotalDiskSpaceUsed_Count"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Disk Space Used",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "sort": 0,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": 0,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
         },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": "${DS_GRAPHITE}",
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {},
-          "id": 4,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "refId": "A",
-              "target": "cassandra.*.cassandra_main.BytesCompacted.cassandraCompaction.BytesCompacted_Count"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Compacted Bytes",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "sort": 0,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 10,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
-        }
-      ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "New row",
-      "titleSize": "h6"
-    },
-    {
-      "collapse": false,
-      "height": "250px",
-      "panels": [
         {
           "aliasColors": {},
           "bars": false,
@@ -616,7 +383,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -673,28 +440,45 @@
               "show": true
             }
           ]
-        },
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "New row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 252,
+      "panels": [
         {
           "aliasColors": {},
-          "bars": true,
+          "bars": false,
           "datasource": "${DS_GRAPHITE}",
           "editable": true,
           "error": false,
           "fill": 1,
           "grid": {},
-          "id": 5,
+          "id": 9,
           "legend": {
+            "alignAsTable": true,
             "avg": false,
             "current": false,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": false,
             "min": false,
-            "show": true,
+            "rightSide": false,
+            "show": false,
             "total": false,
             "values": false
           },
-          "lines": false,
+          "lines": true,
           "linewidth": 2,
           "links": [],
+          "maxDataPoints": "",
           "nullPointMode": "null",
           "percentage": false,
           "pointradius": 5,
@@ -706,14 +490,110 @@
           "steppedLine": false,
           "targets": [
             {
+              "hide": false,
               "refId": "A",
-              "target": "cassandra.*.*.Load.cassandraStorage.Load_Count"
+              "target": "docker.*.*.*.*.cpu-total.moby.docker_container_cpu.usage_percent"
+            },
+            {
+              "hide": true,
+              "refId": "B",
+              "target": "docker.*.*.*.spark-*.*.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent",
+              "textEditor": true
+            },
+            {
+              "hide": false,
+              "refId": "C",
+              "target": "docker.*.*.*.*.*.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent",
+              "textEditor": true
+            },
+            {
+              "hide": true,
+              "refId": "D",
+              "target": "docker.*.*.*.inject.*.*.logimethods-smart-meter.*.inject-local.cpu-total.moby.docker_container_cpu.usage_percent"
+            },
+            {
+              "hide": true,
+              "refId": "E",
+              "target": "docker.*.*.*.cassandra*.*.*.logimethods-smart-meter.*.select metric"
             }
           ],
           "thresholds": [],
-          "timeFrom": "12h",
+          "timeFrom": null,
           "timeShift": null,
-          "title": "Load Count",
+          "title": "Containers CPU Usage",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "percent",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_GRAPHITE}",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {},
+          "id": 3,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "hide": false,
+              "refId": "A",
+              "target": "cassandra.*.cassandra_main.smartmeter.TotalDiskSpaceUsed.raw_voltage_data.cassandraTable.TotalDiskSpaceUsed_Count"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": "1h",
+          "timeShift": null,
+          "title": "Cassandra Disk Space Used",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -747,17 +627,6 @@
           ]
         }
       ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "New row",
-      "titleSize": "h6"
-    },
-    {
-      "collapse": false,
-      "height": "250px",
-      "panels": [],
       "repeat": null,
       "repeatIteration": null,
       "repeatRowId": null,
@@ -803,5 +672,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 5
+  "version": 8
 }

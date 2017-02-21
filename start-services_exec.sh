@@ -75,6 +75,7 @@ create_service_cassandra() {
     --name ${CASSANDRA_NAME} \
   	--network smartmeter \
     -p 8778:8778 \
+    -e LOCAL_JMX=no
     -v cassandra-volume-1:/var/lib/cassandra \
   	logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
@@ -294,6 +295,7 @@ run_telegraf() {
      --network smartmeter \
      --name telegraf_$@\
      -e CASSANDRA_URL=${CASSANDRA_URL} \
+     -e JMX_PASSWORD=$JMX_PASSWORD \
      $DOCKER_ACCES \
      logimethods/smart-meter:telegraf${postfix}\
        telegraf -config /etc/telegraf/$@.conf"
