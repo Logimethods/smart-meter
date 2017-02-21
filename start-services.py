@@ -170,7 +170,8 @@ def run_inject():
 		create_service_cassandra_inject,
 		["run", "telegraf", "max_voltage"],
 		["run", "telegraf", "cassandra"],
-		["run", "telegraf", "docker"],
+#		["run", "telegraf", "docker"],
+		["run_service", "telegraf_docker"],
 		["run", "telegraf", "cassandra_local_write_count"],
 #		["wait", "service", "cassandra-inject"],
 		create_service_inject

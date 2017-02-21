@@ -305,6 +305,20 @@ run_telegraf() {
     exec $cmd
 }
 
+run_service_telegraf_docker() {
+  cmd="docker ${remote} service create \
+  	--name telegraf_docker \
+  	--network smartmeter \
+  	--mode global \
+    --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
+    logimethods/smart-meter:telegraf${postfix}\
+      telegraf -config /etc/telegraf/docker.conf"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
+}
+
 ### RUN DOCKER ###
 
 run_image() {
