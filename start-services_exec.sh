@@ -100,8 +100,6 @@ docker ${remote} service create \
 	logimethods/smart-meter:cassandra${postfix}
 }
 
-### Create Service ###
-
 create_service_spark-master() {
 docker ${remote} service create \
 	--name spark-master \
@@ -122,6 +120,21 @@ docker ${remote} service create \
 	${spark_image}:${spark_version}-hadoop-${hadoop_version} \
 		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
 }
+
+run_spark_autoscaling() {
+  cmd="docker ${remote} run -d --rm \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --name spark_autoscaling \
+    --network smartmeter \
+    logimethods/spark-autoscaling python3 autoscale_sh.py"
+#    --log-driver=json-file \
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
+}
+
+### Create Service ###
 
 create_service_nats() {
 docker ${remote} service create \
@@ -343,7 +356,7 @@ build_app-streaming() {
 }
 
 build_app-batch() {
-  if [ "${postfix}" == "local" ]
+  if [ "${postfix}" == "-local" ]
   then
     ./set_properties_to_dockerfile_templates.sh
     pushd dockerfile-app-batch

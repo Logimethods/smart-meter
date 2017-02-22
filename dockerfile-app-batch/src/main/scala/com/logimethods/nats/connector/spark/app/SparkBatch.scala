@@ -16,6 +16,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 
 import org.apache.log4j.{Level, LogManager, PropertyConfigurator}
+import org.apache.log4j.Logger
 
 import org.apache.spark.sql.SparkSession
 
@@ -26,6 +27,8 @@ import org.apache.spark.sql.SparkSession
 // @see https://databricks.com/blog/2016/08/15/how-to-use-sparksession-in-apache-spark-2-0.html
 // @see https://dzone.com/articles/cassandra-with-spark-20-building-rest-api
 object SparkBatch extends App {
+  Logger.getLogger("org").setLevel(Level.OFF)
+  
 	val cassandraUrl = System.getenv("CASSANDRA_URL")
 			println("CASSANDRA_URL = " + cassandraUrl)
 

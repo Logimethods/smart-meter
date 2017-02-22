@@ -87,7 +87,7 @@ def run_or_kill(steps):
 create_network = ["create", "network"]
 create_service_cassandra = ["create_service", "cassandra", 1]
 create_service_spark_master = ["create_service", "spark-master", 1]
-create_service_spark_slave = ["create_service", "spark-slave", 2]
+create_service_spark_slave = ["create_service", "spark-slave", 1]
 create_service_nats = ["create_service", "nats", 1]
 create_service_app_streaming = ["create_service", "app-streaming", 1]
 create_service_monitor = ["create_service", "monitor", 1]
@@ -160,6 +160,7 @@ def run_inject():
 		create_service_spark_master,
 		["wait", "service", "spark-master"],
 		create_service_spark_slave,
+		["run", "spark_autoscaling"],
 		create_service_app_streaming,
 		rm_service_cassandra_inject,
 #		["build", "inject"],
@@ -169,7 +170,7 @@ def run_inject():
 		["wait", "service", "nats"],
 		create_service_cassandra_inject,
 		["run", "telegraf", "max_voltage"],
-		["run", "telegraf", "cassandra"],
+##		["run", "telegraf", "cassandra"],
 #		["run", "telegraf", "docker"],
 		["run_service", "telegraf_docker"],
 		["run", "telegraf", "cassandra_local_write_count"],
@@ -211,17 +212,17 @@ def run_app_batch():
 	run_or_kill([
 		create_network,
 		stop_service_app_batch,
-		["build", "app-batch"],
+#		["build", "app-batch"],
 		create_service_cassandra,
 		create_service_spark_master,
 		["wait", "service", "spark-master"],
 		create_service_spark_slave,
-		["wait", "service", "cassandra"],
+#		["wait", "service", "cassandra"],
 		["run", "image",
 			"-e", "SPARK_MASTER_URL=spark://spark-master:7077",
 #			"-e", "CASSANDRA_URL=\"$(docker ps | grep \'cassandra\' | rev | cut -d' ' -f1 | rev)\"",
-			"-e", "CASSANDRA_URL=cassandra",
-			"logimethods/smart-meter:app-batch"+postfix],
+			"-e", "CASSANDRA_URL=cassandra_main",
+			"logimethods/smart-meter:app-batch"+postfix]
 #		["wait", "service", "app-batch"],
 #		["logs", "service", "app-batch"]
 		])
