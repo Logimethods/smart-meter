@@ -33,6 +33,12 @@
       "id": "singlestat",
       "name": "Singlestat",
       "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
     }
   ],
   "annotations": {
@@ -44,7 +50,7 @@
   "hideControls": false,
   "id": null,
   "links": [],
-  "refresh": "5s",
+  "refresh": "10s",
   "rows": [
     {
       "collapse": false,
@@ -87,8 +93,8 @@
             {
               "hide": false,
               "refId": "B",
-              "target": "gatling.natsinjection.users.smartmeter_*.active",
-              "textEditor": true
+              "target": "aliasByNode(gatling.natsinjection.users.smartmeter_*.active, 3)",
+              "textEditor": false
             }
           ],
           "thresholds": [],
@@ -219,7 +225,7 @@
     },
     {
       "collapse": false,
-      "height": 230,
+      "height": 260,
       "panels": [
         {
           "cacheTimeout": null,
@@ -235,13 +241,13 @@
           "error": false,
           "format": "none",
           "gauge": {
-            "maxValue": 100,
+            "maxValue": 25,
             "minValue": 0,
-            "show": false,
-            "thresholdLabels": false,
+            "show": true,
+            "thresholdLabels": true,
             "thresholdMarkers": true
           },
-          "height": "100px",
+          "height": "",
           "id": 8,
           "interval": null,
           "links": [],
@@ -270,7 +276,7 @@
               "to": "null"
             }
           ],
-          "span": 1,
+          "span": 2,
           "sparkline": {
             "fillColor": "rgba(31, 118, 189, 0.18)",
             "full": false,
@@ -324,7 +330,7 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 5,
+          "span": 4,
           "stack": false,
           "steppedLine": true,
           "targets": [
@@ -390,7 +396,7 @@
           "lines": true,
           "linewidth": 2,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -492,7 +498,8 @@
             {
               "hide": false,
               "refId": "A",
-              "target": "docker.*.*.*.*.cpu-total.moby.docker_container_cpu.usage_percent"
+              "target": "aliasByNode(docker.*.*.*.*.cpu-total.moby.docker_container_cpu.usage_percent, 3)",
+              "textEditor": true
             },
             {
               "hide": true,
@@ -503,7 +510,7 @@
             {
               "hide": false,
               "refId": "C",
-              "target": "docker.*.*.*.*.*.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent",
+              "target": "aliasByNode(docker.*.*.*.*.*.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent, 8)",
               "textEditor": true
             },
             {
@@ -554,77 +561,73 @@
           ]
         },
         {
-          "aliasColors": {},
-          "bars": false,
+          "columns": [
+            {
+              "text": "Current",
+              "value": "current"
+            },
+            {
+              "text": "Min",
+              "value": "min"
+            },
+            {
+              "text": "Max",
+              "value": "max"
+            }
+          ],
           "datasource": "${DS_GRAPHITE}",
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {},
-          "id": 3,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
+          "fontSize": "100%",
+          "hideTimeOverride": false,
+          "id": 11,
           "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
           "span": 6,
-          "stack": false,
-          "steppedLine": false,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(50, 172, 45, 0.97)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(245, 54, 54, 0.9)"
+              ],
+              "decimals": 0,
+              "pattern": "/.*/",
+              "thresholds": [
+                "75",
+                "125"
+              ],
+              "type": "number",
+              "unit": "percent"
+            }
+          ],
           "targets": [
             {
               "hide": false,
               "refId": "A",
-              "target": "cassandra.*.cassandra_main.smartmeter.TotalDiskSpaceUsed.raw_voltage_data.cassandraTable.TotalDiskSpaceUsed_Count"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": "1h",
-          "timeShift": null,
-          "title": "Cassandra Disk Space Used",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "sort": 0,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
+              "target": "aliasByNode(docker.*.*.*.*.cpu-total.moby.docker_container_cpu.usage_percent, 3)",
+              "textEditor": true
             },
             {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
+              "refId": "B",
+              "target": "aliasByNode(docker.*.*.*.*.*.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent, 8)",
+              "textEditor": true
             }
-          ]
+          ],
+          "timeFrom": "30s",
+          "title": "CPU Usage by Container",
+          "transform": "timeseries_aggregations",
+          "type": "table"
         }
       ],
       "repeat": null,
@@ -672,5 +675,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 8
+  "version": 20
 }
