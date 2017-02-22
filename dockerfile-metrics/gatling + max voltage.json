@@ -30,12 +30,6 @@
     },
     {
       "type": "panel",
-      "id": "singlestat",
-      "name": "Singlestat",
-      "version": ""
-    },
-    {
-      "type": "panel",
       "id": "table",
       "name": "Table",
       "version": ""
@@ -228,86 +222,10 @@
       "height": 260,
       "panels": [
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": true,
-          "colors": [
-            "rgba(50, 172, 45, 0.97)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(245, 54, 54, 0.9)"
-          ],
-          "datasource": "${DS_GRAPHITE}",
-          "editable": true,
-          "error": false,
-          "format": "none",
-          "gauge": {
-            "maxValue": 25,
-            "minValue": 0,
-            "show": true,
-            "thresholdLabels": true,
-            "thresholdMarkers": true
-          },
-          "height": "",
-          "id": 8,
-          "interval": null,
-          "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
-          "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "span": 2,
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
-          },
-          "targets": [
-            {
-              "refId": "A",
-              "target": "docker.*.moby.docker.n_containers_running",
-              "textEditor": true
-            }
-          ],
-          "thresholds": "15,18",
-          "title": "Active Containers",
-          "transparent": true,
-          "type": "singlestat",
-          "valueFontSize": "80%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
-        },
-        {
           "aliasColors": {},
           "bars": false,
           "datasource": "${DS_GRAPHITE}",
+          "decimals": 0,
           "fill": 1,
           "id": 10,
           "legend": {
@@ -330,14 +248,14 @@
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 4,
+          "span": 6,
           "stack": false,
           "steppedLine": true,
           "targets": [
             {
               "refId": "A",
               "target": "docker.*.moby.docker.n_containers_running",
-              "textEditor": true
+              "textEditor": false
             }
           ],
           "thresholds": [],
@@ -396,10 +314,10 @@
           "lines": true,
           "linewidth": 2,
           "links": [],
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "percentage": false,
-          "pointradius": 5,
-          "points": false,
+          "pointradius": 1,
+          "points": true,
           "renderer": "flot",
           "seriesOverrides": [],
           "span": 6,
@@ -407,6 +325,7 @@
           "steppedLine": false,
           "targets": [
             {
+              "hide": false,
               "refId": "A",
               "target": "write_count"
             }
@@ -675,5 +594,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 20
+  "version": 24
 }
