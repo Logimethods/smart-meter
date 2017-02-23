@@ -67,15 +67,15 @@ docker-compose ${remote} -f docker-cassandra-compose.yml down
 
 call_cassandra_cql() {
 	until docker ${remote} exec -it $(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
-  # docker ${remote} run --rm --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
+  # docker ${remote} run ${DOCKER_RESTART_POLICY} --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
 }
 
 create_service_cassandra() {
-  cmd="docker ${remote} run -d --rm \
+  cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
     --name ${CASSANDRA_NAME} \
   	--network smartmeter \
     -p 8778:8778 \
-    -e LOCAL_JMX=no
+    -e LOCAL_JMX=no \
     -v cassandra-volume-1:/var/lib/cassandra \
   	logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
@@ -122,7 +122,7 @@ docker ${remote} service create \
 }
 
 run_spark_autoscaling() {
-  cmd="docker ${remote} run -d --rm \
+  cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
     -v /var/run/docker.sock:/var/run/docker.sock \
     --name spark_autoscaling \
     --network smartmeter \
@@ -159,6 +159,20 @@ docker ${remote} service create \
 	--replicas=${replicas} \
 	logimethods/smart-meter:app-streaming${postfix} \
 		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
+}
+
+run_app-batch() {
+  #docker ${remote} pull logimethods/smart-meter:inject
+  cmd="docker ${remote} run ${DOCKER_RESTART_POLICY} \
+    --name app_batch \
+  	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
+    -e CASSANDRA_URL=${CASSANDRA_NAME} \
+    -e APP_BATCH_LOG_LEVEL=${APP_BATCH_LOG_LEVEL} \
+    logimethods/smart-meter:app-batch${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
 }
 
 create_service_app-batch() {
@@ -263,7 +277,7 @@ run_metrics() {
 }
 
 run_metrics_graphite() {
-  cmd="docker ${remote} run -d --rm \
+  cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
   --network smartmeter \
   --name metrics \
   -v ${METRICS_PATH}/graphite/conf:/opt/graphite/conf \
@@ -285,7 +299,7 @@ create_volume_grafana() {
 }
 
 run_metrics_grafana() {
-  cmd="docker ${remote} run -d --rm\
+  cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
   --network smartmeter \
   --name grafana \
   -p ${METRICS_GRAFANA_WEB_PORT}:3000 \
@@ -308,7 +322,7 @@ run_telegraf() {
      then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
    fi
    CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev)
-   cmd="docker ${remote} run -d --rm\
+   cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
      --name telegraf_$@\
      -e CASSANDRA_URL=${CASSANDRA_URL} \
@@ -341,7 +355,7 @@ run_service_telegraf_docker() {
 run_image() {
 #	name=${1}
 #	shift
-	echo "docker ${remote} run --network smartmeter $@"
+	echo "docker ${remote} run --network smartmeter ${DOCKER_RESTART_POLICY} $@"
 	docker ${remote} run --network smartmeter $@
 }
 

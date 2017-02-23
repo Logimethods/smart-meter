@@ -47,7 +47,7 @@ object SparkProcessor extends App {
 
   val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
   println("SPARK_MASTER_URL = " + sparkMasterUrl)
-  val conf = new SparkConf().setAppName("NATS Data Processing").setMaster(sparkMasterUrl);
+  val conf = new SparkConf().setAppName("Smartmeter Streaming").setMaster(sparkMasterUrl);
   val sc = new SparkContext(conf);
 //  val jarFilesRegex = "java-nats-streaming-(.*)jar|guava(.*)jar|protobuf-java(.*)jar|jnats-(.*)jar|nats-connector-spark-(.*)jar|docker-nats-connector-spark(.*)jar"
   val jarFilesRegex = "(.*)jar"

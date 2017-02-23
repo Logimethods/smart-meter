@@ -211,14 +211,7 @@ def run_inject_raw_data_into_cassandra():
 		])
 
 def run_app_batch():
-	run([
-		["run", "image", "--rm",
-			"-e", "SPARK_MASTER_URL=spark://spark-master:7077",
-#			"-e", "CASSANDRA_URL=\"$(docker ps | grep \'cassandra\' | rev | cut -d' ' -f1 | rev)\"",
-			"--name", "app_batch",
-			"-e", "CASSANDRA_URL=cassandra_main",
-			"logimethods/smart-meter:app-batch"+postfix]
-		])
+	run(["run", "app-batch"])
 
 def run_full_app_batch():
 	run([
@@ -230,12 +223,7 @@ def run_full_app_batch():
 		["wait", "service", "spark-master"],
 		create_service_spark_slave,
 #		["wait", "service", "cassandra"],
-		["run", "image", "--rm",
-			"-e", "SPARK_MASTER_URL=spark://spark-master:7077",
-#			"-e", "CASSANDRA_URL=\"$(docker ps | grep \'cassandra\' | rev | cut -d' ' -f1 | rev)\"",
-			"--name", "app_batch",
-			"-e", "CASSANDRA_URL=cassandra_main",
-			"logimethods/smart-meter:app-batch"+postfix]
+		["run", "app-batch"]
 #		["wait", "service", "app-batch"],
 #		["logs", "service", "app-batch"]
 		])
