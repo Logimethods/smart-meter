@@ -266,7 +266,10 @@ run_metrics_graphite() {
   cmd="docker ${remote} run -d --rm \
   --network smartmeter \
   --name metrics \
+  -v ${METRICS_PATH}/graphite/conf:/opt/graphite/conf\
   hopsoft/graphite-statsd:${graphite_statsd_tag}"
+  # -v ${METRICS_PATH}/graphite/storage:/opt/graphite/storage\
+  # -v ${METRICS_PATH}/statsd:/opt/statsd\
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
