@@ -153,7 +153,7 @@ create_service_app-streaming() {
 docker ${remote} service create \
 	--name app-streaming \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
-	-e SPARK_MASTER_URL=spark://spark-master:7077 \
+	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
 	-e LOG_LEVEL=INFO \
 	--network smartmeter \
 	--replicas=${replicas} \
@@ -165,7 +165,7 @@ create_service_app-batch() {
 #docker ${remote} pull logimethods/smart-meter:app-batch
 docker ${remote} service create \
 	--name app-batch \
-	-e SPARK_MASTER_URL=spark://spark-master:7077 \
+	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
 	-e LOG_LEVEL=INFO \
 	-e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
 	--network smartmeter \

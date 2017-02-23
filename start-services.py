@@ -212,7 +212,6 @@ def run_inject_raw_data_into_cassandra():
 
 def run_app_batch():
 	run([
-		stop_service_app_streaming,
 		["run", "image", "--rm",
 			"-e", "SPARK_MASTER_URL=spark://spark-master:7077",
 #			"-e", "CASSANDRA_URL=\"$(docker ps | grep \'cassandra\' | rev | cut -d' ' -f1 | rev)\"",
