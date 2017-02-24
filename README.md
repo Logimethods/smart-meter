@@ -34,8 +34,9 @@ cqlsh> select * from smartmeter.raw_voltage_data limit 2;
 ```
 
 ## Grafana metrics
-[gatling-max-voltage](http://localhost/dashboard/db/gatling-max-voltage)
-![images/gatling-max-voltage_screenshot.png](gatling-max-voltage_screenshot.png "Sgatling-max-voltage Screenshot")
+[http://localhost/dashboard/db/gatling-max-voltage](http://localhost/dashboard/db/gatling-max-voltage)
+
+![gatling-max-voltage_screenshot.png](images/gatling-max-voltage_screenshot.png "Gatling-max-voltage Screenshot")
 
 ## Local DEV
 ```
