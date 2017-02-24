@@ -163,11 +163,12 @@ docker ${remote} service create \
 
 run_app-batch() {
   #docker ${remote} pull logimethods/smart-meter:inject
-  cmd="docker ${remote} run ${DOCKER_RESTART_POLICY} \
+  cmd="docker ${remote} run --rm \
     --name app_batch \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
     -e CASSANDRA_URL=${CASSANDRA_NAME} \
     -e APP_BATCH_LOG_LEVEL=${APP_BATCH_LOG_LEVEL} \
+    --network smartmeter \
     logimethods/smart-meter:app-batch${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -277,10 +278,15 @@ run_metrics() {
 }
 
 run_metrics_graphite() {
+  if [ "${postfix}" == "-local" ]
+  then
+    local_conf="-v ${METRICS_PATH}/graphite/conf:/opt/graphite/conf"
+  fi
+
   cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
   --network smartmeter \
   --name metrics \
-  -v ${METRICS_PATH}/graphite/conf:/opt/graphite/conf \
+  $local_conf \
   -p 81:80 \
   hopsoft/graphite-statsd:${graphite_statsd_tag}"
   # -v ${METRICS_PATH}/graphite/storage:/opt/graphite/storage\

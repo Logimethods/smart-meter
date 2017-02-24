@@ -153,18 +153,18 @@ def run_setup_cassandra():
 		])
 
 def run_inject():
-	run_or_kill([
+	run([
 		create_network,
 		run_metrics,
 		["create_volume", "cassandra"],
-		rm_service_inject,
+#		rm_service_inject,
 		["run_service", "telegraf_docker"],
 		create_service_spark_master,
 		["wait", "service", "spark-master"],
 		create_service_spark_slave,
 		["run", "spark_autoscaling"],
 		create_service_app_streaming,
-		rm_service_cassandra_inject,
+#		rm_service_cassandra_inject,
 #		["build", "inject"],
 		create_service_cassandra,
 		create_service_nats,
