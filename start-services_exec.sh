@@ -156,9 +156,12 @@ docker ${remote} service create \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
 	-e LOG_LEVEL=INFO \
 	--network smartmeter \
-	--replicas=${replicas} \
+  --mode global \
 	logimethods/smart-meter:app-streaming${postfix} \
 		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
+
+#    --replicas=${replicas} \
+#    --constraint 'node.role == manager' \
 }
 
 run_app-batch() {
@@ -215,11 +218,13 @@ echo "CASSANDRA_URL: ${CASSANDRA_URL}"
 docker ${remote} service create \
 	--name cassandra-inject \
 	--network smartmeter \
-	--replicas=${replicas} \
+  --mode global \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
 	-e CASSANDRA_URL=${CASSANDRA_URL} \
 	logimethods/smart-meter:cassandra-inject${postfix}
+
+# 	--replicas=${replicas} \
 }
 
 create_service_inject() {
