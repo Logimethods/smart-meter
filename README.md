@@ -6,15 +6,20 @@ To demonstrate a Smart Meter Big Data Application.
 ## Python CLI
 See [start-services.py](start-services.py)
 ```
-> python3 -i start-services.py
->>> run_inject_raw_data_into_cassandra()
+> python3 -i ./start-services.py
+>>> run_inject()
 >>> run_app_batch()
-...
->>> run_or_kill_scenario([create_service_cassandra])
-...
 >>> exit()
 ```
-Then, to access to the RAW Voltage Data:
+
+In parallel, you can play with the number of injectors:
+```
+> docker service scale inject=2
+> docker service scale inject=1
+```
+
+## CQLSH (Cassandra CLI)
+To access to the RAW Voltage Data:
 ```
 > ./cqlsh.sh
 Connected to Smartmeter Cluster at 127.0.0.1:9042.
@@ -27,6 +32,10 @@ cqlsh> select * from smartmeter.raw_voltage_data limit 2;
     3 |           2 |          2 | 2016 |    12 |  24 |    3 |     16 |           6 | 121.15018
     3 |           2 |          2 | 2016 |    12 |  24 |    3 |      1 |           6 | 121.66259
 ```
+
+## Grafana metrics
+[gatling-max-voltage](http://localhost/dashboard/db/gatling-max-voltage)
+![images/gatling-max-voltage_screenshot.png](gatling-max-voltage_screenshot.png "Sgatling-max-voltage Screenshot")
 
 ## Local DEV
 ```
