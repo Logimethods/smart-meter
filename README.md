@@ -1,7 +1,7 @@
 # smart-meter
 To demonstrate a Smart Meter Big Data Application.
 
-![SmartMeter.png](SmartMeter.png "SmartMeter Architecture")
+![SmartMeter.png](images/SmartMeter.png "SmartMeter Architecture")
 
 ## Python CLI
 See [start-services.py](start-services.py)
