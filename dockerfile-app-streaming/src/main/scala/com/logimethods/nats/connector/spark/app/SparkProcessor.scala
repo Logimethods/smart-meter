@@ -53,7 +53,8 @@ object SparkProcessor extends App {
   val jarFilesRegex = "(.*)jar"
   for (file <- new File("/app/").listFiles.filter(_.getName.matches(jarFilesRegex))) 
     { sc.addJar(file.getAbsolutePath) }
-  val ssc = new StreamingContext(sc, new Duration(2000));
+  val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
+  val ssc = new StreamingContext(sc, new Duration(streamingDuration));
 
   val properties = new Properties();
   val natsUrl = System.getenv("NATS_URI")

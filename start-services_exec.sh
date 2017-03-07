@@ -154,6 +154,7 @@ docker ${remote} service create \
 	--name app-streaming \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+  -e STREAMING_DURATION=${STREAMING_DURATION} \
 	-e LOG_LEVEL=INFO \
 	--network smartmeter \
   --mode global \
@@ -239,6 +240,7 @@ cmd="docker ${remote} service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
   -e GATLING_DURATION=${GATLING_DURATION} \
+  -e STREAMING_DURATION=${STREAMING_DURATION} \
   -e SERVICE_ID={{.Service.ID}}
   -e SERVICE_NAME={{.Service.Name}}
   -e SERVICE_LABELS={{.Service.Labels}}
@@ -266,6 +268,7 @@ run_inject() {
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
+    -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e TASK_SLOT=1
   	--network smartmeter \
   	logimethods/smart-meter:inject${postfix} \

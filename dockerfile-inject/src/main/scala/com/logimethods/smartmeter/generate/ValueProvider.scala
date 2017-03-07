@@ -25,7 +25,7 @@ import math._
   }
 }*/
 
-class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double) extends NatsMessage {
+class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, streamingDuration: Int) extends NatsMessage {
   import java.time._
   import scala.math._
 
@@ -37,7 +37,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double) extend
   var transformer = 1
   var usagePoint = 1
   
-  val incr = 15
+  val incr = ProviderUtil.computeIncr(streamingDuration)
   var date = LocalDateTime.now()
       
   def getSubject(): String = {
@@ -60,7 +60,8 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double) extend
 //      println(date)
     }
     
-    val value = InterpolatedProfileByUsagePoint.voltageAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))
+//    val value = InterpolatedProfileByUsagePoint.voltageAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))
+    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))
     
     usagePoint += 1
 
@@ -118,4 +119,8 @@ object ProviderUtil {
     
     (lineNb, transformerNb, usagePointNb)
   }  
+  
+  def computeIncr(streamingDuration: Int) = {
+    60000 / streamingDuration
+  }
 }

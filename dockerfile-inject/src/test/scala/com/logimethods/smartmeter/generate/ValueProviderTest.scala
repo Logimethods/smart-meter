@@ -20,7 +20,7 @@ class ValueProviderTest extends FunSuite {
     val date = LocalDateTime.now()
     val value = 12345.6789f
     
-    val bytes = new ConsumerInterpolatedVoltageProvider(1, 100).encodePayload(date, value)
+    val bytes = new ConsumerInterpolatedVoltageProvider(1, 100, 5000).encodePayload(date, value)
     // print(new String(ByteBuffer.wrap(bytes).array()))
     
     val tuple = dataDecoder.apply(bytes)    
@@ -42,6 +42,13 @@ class ValueProviderTest extends FunSuite {
          assert(usagePointNb >= transformerNb)
          assert(transformerNb >= lineNb)
       }    
+  }
+  
+  test ("computeIncr(streamingDuration: Int)") {
+      for(i <- 1 to 10){
+        val streamingDuration = i * 1000
+        assert(60 == ProviderUtil.computeIncr(streamingDuration) * streamingDuration)
+      }
   }
 
 }

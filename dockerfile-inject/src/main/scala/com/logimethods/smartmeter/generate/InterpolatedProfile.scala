@@ -36,7 +36,7 @@ abstract class InterpolatedProfile {
 
   // Utilisé pour créer un biais systématique par usagePointPK + dayInWeek + hourInDay
   def bias(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float, range: Double) = {
-    2.0 * range * (rndValue + (((usagePointPK.hashCode() + dayInWeek + hourInDay) % 20) / 20) - 0.5)
+    0.4 * range * (rndValue + (((usagePointPK.hashCode() + dayInWeek + hourInDay) % 20) / 20) - 0.5)
   }
 
   def valueAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = dayInWeek match {
