@@ -18,6 +18,13 @@ In parallel, you can play with the number of injectors:
 > docker service scale inject=1
 ```
 
+### Schemas
+The *Injection* demo schema:
+![SmartMeter-Inject.png](images/SmartMeter-Inject.png "SmartMeter Injection Architecture")
+
+The *Batch* demo schema:
+![SmartMeter-Batch.png](images/SmartMeter-Batch.png "SmartMeter Injection Architecture")
+
 ## CQLSH (Cassandra CLI)
 To access to the RAW Voltage Data:
 ```
