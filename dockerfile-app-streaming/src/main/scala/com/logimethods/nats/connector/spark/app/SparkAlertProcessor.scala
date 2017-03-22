@@ -14,9 +14,9 @@ import java.io.Serializable
 
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
+import org.apache.spark.streaming.Duration
+import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.storage.StorageLevel;
-import org.apache.spark.streaming._
-
 //import io.nats.client.Constants._
 import io.nats.client.ConnectionFactory._
 import java.nio.ByteBuffer
@@ -28,17 +28,17 @@ import com.logimethods.scala.connector.spark.to_nats._
 
 import java.util.function._
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time._
 
-object SparkProcessor extends App {
+object SparkAlertProcessor /*extends App*/ {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
   Thread.sleep(5000)
 
-  val inputSubject = args(0)
+  val inputSubject = "args(0)"
   val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
-  val outputSubject = args(1)
+  val outputSubject = "args(1)"
   val outputStreaming = outputSubject.toUpperCase.contains("STREAMING")
   println("Will process messages from " + inputSubject + " to " + outputSubject)
   
@@ -55,7 +55,6 @@ object SparkProcessor extends App {
     { sc.addJar(file.getAbsolutePath) }
   val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
   val ssc = new StreamingContext(sc, new Duration(streamingDuration));
-  ssc.checkpoint("spark_storage")
 
   val properties = new Properties();
   val natsUrl = System.getenv("NATS_URI")
@@ -101,7 +100,7 @@ object SparkProcessor extends App {
     max.print()
   }
     
-/*  def longFloatTupleEncoder: Tuple2[Long,Float] => Array[Byte] = tuple => {        
+  def longFloatTupleEncoder: Tuple2[Long,Float] => Array[Byte] = tuple => {        
         val buffer = ByteBuffer.allocate(4+8);
         buffer.putLong(tuple._1)
         buffer.putFloat(tuple._2)        
@@ -118,8 +117,11 @@ object SparkProcessor extends App {
                             .withProperties(properties)
                             .withSubjects(outputSubject)
                             .publishToNatsAsKeyValue(max, longFloatTupleEncoder)
-  }*/
+  }
   
+/*  val maxReport = max.map(
+      {case (subject, (epoch, voltage)) 
+          => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), voltage.toString())) })*/
   val maxReport = max.map(
       {case (subject, (epoch, voltage)) 
           => (subject, voltage.toString()) })
@@ -127,87 +129,59 @@ object SparkProcessor extends App {
                           .withProperties(properties)
                           .withSubjects(outputSubject.replace("extract", "report"))
                           .publishToNatsAsKeyValue(maxReport)
-  // maxReport.print()   
-                          
-  // Predictions
+          
+  // ALERTS
   
-/*  // Update the cumulative count using mapWithState
-  // This will give a DStream made of state (which is the cumulative count of the words)
-  val mappingFunc = (word: String, one: Option[Int], state: State[Int]) => {
-    val sum = one.getOrElse(0) + state.getOption.getOrElse(0)
-    val output = (word, sum)
-    state.update(sum)
-    output
+  final val OFF_LIMIT_VOLTAGE_COUNT = 2
+	final val OFF_LIMIT_VOLTAGE = 120f
+	
+  val offLimits = messages.filter( _._2._2 > OFF_LIMIT_VOLTAGE )
+  if (logLevel.equals("OFF_LIMIT")) { 
+    offLimits.print()
   }
 
-    // A mapping function that maintains an integer state and returns a String
-    def mappingFunction(key: String, value: Option[Int], state: State[Int]): Option[String] = {
-      // Check if state exists
-      if (state.exists) {
-        val existingState = state.get  // Get the existing state
-        val shouldRemove = ...         // Decide whether to remove the state
-        if (shouldRemove) {
-          state.remove()     // Remove the state
-        } else {
-          val newState = ...
-          state.update(newState)    // Set the new state
-        }
-      } else {
-        val initialState = ...
-        state.update(initialState)  // Set the initial state
+  val offLimitsCount = offLimits.mapValues(t => (t._1, 1))
+                                .reduceByKey((t1, t2) => (Math.min(t1._1,t2._1), t1._2 + t2._2))
+  if (logLevel.equals("OFF_LIMIT_COUNT")) { 
+    offLimitsCount.print()
+  }
+  
+  val alerts = offLimitsCount.filter( _._2._2 >= OFF_LIMIT_VOLTAGE_COUNT ) 
+  if (logLevel.equals("ALERTS")) { 
+    alerts.print()
+  }
+    
+  def longIntTupleEncoder: Tuple2[Long,Int] => Array[Byte] = tuple => {        
+        val buffer = ByteBuffer.allocate(4+8);
+        buffer.putLong(tuple._1)
+        buffer.putInt(tuple._2)        
+        buffer.array()    
       }
-      ... // return something
-    }*/
   
-  val maxDelta = max.map(
-      {case (subject, (epoch, voltage)) 
-          => (/*LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN).getDayOfWeek, */
-                        LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN).getHour, 
-                        voltage) })
-  //maxDelta.print()
+  val outputAlertSubject = outputSubject.replace("max", "alert")
+  if (outputStreaming) {
+    SparkToNatsConnectorPool.newStreamingPool(clusterId)
+                            .withNatsURL(natsUrl)
+                            .withSubjects(outputAlertSubject)
+                            .publishToNatsAsKeyValue(alerts, longIntTupleEncoder)
+  } else {
+    SparkToNatsConnectorPool.newPool()
+                            .withProperties(properties)
+                            .withSubjects(outputAlertSubject)
+                            .publishToNatsAsKeyValue(alerts, longIntTupleEncoder)
+  }  
   
-  val maxOfMax = maxDelta.reduceByKey(Math.max(_, _))
-  
-  import org.apache.spark.HashPartitioner
-  val numOfPartitions = 24
-  val partitioner = new HashPartitioner(numOfPartitions)
+ /* val alertReport = alerts.map(
+      {case (subject, (epoch, alert)) 
+          => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), alert.toString())) })*/
+  val alertReport = alerts.map(
+      {case (subject, (epoch, alert)) 
+          => (subject, alert.toString()) })
+  SparkToNatsConnectorPool.newPool()
+                          .withProperties(properties)
+                          .withSubjects(outputAlertSubject.replace("extract", "report"))
+                          .publishToNatsAsKeyValue(alertReport)
 
-  val sumCount = maxDelta.combineByKey((v) => (v, 1),
-                                       (x:(Float, Int), value) => (x._1 + value, x._2 + 1),
-                                       (x:(Float, Int), y:(Float, Int)) => (x._1 + y._1, x._2 + y._2),
-                                       partitioner)
-  
-  val averageByKey = sumCount.map({case (key, value) => (key, value._1 / value._2)})
-//  averageByKey.print()
-  
-  // @See http://stackoverflow.com/questions/38961581/best-solution-to-accumulate-spark-streaming-dstream      
-  // @See http://asyncified.io/2016/07/31/exploring-stateful-streaming-with-apache-spark/                      
-  case class HourlyVoltage(/*dayOfWeek: Int,*/ hour: Int, voltage: Float)
-  
-//  case class HourlyVoltageSeq(hourlyVoltages: Seq[HourlyVoltage])
-  import scala.collection.mutable.MutableList
-  
-  def statefulTransformation(key: Int,
-                           value: Option[Float],
-                           state: State[MutableList[Float]]): Option[Float] = {
-    def updateState(value: Float): Float = {
-      val updatedList =
-        state
-          .getOption()
-          .map(list => list :+ value)
-        .getOrElse(MutableList(value))
-
-      state.update(updatedList)
-      value
-    }
-  
-    value.map(updateState)
-  }
-  
-  val stateSpec = StateSpec.function(statefulTransformation _)
-  val maxStats = averageByKey.mapWithState(stateSpec)
-  maxStats.stateSnapshots().print()
-        
   // Start
   ssc.start();		
   
