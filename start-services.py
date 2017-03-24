@@ -89,7 +89,8 @@ create_service_cassandra = ["create_service", "cassandra", 1]
 create_service_spark_master = ["create_service", "spark-master", 1]
 create_service_spark_slave = ["create_service", "spark-slave", 1]
 create_service_nats = ["create_service", "nats", 1]
-create_service_app_streaming = ["create_service", "app-streaming", 1]
+create_service_app_streaming = ["create_service", "app_streaming", 1]
+create_service_app_prediction = ["create_service", "app_prediction", 1]
 create_service_monitor = ["create_service", "monitor", 1]
 create_service_reporter = ["create_service", "reporter", 1]
 create_cassandra_tables = ["call", "cassandra_cql", "/cql/create-timeseries.cql"]
@@ -101,7 +102,8 @@ stop_service_cassandra = ["create_service", "cassandra", 0]
 stop_service_spark_master = ["create_service", "spark-master", 0]
 stop_service_spark_slave = ["create_service", "spark-slave", 0]
 stop_service_nats = ["create_service", "nats", 0]
-stop_service_app_streaming = ["create_service", "app-streaming", 0]
+stop_service_app_streaming = ["create_service", "app_streaming", 0]
+stop_service_app_prediction = ["create_service", "app_prediction", 0]
 stop_service_monitor = ["create_service", "monitor", 0]
 stop_service_reporter = ["create_service", "reporter", 0]
 stop_service_cassandra_inject = ["create_service", "cassandra-inject", 0]
@@ -112,7 +114,8 @@ rm_service_cassandra = ["rm_service", "cassandra"]
 rm_service_spark_master = ["rm_service", "spark-master"]
 rm_service_spark_slave = ["rm_service", "spark-slave"]
 rm_service_nats = ["rm_service", "nats"]
-rm_service_app_streaming = ["rm_service", "app-streaming"]
+rm_service_app_streaming = ["rm_service", "app_streaming"]
+rm_service_app_prediction = ["rm_service", "app_prediction"]
 rm_service_monitor = ["rm_service", "monitor"]
 rm_service_reporter = ["rm_service", "reporter"]
 rm_service_cassandra_inject = ["rm_service", "cassandra-inject"]
@@ -129,6 +132,7 @@ all_steps = [
 	create_service_spark_slave,
 	create_service_nats,
 	create_service_app_streaming,
+	create_service_app_prediction,
 	create_service_monitor,
 	create_service_reporter,
 	create_cassandra_tables,
@@ -164,6 +168,7 @@ def run_inject():
 		create_service_spark_slave,
 		["run", "spark_autoscaling"],
 		create_service_app_streaming,
+		create_service_app_prediction,
 #		rm_service_cassandra_inject,
 #		["build", "inject"],
 		create_service_cassandra,

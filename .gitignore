@@ -42,3 +42,5 @@ __pycache__/
 
 # dockerfile-cassandra/Dockerfile
 
+# Spark
+spark/storage/

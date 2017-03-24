@@ -178,8 +178,8 @@ object SparkMaxProcessor extends App with SparkProcessor {
   val stateSpec = StateSpec.function(statefulTransformation _)
   val maxStats = averageByKey.mapWithState(stateSpec)
   maxStats.stateSnapshots().print()
-  maxStats.stateSnapshots().saveAsTextFiles("spark/storage/maxstats", "txt")
-  maxStats.stateSnapshots().saveAsObjectFiles("spark/storage/maxstats", "obj")
+  maxStats.stateSnapshots().saveAsTextFiles("/spark/storage/text/maxstats", "txt")
+  maxStats.stateSnapshots().saveAsObjectFiles("/spark/storage/obj/maxstats", "obj")
         
   // Start
   ssc.start();		

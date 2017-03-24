@@ -148,21 +148,80 @@ docker ${remote} service create \
 	logimethods/smart-meter:nats-server${postfix}  -m 8222
 }
 
-create_service_app-streaming() {
+create_service_app_streaming() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
 docker ${remote} service create \
-	--name app-streaming \
+	--name app_streaming \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
 	-e LOG_LEVEL=INFO \
+  --mount type=bind,source=${PWD}/spark/storage,target=/spark/storage \
 	--network smartmeter \
   --mode global \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
-		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max." "Smartmeter MAX Streaming"
+		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max." \
+    "Smartmeter MAX Streaming"
 
 #    --replicas=${replicas} \
 #    --constraint 'node.role == manager' \
+}
+
+__run_app_streaming() {
+#docker ${remote} pull logimethods/smart-meter:app-streaming
+  cmd="docker ${remote} run --rm -d \
+  	--name app_streaming \
+  	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+  	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    -e STREAMING_DURATION=${STREAMING_DURATION} \
+  	-e LOG_LEVEL=INFO \
+    -v ${PWD}/spark/storage:/spark/storage \
+  	--network smartmeter \
+  	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
+  		\"smartmeter.voltage.data.>\" \"smartmeter.voltage.data. => smartmeter.voltage.extract.max.\" \
+      \"Smartmeter MAX Streaming\" "
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec "$cmd"
+}
+
+create_service_app_prediction() {
+#docker ${remote} pull logimethods/smart-meter:app-streaming
+docker ${remote} service create \
+	--name app_prediction \
+	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+  -e STREAMING_DURATION=${STREAMING_DURATION} \
+	-e LOG_LEVEL=INFO \
+  --mount type=bind,source=${PWD}/spark/storage,target=/spark/storage \
+	--network smartmeter \
+  --mode global \
+	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkPredictionProcessor" \
+		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max." \
+    "Smartmeter PREDICTION Streaming"
+
+#    --replicas=${replicas} \
+#    --constraint 'node.role == manager' \
+}
+
+__run_app_prediction() {
+#docker ${remote} pull logimethods/smart-meter:app-streaming
+  cmd="docker ${remote} run --rm \
+  	--name app_prediction \
+  	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+  	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    -e STREAMING_DURATION=${STREAMING_DURATION} \
+  	-e LOG_LEVEL=INFO \
+    -v ${PWD}/spark/storage:/spark/storage \
+  	--network smartmeter \
+  	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
+  		\"smartmeter.voltage.data.>\" \"smartmeter.voltage.data. => smartmeter.voltage.extract.max.\" \
+      \"Smartmeter PREDICTION Streaming\" "
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
 }
 
 run_app-batch() {
