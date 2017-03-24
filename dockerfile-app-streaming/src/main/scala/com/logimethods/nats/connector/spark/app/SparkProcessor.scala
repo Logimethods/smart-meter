@@ -34,7 +34,7 @@ object SparkProcessor extends App {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  Thread.sleep(5000)
+//  Thread.sleep(5000)
 
   val inputSubject = args(0)
   val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
@@ -55,7 +55,7 @@ object SparkProcessor extends App {
     { sc.addJar(file.getAbsolutePath) }
   val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
   val ssc = new StreamingContext(sc, new Duration(streamingDuration));
-  ssc.checkpoint("spark_storage")
+  ssc.checkpoint("/spark/storage")
 
   val properties = new Properties();
   val natsUrl = System.getenv("NATS_URI")
@@ -207,6 +207,8 @@ object SparkProcessor extends App {
   val stateSpec = StateSpec.function(statefulTransformation _)
   val maxStats = averageByKey.mapWithState(stateSpec)
   maxStats.stateSnapshots().print()
+  maxStats.stateSnapshots().saveAsTextFiles("spark/storage/maxstats", "txt")
+  maxStats.stateSnapshots().saveAsObjectFiles("spark/storage/maxstats", "obj")
         
   // Start
   ssc.start();		

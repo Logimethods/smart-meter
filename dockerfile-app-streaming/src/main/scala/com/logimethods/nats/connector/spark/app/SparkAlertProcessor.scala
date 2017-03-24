@@ -30,15 +30,15 @@ import java.util.function._
 
 import java.time._
 
-object SparkAlertProcessor /*extends App*/ {
+object SparkAlertProcessor extends App {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
   Thread.sleep(5000)
 
-  val inputSubject = "args(0)"
+  val inputSubject = args(0)
   val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
-  val outputSubject = "args(1)"
+  val outputSubject = args(1)
   val outputStreaming = outputSubject.toUpperCase.contains("STREAMING")
   println("Will process messages from " + inputSubject + " to " + outputSubject)
   

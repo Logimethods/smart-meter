@@ -158,7 +158,7 @@ docker ${remote} service create \
 	-e LOG_LEVEL=INFO \
 	--network smartmeter \
   --mode global \
-	logimethods/smart-meter:app-streaming${postfix} \
+	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkProcessor" \
 		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
 
 #    --replicas=${replicas} \
@@ -362,6 +362,20 @@ run_service_telegraf_docker() {
   echo "$cmd"
   echo "-----------------------------------------------------------------"
   exec $cmd
+}
+
+### ZEPPELIN ###
+
+run_zeppelin() {
+  cmd="docker ${remote} run -d --rm\
+  --network smartmeter \
+  --name zeppelin \
+  -p ${ZEPPELIN_WEB_PORT}:8080 \
+  dylanmei/zeppelin:${zeppelin_tag} sh -c \"./bin/install-interpreter.sh --name cassandra ; ./bin/zeppelin.sh\""
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  sh -c "$cmd"
 }
 
 ### RUN DOCKER ###
