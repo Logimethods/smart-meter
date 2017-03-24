@@ -30,39 +30,11 @@ import java.util.function._
 
 import java.time._
 
-object SparkAlertProcessor extends App {
+object SparkAlertProcessor extends App with SparkProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  Thread.sleep(5000)
-
-  val inputSubject = args(0)
-  val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
-  val outputSubject = args(1)
-  val outputStreaming = outputSubject.toUpperCase.contains("STREAMING")
-  println("Will process messages from " + inputSubject + " to " + outputSubject)
-  
-  val logLevel = scala.util.Properties.envOrElse("LOG_LEVEL", "INFO")
-  println("LOG_LEVEL = " + logLevel)
-
-  val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
-  println("SPARK_MASTER_URL = " + sparkMasterUrl)
-  val conf = new SparkConf().setAppName("Smartmeter Streaming").setMaster(sparkMasterUrl);
-  val sc = new SparkContext(conf);
-//  val jarFilesRegex = "java-nats-streaming-(.*)jar|guava(.*)jar|protobuf-java(.*)jar|jnats-(.*)jar|nats-connector-spark-(.*)jar|docker-nats-connector-spark(.*)jar"
-  val jarFilesRegex = "(.*)jar"
-  for (file <- new File("/app/").listFiles.filter(_.getName.matches(jarFilesRegex))) 
-    { sc.addJar(file.getAbsolutePath) }
-  val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
-  val ssc = new StreamingContext(sc, new Duration(streamingDuration));
-
-  val properties = new Properties();
-  val natsUrl = System.getenv("NATS_URI")
-  println("NATS_URI = " + natsUrl)
-  properties.put("servers", natsUrl)
-  properties.put(PROP_URL, natsUrl)
-
-  val clusterId = System.getenv("NATS_CLUSTER_ID")
+  val (properties, logLevel, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setup(args)
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);

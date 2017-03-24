@@ -158,8 +158,8 @@ docker ${remote} service create \
 	-e LOG_LEVEL=INFO \
 	--network smartmeter \
   --mode global \
-	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkProcessor" \
-		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max."
+	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
+		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max." "Smartmeter MAX Streaming"
 
 #    --replicas=${replicas} \
 #    --constraint 'node.role == manager' \
