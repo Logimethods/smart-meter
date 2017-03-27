@@ -31,6 +31,12 @@ CREATE TABLE IF NOT EXISTS voltage_alerts (
       PRIMARY KEY ((line, transformer), year, month, day)
 ) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);
 
+CREATE TABLE IF NOT EXISTS max_voltage_by_hour (
+      hour tinyint,    // 8-bit signed int
+      voltage_max float,
+      PRIMARY KEY ((hour), voltage_max)
+);
+
 CREATE TABLE IF NOT EXISTS avg_voltage_by_transformer (
       line tinyint,    // 8-bit signed int
       transformer int, // 32-bit signed int

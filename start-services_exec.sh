@@ -155,8 +155,8 @@ docker ${remote} service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
+  -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
 	-e LOG_LEVEL=INFO \
-  --mount type=bind,source=${PWD}/spark/storage,target=/spark/storage \
 	--network smartmeter \
   --mode global \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
@@ -172,10 +172,10 @@ __run_app_streaming() {
   cmd="docker ${remote} run --rm -d \
   	--name app_streaming \
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+    -e CASSANDRA_URL=${CASSANDRA_NAME} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
   	-e LOG_LEVEL=INFO \
-    -v ${PWD}/spark/storage:/spark/storage \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
   		\"smartmeter.voltage.data.>\" \"smartmeter.voltage.data. => smartmeter.voltage.extract.max.\" \
@@ -193,8 +193,8 @@ docker ${remote} service create \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
+  -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
 	-e LOG_LEVEL=INFO \
-  --mount type=bind,source=${PWD}/spark/storage,target=/spark/storage \
 	--network smartmeter \
   --mode global \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkPredictionProcessor" \
@@ -211,9 +211,9 @@ __run_app_prediction() {
   	--name app_prediction \
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    -e CASSANDRA_URL=${CASSANDRA_NAME} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
   	-e LOG_LEVEL=INFO \
-    -v ${PWD}/spark/storage:/spark/storage \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
   		\"smartmeter.voltage.data.>\" \"smartmeter.voltage.data. => smartmeter.voltage.extract.max.\" \

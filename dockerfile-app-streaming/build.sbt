@@ -35,6 +35,15 @@ sparkVersion := {
   }
 }
 
+lazy val sparkCassandraConnectorVersion = settingKey[String]("sparkCassandraConnectorVersion")
+sparkCassandraConnectorVersion := {
+  try {
+    appProperties.value.getProperty("spark_cassandra_connector_version")
+  } catch {
+    case _: Exception => "<empty>"
+  }
+}
+
 lazy val natsConnectorSparkVersion = settingKey[String]("natsConnectorSparkVersion")
 natsConnectorSparkVersion := {
   try {
@@ -47,6 +56,8 @@ natsConnectorSparkVersion := {
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion.value
 libraryDependencies += "com.logimethods"  %% "nats-connector-spark-scala" % natsConnectorSparkVersion.value changing()
+libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion.value % "provided"
+libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % sparkCassandraConnectorVersion.value
 
 // @see http://stackoverflow.com/questions/30446984/spark-sbt-assembly-deduplicate-different-file-contents-found-in-the-followi
 assemblyMergeStrategy in assembly := {

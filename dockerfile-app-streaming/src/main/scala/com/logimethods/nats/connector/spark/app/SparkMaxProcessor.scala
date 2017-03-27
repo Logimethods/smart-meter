@@ -16,6 +16,8 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming._
+import com.datastax.spark.connector.streaming._
+import com.datastax.spark.connector.SomeColumns
 
 //import io.nats.client.Constants._
 import io.nats.client.ConnectionFactory._
@@ -99,37 +101,7 @@ object SparkMaxProcessor extends App with SparkProcessor {
                           .withSubjects(outputSubject.replace("extract", "report"))
                           .publishToNatsAsKeyValue(maxReport)
   // maxReport.print()   
-                          
-  // Predictions
-  
-/*  // Update the cumulative count using mapWithState
-  // This will give a DStream made of state (which is the cumulative count of the words)
-  val mappingFunc = (word: String, one: Option[Int], state: State[Int]) => {
-    val sum = one.getOrElse(0) + state.getOption.getOrElse(0)
-    val output = (word, sum)
-    state.update(sum)
-    output
-  }
-
-    // A mapping function that maintains an integer state and returns a String
-    def mappingFunction(key: String, value: Option[Int], state: State[Int]): Option[String] = {
-      // Check if state exists
-      if (state.exists) {
-        val existingState = state.get  // Get the existing state
-        val shouldRemove = ...         // Decide whether to remove the state
-        if (shouldRemove) {
-          state.remove()     // Remove the state
-        } else {
-          val newState = ...
-          state.update(newState)    // Set the new state
-        }
-      } else {
-        val initialState = ...
-        state.update(initialState)  // Set the initial state
-      }
-      ... // return something
-    }*/
-  
+                            
   val maxDelta = max.map(
       {case (subject, (epoch, voltage)) 
           => (/*LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN).getDayOfWeek, */
@@ -139,54 +111,10 @@ object SparkMaxProcessor extends App with SparkProcessor {
   
   val maxOfMax = maxDelta.reduceByKey(Math.max(_, _))
   
-  import org.apache.spark.HashPartitioner
-  val numOfPartitions = 24
-  val partitioner = new HashPartitioner(numOfPartitions)
-
-  val sumCount = maxDelta.combineByKey((v) => (v, 1),
-                                       (x:(Float, Int), value) => (x._1 + value, x._2 + 1),
-                                       (x:(Float, Int), y:(Float, Int)) => (x._1 + y._1, x._2 + y._2),
-                                       partitioner)
+  maxOfMax.print()
   
-  val averageByKey = sumCount.map({case (key, value) => (key, value._1 / value._2)})
-//  averageByKey.print()
+  maxOfMax.saveToCassandra("smartmeter", "max_voltage_by_hour", SomeColumns("hour", "voltage_max") /*, writeConf*/)
   
-  // @See http://stackoverflow.com/questions/38961581/best-solution-to-accumulate-spark-streaming-dstream      
-  // @See http://asyncified.io/2016/07/31/exploring-stateful-streaming-with-apache-spark/                      
-  case class HourlyVoltage(/*dayOfWeek: Int,*/ hour: Int, voltage: Float)
-  
-//  case class HourlyVoltageSeq(hourlyVoltages: Seq[HourlyVoltage])
-  import scala.collection.mutable.MutableList
-  
-  def statefulTransformation(key: Int,
-                           value: Option[Float],
-                           state: State[MutableList[Float]]): Option[Float] = {
-    def updateState(value: Float): Float = {
-      val updatedList =
-        state
-          .getOption()
-          .map(list => list :+ value)
-        .getOrElse(MutableList(value))
-
-      state.update(updatedList)
-      value
-    }
-  
-    value.map(updateState)
-  }
-  
-  val stateSpec = StateSpec.function(statefulTransformation _)
-  val maxStats = averageByKey.mapWithState(stateSpec)
-  val rawState = maxStats.stateSnapshots().repartition(1)
-//  val state = rawState.flatMap({case (i, s) => s.map { f => (i, (1, Seq(1), f)) }})
-  val state = rawState.flatMap({case (i, s) => s.map { f => (i.toString(), "xxx") }})
-  state.print()
-  state.saveAsTextFiles("/spark/storage/text/maxstats", "txt")
-  state.saveAsObjectFiles("/spark/storage/obj/maxstats")
-//  import org.apache.hadoop.io._
-//  import org.apache.hadoop.mapred.TextOutputFormat
-  state.saveAsHadoopFiles("/spark/storage/hdp/maxstats", "hdp")
-        
   // Start
   ssc.start();		
   

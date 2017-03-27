@@ -41,9 +41,16 @@ trait SparkProcessor {
     val logLevel = scala.util.Properties.envOrElse("LOG_LEVEL", "INFO")
     println("LOG_LEVEL = " + logLevel)
   
+    val cassandraUrl = System.getenv("CASSANDRA_URL")
+    println("CASSANDRA_URL = " + cassandraUrl)
+  
     val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
     println("SPARK_MASTER_URL = " + sparkMasterUrl)
-    val conf = new SparkConf().setAppName(args(2)).setMaster(sparkMasterUrl);
+    
+    val conf = new SparkConf()
+                  .setAppName(args(2))
+                  .setMaster(sparkMasterUrl)
+                  .set("spark.cassandra.connection.host", cassandraUrl);
     val sc = new SparkContext(conf);
   //  val jarFilesRegex = "java-nats-streaming-(.*)jar|guava(.*)jar|protobuf-java(.*)jar|jnats-(.*)jar|nats-connector-spark-(.*)jar|docker-nats-connector-spark(.*)jar"
     val jarFilesRegex = "(.*)jar"
