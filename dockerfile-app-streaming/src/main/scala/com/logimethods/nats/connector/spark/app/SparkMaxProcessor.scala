@@ -34,7 +34,7 @@ object SparkMaxProcessor extends App with SparkProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  val (properties, logLevel, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setup(args)
+  val (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setup(args)
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
@@ -177,9 +177,15 @@ object SparkMaxProcessor extends App with SparkProcessor {
   
   val stateSpec = StateSpec.function(statefulTransformation _)
   val maxStats = averageByKey.mapWithState(stateSpec)
-  maxStats.stateSnapshots().print()
-  maxStats.stateSnapshots().saveAsTextFiles("/spark/storage/text/maxstats", "txt")
-  maxStats.stateSnapshots().saveAsObjectFiles("/spark/storage/obj/maxstats", "obj")
+  val rawState = maxStats.stateSnapshots().repartition(1)
+//  val state = rawState.flatMap({case (i, s) => s.map { f => (i, (1, Seq(1), f)) }})
+  val state = rawState.flatMap({case (i, s) => s.map { f => (i.toString(), "xxx") }})
+  state.print()
+  state.saveAsTextFiles("/spark/storage/text/maxstats", "txt")
+  state.saveAsObjectFiles("/spark/storage/obj/maxstats")
+//  import org.apache.hadoop.io._
+//  import org.apache.hadoop.mapred.TextOutputFormat
+  state.saveAsHadoopFiles("/spark/storage/hdp/maxstats", "hdp")
         
   // Start
   ssc.start();		

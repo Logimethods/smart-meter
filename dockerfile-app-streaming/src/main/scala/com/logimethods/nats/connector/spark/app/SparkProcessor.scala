@@ -61,6 +61,6 @@ trait SparkProcessor {
   
     val clusterId = System.getenv("NATS_CLUSTER_ID")
     
-    (properties, logLevel, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl)
+    (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl)
   }
 }
