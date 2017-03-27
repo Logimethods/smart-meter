@@ -8,14 +8,9 @@ import com.datastax.spark.connector._
 val table = sc.cassandraTable("smartmeter", "max_voltage_by_hour")
 table.count
 
-//val data = table.map({r => (r.get[Float]("voltage_max") > 117, (1, Array(1), r.get[Int]("hour")))})
-//val data = table.map({r => (r.get[Float]("voltage_max") > 117, Array(1, Array(1), r.get[Int]("hour")))})
-val train = table.map({r => (r.get[Float]("voltage_max") > 117, Vector(r.get[Int]("hour")))}).toDF("label", "features")
 // http://stackoverflow.com/questions/37513667/how-to-create-a-spark-dataset-from-an-rdd
-val train = data.toDF("label", "features")
-
 // https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/ml/MultilayerPerceptronClassifierExample.scala
-val layers = Array[Int](1, 6, 6, 6)
+val layers = Array[Int](1, 6, 6, 2)
 
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
@@ -23,7 +18,6 @@ val trainer = new MultilayerPerceptronClassifier().setLayers(layers).setBlockSiz
 
 // http://stackoverflow.com/questions/33844591/prepare-data-for-multilayerperceptronclassifier-in-scala
 :paste
-//val data = table.map({r => (r.get[Float]("voltage_max").toInt - 114, r.get[Int]("hour"))}).toDF("label", "hour")
 implicit def bool2int(b:Boolean) = if (b) 1 else 0
 val data = table.map({r => ((r.get[Float]("voltage_max").toInt > 117):Int, r.get[Int]("hour"))}).toDF("label", "hour")
 import org.apache.spark.ml.feature.VectorAssembler
