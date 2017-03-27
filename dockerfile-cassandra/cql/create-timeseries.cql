@@ -21,6 +21,16 @@ CREATE TABLE IF NOT EXISTS raw_voltage_data (
       PRIMARY KEY ((line, transformer, usagePoint), year, month, day, hour, minute)
 ) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC, minute DESC);
 
+CREATE TABLE IF NOT EXISTS voltage_alerts (
+      line tinyint,    // 8-bit signed int
+      transformer int, // 32-bit signed int
+      year smallint,    // 16-bit signed int
+      month tinyint,
+      day tinyint,
+      voltage_avg float,
+      PRIMARY KEY ((line, transformer), year, month, day)
+) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC);
+
 CREATE TABLE IF NOT EXISTS avg_voltage_by_transformer (
       line tinyint,    // 8-bit signed int
       transformer int, // 32-bit signed int
