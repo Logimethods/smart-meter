@@ -58,7 +58,7 @@ trait SparkProcessor {
       { sc.addJar(file.getAbsolutePath) }
     val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
     val ssc = new StreamingContext(sc, new Duration(streamingDuration));
-    ssc.checkpoint("/spark/storage")
+//    ssc.checkpoint("/spark/storage")
   
     val properties = new Properties();
     val natsUrl = System.getenv("NATS_URI")

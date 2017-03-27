@@ -1,0 +1,45 @@
+docker run -it --network smartmeter gettyimages/spark:2.0.2-hadoop-2.7 sh
+
+echo "spark.cassandra.connection.host=cassandra_main" >> ./conf/spark-defaults.conf
+spark-shell --packages com.datastax.spark:spark-cassandra-connector_2.11:2.0.0
+
+:paste
+import com.datastax.spark.connector._
+val table = sc.cassandraTable("smartmeter", "max_voltage_by_hour")
+table.count
+
+//val data = table.map({r => (r.get[Float]("voltage_max") > 117, (1, Array(1), r.get[Int]("hour")))})
+//val data = table.map({r => (r.get[Float]("voltage_max") > 117, Array(1, Array(1), r.get[Int]("hour")))})
+val train = table.map({r => (r.get[Float]("voltage_max") > 117, Vector(r.get[Int]("hour")))}).toDF("label", "features")
+// http://stackoverflow.com/questions/37513667/how-to-create-a-spark-dataset-from-an-rdd
+val train = data.toDF("label", "features")
+
+// https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/ml/MultilayerPerceptronClassifierExample.scala
+val layers = Array[Int](1, 6, 6, 6)
+
+import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+val trainer = new MultilayerPerceptronClassifier().setLayers(layers).setBlockSize(128).setSeed(1234L).setMaxIter(100)
+
+// http://stackoverflow.com/questions/33844591/prepare-data-for-multilayerperceptronclassifier-in-scala
+:paste
+//val data = table.map({r => (r.get[Float]("voltage_max").toInt - 114, r.get[Int]("hour"))}).toDF("label", "hour")
+implicit def bool2int(b:Boolean) = if (b) 1 else 0
+val data = table.map({r => ((r.get[Float]("voltage_max").toInt > 117):Int, r.get[Int]("hour"))}).toDF("label", "hour")
+import org.apache.spark.ml.feature.VectorAssembler
+
+val assembler = new VectorAssembler()
+  .setInputCols(Array("hour"))
+  .setOutputCol("features")
+
+val all = assembler.transform(data)
+val splits = all.randomSplit(Array(0.6, 0.4), seed = 1234L)
+val train = splits(0)
+val test = splits(1)
+
+val model = trainer.fit(train)
+
+val test = train
+val result = model.transform(test)
+
+result.show
