@@ -12,7 +12,7 @@ val table = max_voltage.joinWithCassandraTable("smartmeter", "temperature")
 
 // http://stackoverflow.com/questions/37513667/how-to-create-a-spark-dataset-from-an-rdd
 // https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/ml/MultilayerPerceptronClassifierExample.scala
-val layers = Array[Int](3, 9, 9, 2)
+val layers = Array[Int](4, 12, 12, 2)
 
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
@@ -27,19 +27,27 @@ res6: (com.datastax.spark.connector.CassandraRow, com.datastax.spark.connector.C
 
 :paste
 import java.time.{LocalDateTime, ZoneOffset}
+import scala.math._
 implicit def bool2int(b:Boolean) = if (b) 1 else 0
 //val data = table.map({r => ((r.get[Float]("voltage_max").toInt > 117):Int, r.get[Int]("hour"))}).toDF("label", "hour")
-val data = table.map({case (v,t) =>
+val flatten = table.map({case (v,t) =>
   val date = LocalDateTime.ofEpochSecond(v.get[Long]("epoch"), 0, ZoneOffset.MIN)
   val voltage = v.get[Float]("voltage")
-  val temperature = t.get[Float]("temperature")
   val label = (voltage > 117):Int
-  (label, date.getHour, date.getDayOfWeek.ordinal + 1, temperature)}).toDF("label", "hour", "dayOfWeek", "temperature")
+  val temperature = t.get[Float]("temperature")
+  // https://www.reddit.com/r/MachineLearning/comments/2hzuj5/how_do_i_encode_day_of_the_week_as_a_predictor/
+  val hour = date.getHour
+  val hourAngle = (hour.toFloat / 24) * 2 * Pi
+  val hourSin = 20 * sin(hourAngle)
+  val hourCos = 20 * cos(hourAngle)
+  (label, voltage, hour, hourSin, hourCos, date.getDayOfWeek.ordinal + 1, temperature)})
+
+val data = flatten.toDF("label", "voltage", "hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
 
 import org.apache.spark.ml.feature.VectorAssembler
 
 val assembler = new VectorAssembler()
-  .setInputCols(Array("hour", "dayOfWeek", "temperature"))
+  .setInputCols(Array("hourSin", "hourCos", "dayOfWeek", "temperature"))
   .setOutputCol("features")
 
 val all = assembler.transform(data)
@@ -55,50 +63,37 @@ val result = model.transform(test)
 
 result.show
 
+val predictionAndLabels = result.select("prediction", "label")
+val evaluator = new MulticlassClassificationEvaluator().setMetricName("accuracy")
+
+println("Test set accuracy = " + evaluator.evaluate(predictionAndLabels))
 
 
 
-+-----+----+--------+
-|label|hour|features|
-+-----+----+--------+
-|    1|  19|  [19.0]|
-|    1|  19|  [19.0]|
-|    0|   0|   [0.0]|
-|    0|   0|   [0.0]|
-|    1|  20|  [20.0]|
-|    1|  20|  [20.0]|
-|    0|   6|   [6.0]|
-|    0|   6|   [6.0]|
-|    0|  15|  [15.0]|
-|    0|   8|   [8.0]|
-|    0|   8|   [8.0]|
-|    0|  12|  [12.0]|
-|    0|  12|  [12.0]|
-|    0|   3|   [3.0]|
-|    0|   3|   [3.0]|
-|    0|  14|  [14.0]|
-|    0|   2|   [2.0]|
-|    0|   2|   [2.0]|
-|    0|  13|  [13.0]|
-|    0|  11|  [11.0]|
-+-----+----+--------+
++-----+----------+----+-------------------+--------------------+---------+-----------+--------------------+----------+
+|label|   voltage|hour|            hourSin|             hourCos|dayOfWeek|temperature|            features|prediction|
++-----+----------+----+-------------------+--------------------+---------+-----------+--------------------+----------+
+|    0|113.927734|  15| -14.14213562373095| -14.142135623730955|        3|       21.1|[-14.142135623730...|       0.0|
+|    0| 115.28834|  11|  5.176379696230375|  -19.31851684887983|        4|       21.1|[5.17637969623037...|       0.0|
+|    0| 115.58061|  10| 10.000001081108646|  -17.32050745151036|        4|       21.1|[10.0000010811086...|       0.0|
+|    0| 114.32519|  14| -9.999997837782583|   -17.3205093240454|        4|       21.1|[-9.9999978377825...|       0.0|
+|    0| 115.31553|  17|-19.318515879584204|  -5.176383313690442|        3|       21.1|[-19.318515879584...|       0.0|
+|    0|116.497955|   2| 10.000000270277166|   17.32050791964418|        4|       21.1|[10.0000002702771...|       0.0|
+|    0| 116.62144|  19|-19.318515879584208|   5.176383313690436|        2|       21.1|[-19.318515879584...|       0.0|
+|    1| 117.11218|  23| -5.176383313690444|  19.318515879584204|        2|       21.1|[-5.1763833136904...|       1.0|
+|    0|  115.3292|  11|  5.176379696230375|  -19.31851684887983|        3|       21.1|[5.17637969623037...|       0.0|
+|    0| 114.29455|  14| -9.999997837782583|   -17.3205093240454|        3|       21.1|[-9.9999978377825...|       0.0|
+|    0| 116.92166|   1|  5.176381052777918|  19.318516485394053|        3|       21.1|[5.17638105277791...|       0.0|
+|    0| 115.98727|  18|              -20.0|-3.67394039744205...|        4|       21.1|[-20.0,-3.6739403...|       0.0|
+|    0| 113.95766|  15| -14.14213562373095| -14.142135623730955|        4|       21.1|[-14.142135623730...|       0.0|
+|    0|  116.9887|   2| 10.000000270277166|   17.32050791964418|        4|       21.1|[10.0000002702771...|       0.0|
+|    1|117.169685|   4| 17.320508387777952|   9.999999459445663|        4|       21.1|[17.3205083877779...|       1.0|
+|    0| 115.97839|  18|              -20.0|-3.67394039744205...|        3|       21.1|[-20.0,-3.6739403...|       0.0|
+|    1|117.333206|   7| 19.318516848879835|  -5.176379696230367|        4|       21.1|[19.3185168488798...|       1.0|
+|    0|115.936005|   9| 14.142135623730951|  -14.14213562373095|        3|       21.1|[14.1421356237309...|       0.0|
+|    0|  116.8444|   3|  14.14213562373095|  14.142135623730951|        4|       21.1|[14.1421356237309...|       0.0|
+|    0|116.961105|   2| 10.000000270277166|   17.32050791964418|        3|       21.1|[10.0000002702771...|       0.0|
++-----+----------+----+-------------------+--------------------+---------+-----------+--------------------+----------+
+only showing top 20 rows
 
-
-+-----+----+--------+----------+
-|label|hour|features|prediction|
-+-----+----+--------+----------+
-|    1|  19|  [19.0]|       1.0|
-|    1|  19|  [19.0]|       1.0|
-|    0|   0|   [0.0]|       0.0|
-|    0|   0|   [0.0]|       0.0|
-|    0|  12|  [12.0]|       0.0|
-|    0|   3|   [3.0]|       0.0|
-|    0|   2|   [2.0]|       0.0|
-|    0|   2|   [2.0]|       0.0|
-|    0|  14|  [14.0]|       0.0|
-|    0|  11|  [11.0]|       0.0|
-|    0|   7|   [7.0]|       0.0|
-|    0|  18|  [18.0]|       1.0|
-|    0|   1|   [1.0]|       0.0|
-|    0|   9|   [9.0]|       0.0|
-+-----+----+--------+----------+
+Test set accuracy = 1.0
