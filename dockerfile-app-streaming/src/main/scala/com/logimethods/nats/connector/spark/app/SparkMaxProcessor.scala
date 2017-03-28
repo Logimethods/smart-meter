@@ -39,6 +39,7 @@ object SparkMaxProcessor extends App with SparkProcessor {
 //  val rawInputSubject = args(1)
 //  args(1) += ".data.>"
   val (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setup(args)
+  ssc.checkpoint("/spark/storage")
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
@@ -70,9 +71,28 @@ object SparkMaxProcessor extends App with SparkProcessor {
   
   // TEMPERATURES
 
-  val temperatures = messages.filter({case (s, v) => s.endsWith("temperature")})
+  val temperatures = messages.filter({case (s, v) => s.endsWith("temperature")}).map({case (s, v) => v})
   temperatures.print()
-
+  
+  // @See http://stackoverflow.com/questions/38961581/best-solution-to-accumulate-spark-streaming-dstream      
+  // @See http://asyncified.io/2016/07/31/exploring-stateful-streaming-with-apache-spark/                      
+  import scala.collection.mutable.MutableList
+  
+  def statefulTransformation(key: Long,
+                           value: Option[Float],
+                           state: State[Float]): Option[Float] = {
+    def updateState(value: Float): Float = {
+      state.update(value)
+      value
+    }
+  
+    value.map(updateState)
+  }
+  
+  val stateSpec = StateSpec.function(statefulTransformation _)
+  val temperatureStats = temperatures.mapWithState(stateSpec)
+  temperatureStats.stateSnapshots().print()
+  
   // MAXIMUM values
   
   val voltages = messages.filter({case (s, v) => s.startsWith("smartmeter.voltage.raw.data")})  
@@ -121,7 +141,7 @@ object SparkMaxProcessor extends App with SparkProcessor {
   
   maxOfMax.print()
   
-  maxOfMax.saveToCassandra("smartmeter", "max_voltage_by_hour", SomeColumns("hour", "voltage_max") /*, writeConf*/)
+//  maxOfMax.saveToCassandra("smartmeter", "max_voltage_by_hour", SomeColumns("hour", "voltage_max") /*, writeConf*/)
   
   // Start
   ssc.start();		
