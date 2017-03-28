@@ -55,6 +55,16 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
     temperatures.dequeue()
   }
   
+  def voltage() = {
+    val baseVoltage = ConsumerInterpolatedVoltageProfile
+                          .valueAtDayAndHour(point(), 
+                                            date.getDayOfWeek().ordinal(), 
+                                            date.getHour(),
+                                            (random.nextFloat() - 0.5f))
+                                            
+    baseVoltage + ((temperatures.front -5).abs * 0.08f)
+  }
+  
   def increment() {
     if (tictac) {
       if (usagePoint > usagePointNb) {
@@ -87,7 +97,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
     increment()
     val value = 
       if (returnTemperature) temperature()
-         else ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f)) 
+         else voltage() 
     
     usagePoint += 1
 
