@@ -160,7 +160,7 @@ docker ${remote} service create \
 	--network smartmeter \
   --mode global \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
-		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max." \
+		"smartmeter.voltage.raw.>" "smartmeter.voltage.raw.data. => smartmeter.voltage.extract.max." \
     "Smartmeter MAX Streaming"
 
 #    --replicas=${replicas} \
@@ -280,7 +280,7 @@ docker ${remote} service create \
 	--network smartmeter \
   --mode global \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
-	-e NATS_SUBJECT="smartmeter.voltage.data.>" \
+	-e NATS_SUBJECT="smartmeter.voltage.raw.data.>" \
 	-e CASSANDRA_URL=${CASSANDRA_URL} \
 	logimethods/smart-meter:cassandra-inject${postfix}
 
@@ -295,7 +295,7 @@ echo "GATLING_DURATION: ${GATLING_DURATION}"
 #docker ${remote} pull logimethods/smart-meter:inject
 cmd="docker ${remote} service create \
 	--name inject \
-	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage \
+	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
   -e GATLING_DURATION=${GATLING_DURATION} \
@@ -323,7 +323,7 @@ run_inject() {
 
   #docker ${remote} pull logimethods/smart-meter:inject
   cmd="docker ${remote} run \
-  	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
+  	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \

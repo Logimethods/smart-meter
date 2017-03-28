@@ -36,6 +36,8 @@ object SparkMaxProcessor extends App with SparkProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
+//  val rawInputSubject = args(1)
+//  args(1) += ".data.>"
   val (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setup(args)
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
@@ -66,9 +68,15 @@ object SparkMaxProcessor extends App with SparkProcessor {
     messages.print()
   }
   
+  // TEMPERATURES
+
+  val temperatures = messages.filter({case (s, v) => s.endsWith("temperature")})
+  temperatures.print()
+
   // MAXIMUM values
   
-  val max = messages.reduceByKey((t1, t2) => (Math.max(t1._1,t2._1), Math.max(t1._2,t2._2)))
+  val voltages = messages.filter({case (s, v) => s.startsWith("smartmeter.voltage.raw.data")})  
+  val max = voltages.reduceByKey((t1, t2) => (Math.max(t1._1,t2._1), Math.max(t1._2,t2._2)))
 
   if (logLevel.equals("MAX")) {
     max.print()

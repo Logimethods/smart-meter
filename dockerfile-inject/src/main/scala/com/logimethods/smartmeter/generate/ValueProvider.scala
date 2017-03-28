@@ -73,8 +73,8 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   def getPayload(): Array[Byte] = {
     increment()
     val value = 
-      if (temperature) ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))
-         else 20.0f 
+      if (temperature) 21.1f
+         else ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f)) 
     
     usagePoint += 1
 
