@@ -72,26 +72,11 @@ object SparkMaxProcessor extends App with SparkProcessor {
   // TEMPERATURES
 
   val temperatures = messages.filter({case (s, v) => s.endsWith("temperature")}).map({case (s, v) => v})
-  temperatures.print()
-  
-  // @See http://stackoverflow.com/questions/38961581/best-solution-to-accumulate-spark-streaming-dstream      
-  // @See http://asyncified.io/2016/07/31/exploring-stateful-streaming-with-apache-spark/                      
-  import scala.collection.mutable.MutableList
-  
-  def statefulTransformation(key: Long,
-                           value: Option[Float],
-                           state: State[Float]): Option[Float] = {
-    def updateState(value: Float): Float = {
-      state.update(value)
-      value
-    }
-  
-    value.map(updateState)
-  }
-  
-  val stateSpec = StateSpec.function(statefulTransformation _)
-  val temperatureStats = temperatures.mapWithState(stateSpec)
-  temperatureStats.stateSnapshots().print()
+  val temperatureByDate = temperatures.map(
+      {case (epoch, voltage) =>
+        val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+        (date.getYear, date.getMonth.ordinal, date.getDayOfMonth, date.getHour, voltage) })
+  temperatureByDate.saveToCassandra("smartmeter", "temperature") //, SomeColumns("hour", "voltage_max") /*, writeConf*/)
   
   // MAXIMUM values
   
@@ -130,18 +115,16 @@ object SparkMaxProcessor extends App with SparkProcessor {
                           .publishToNatsAsKeyValue(maxReport)
   // maxReport.print()   
                             
-  val maxDelta = max.map(
-      {case (subject, (epoch, voltage)) 
-          => (/*LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN).getDayOfWeek, */
-                        LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN).getHour, 
-                        voltage) })
-  //maxDelta.print()
+  val maxByEpoch = max.map({case (subject, (epoch, voltage)) => (epoch, voltage) }).reduceByKey(Math.max(_, _))
   
-  val maxOfMax = maxDelta.reduceByKey(Math.max(_, _))
+  val maxByDate = maxByEpoch.map(
+      {case (epoch, voltage) =>
+        val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+        (date.getYear, date.getMonth.ordinal, date.getDayOfMonth, date.getHour, date.getDayOfWeek.ordinal, voltage) })
   
-  maxOfMax.print()
+  maxByDate.print()
   
-//  maxOfMax.saveToCassandra("smartmeter", "max_voltage_by_hour", SomeColumns("hour", "voltage_max") /*, writeConf*/)
+  maxByDate.saveToCassandra("smartmeter", "max_voltage") //, SomeColumns("hour", "voltage_max") /*, writeConf*/)
   
   // Start
   ssc.start();		
