@@ -33,60 +33,52 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   
   val (lineNb, transformerNb, usagePointNb) = ProviderUtil.computeNbOfElements(usersPerSec)
 
-  var line = 1
-  var transformer = 1
-  var usagePoint = 1
+  var line = lineNb
+  var transformer = transformerNb
+  var usagePoint = usagePointNb + 1
   
   val incr = ProviderUtil.computeIncr(streamingDuration)
   var date = LocalDateTime.now()
+  var tictac = true
+  var temperature = true
+  
+  def increment() {
+    if (tictac) {
+      if (usagePoint > usagePointNb) {
+        usagePoint = 1
+        transformer += 1
+      }
+      if (transformer > transformerNb) {
+        transformer = 1
+        line += 1
+      }
+      if (line > lineNb) {
+        line = 1
+        date = date.plusMinutes(incr)
+        temperature = true
+      } else {
+        temperature = false
+      }
+    }
+    tictac = ! tictac
+    print("tictac: " + tictac) 
+    println
+  }
       
-  def getSubject(): String = {
-    return "." + point()
+  def getSubject() = { 
+    increment()
+    if (temperature) ".temperature" else ".data." + point()
   }
   
   def getPayload(): Array[Byte] = {
-    if (usagePoint > usagePointNb) {
-      usagePoint = 1
-      transformer += 1
-    }
-    if (transformer > transformerNb) {
-      transformer = 1
-      line += 1
-    }
-    if (line > lineNb) {
-//      println(s"$line, $transformer, $usagePoint")
-      line = 1
-      date = date.plusMinutes(incr)
-//      println(date)
-    }
-    
-//    val value = InterpolatedProfileByUsagePoint.voltageAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))
-    val value = ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))
+    increment()
+    val value = 
+      if (temperature) ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f))
+         else 20.0f 
     
     usagePoint += 1
 
     return encodePayload(date, value)
-
-    /*
-    val rnd = (random.nextFloat() - 0.5f)
-    try { 
-      val value = InterpolatedProfileByUsagePoint.voltageAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), rnd);
-      usagePoint += 1
-    		  
-      return encodePayload(date, value)      
-    } 
-    catch {
-      case e: Throwable => 
-            val p = point()
-            val o = date.getDayOfWeek().ordinal()
-            val h = date.getHour()
-            println(s"voltageAtDayAndHour FAILED: point= $p , ordinal = $o , hour = $h , random = $rnd")
-            e.printStackTrace()
-            
-    	      usagePoint += 1   	      
-    	      return encodePayload(date, 0.0f)      
-    }   
-    */
   }
   
   def encodePayload(date: LocalDateTime, value: Float): Array[Byte] = {

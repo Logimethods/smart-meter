@@ -295,7 +295,7 @@ echo "GATLING_DURATION: ${GATLING_DURATION}"
 #docker ${remote} pull logimethods/smart-meter:inject
 cmd="docker ${remote} service create \
 	--name inject \
-	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.data \
+	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
   -e GATLING_DURATION=${GATLING_DURATION} \
