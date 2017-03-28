@@ -28,6 +28,7 @@ import math._
 class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, streamingDuration: Int) extends NatsMessage {
   import java.time._
   import scala.math._
+  import scala.collection.mutable.Queue
 
   val random = scala.util.Random
   
@@ -40,7 +41,19 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   val incr = ProviderUtil.computeIncr(streamingDuration)
   var date = LocalDateTime.now()
   var tictac = true
-  var temperature = true
+  var returnTemperature = true
+  var temperatures = Queue(5.0f)
+  for (i <- 1 until 12) {
+    temperatures += (temperatures.front + (random.nextFloat() - 0.5f))
+  }
+  
+  def temperature() = {
+    val last = temperatures.last
+    val dayOfWeek = date.getDayOfWeek.ordinal + 1
+    val bias = ( if (date.getDayOfYear % 2 == 0) (8 - dayOfWeek) else - dayOfWeek ).toFloat / 6
+    temperatures += (last + (bias * (random.nextFloat() - 0.2f)))
+    temperatures.dequeue()
+  }
   
   def increment() {
     if (tictac) {
@@ -55,9 +68,9 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
       if (line > lineNb) {
         line = 1
         date = date.plusMinutes(incr)
-        temperature = true
+        returnTemperature = true
       } else {
-        temperature = false
+        returnTemperature = false
       }
     }
     tictac = ! tictac
@@ -67,13 +80,13 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
       
   def getSubject() = { 
     increment()
-    if (temperature) ".temperature" else ".data." + point()
+    if (returnTemperature) ".temperature" else ".data." + point()
   }
   
   def getPayload(): Array[Byte] = {
     increment()
     val value = 
-      if (temperature) 21.1f
+      if (returnTemperature) temperature()
          else ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(point(), date.getDayOfWeek().ordinal(), date.getHour(), (random.nextFloat() - 0.5f)) 
     
     usagePoint += 1
