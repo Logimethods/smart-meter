@@ -36,8 +36,6 @@ object SparkMaxProcessor extends App with SparkProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-//  val rawInputSubject = args(1)
-//  args(1) += ".data.>"
   val (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setup(args)
   ssc.checkpoint("/spark/storage")
   
@@ -72,11 +70,7 @@ object SparkMaxProcessor extends App with SparkProcessor {
   // TEMPERATURES
 
   val temperatures = messages.filter({case (s, v) => s.endsWith("temperature")}).map({case (s, v) => v})
-  val temperatureByDate = temperatures.map(
-      {case (epoch, voltage) =>
-        val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-        (date.getYear, date.getMonth.ordinal, date.getDayOfMonth, date.getHour, voltage) })
-  temperatureByDate.saveToCassandra("smartmeter", "temperature") //, SomeColumns("hour", "voltage_max") /*, writeConf*/)
+  temperatures.saveToCassandra("smartmeter", "temperature")
   
   // MAXIMUM values
   
@@ -86,25 +80,6 @@ object SparkMaxProcessor extends App with SparkProcessor {
   if (logLevel.equals("MAX")) {
     max.print()
   }
-    
-/*  def longFloatTupleEncoder: Tuple2[Long,Float] => Array[Byte] = tuple => {        
-        val buffer = ByteBuffer.allocate(4+8);
-        buffer.putLong(tuple._1)
-        buffer.putFloat(tuple._2)        
-        buffer.array()    
-      }
-
-  if (outputStreaming) {
-    SparkToNatsConnectorPool.newStreamingPool(clusterId)
-                            .withNatsURL(natsUrl)
-                            .withSubjects(outputSubject)
-                            .publishToNatsAsKeyValue(max, longFloatTupleEncoder)
-  } else {
-    SparkToNatsConnectorPool.newPool()
-                            .withProperties(properties)
-                            .withSubjects(outputSubject)
-                            .publishToNatsAsKeyValue(max, longFloatTupleEncoder)
-  }*/
   
   val maxReport = max.map(
       {case (subject, (epoch, voltage)) 
@@ -117,14 +92,9 @@ object SparkMaxProcessor extends App with SparkProcessor {
                             
   val maxByEpoch = max.map({case (subject, (epoch, voltage)) => (epoch, voltage) }).reduceByKey(Math.max(_, _))
   
-  val maxByDate = maxByEpoch.map(
-      {case (epoch, voltage) =>
-        val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-        (date.getYear, date.getMonth.ordinal, date.getDayOfMonth, date.getHour, date.getDayOfWeek.ordinal, voltage) })
+  maxByEpoch.print()
   
-  maxByDate.print()
-  
-  maxByDate.saveToCassandra("smartmeter", "max_voltage") //, SomeColumns("hour", "voltage_max") /*, writeConf*/)
+  maxByEpoch.saveToCassandra("smartmeter", "max_voltage")
   
   // Start
   ssc.start();		
