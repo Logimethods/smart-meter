@@ -12,19 +12,6 @@ import com.logimethods.connector.gatling.to_nats.NatsMessage
 import java.nio.ByteBuffer
 import math._
 
-/*class LoopingValueProvider {
-  
-  val incr = 10
-  val basedValue = 100 -incr
-  val maxIncr = 50
-  var actualIncr = 0
-  
-  override def toString(): String = {
-    actualIncr = (actualIncr % (maxIncr + incr)) + incr
-    (basedValue + actualIncr).toString()
-  }
-}*/
-
 class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, streamingDuration: Int) extends NatsMessage {
   import java.time._
   import scala.math._
@@ -41,7 +28,16 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   val incr = ProviderUtil.computeIncr(streamingDuration)
   var date = LocalDateTime.now()
   var tictac = true
-  var returnTemperature = true
+  
+  sealed trait ReturnType
+  object ReturnType {
+    case object VOLTAGE extends ReturnType;
+    case object TEMPERATURE extends ReturnType;
+    case object FORECAST extends ReturnType;
+  }
+  
+  var returnType: ReturnType = ReturnType.TEMPERATURE
+  
   var temperatures = Queue(5.0f)
   for (i <- 1 until 12) {
     temperatures += (temperatures.front + (random.nextFloat() - 0.5f))
@@ -55,49 +51,61 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
     temperatures.dequeue()
   }
   
+  def forecast() = {
+    temperatures.last
+  }
+  
   def voltage() = {
     val baseVoltage = ConsumerInterpolatedVoltageProfile
                           .valueAtDayAndHour(point(), 
-                                            date.getDayOfWeek().ordinal(), 
+                                            date.getDayOfWeek().ordinal(),
                                             date.getHour(),
                                             (random.nextFloat() - 0.5f))
                                             
-    baseVoltage + ((temperatures.front -5).abs * 0.08f)
+    baseVoltage + ((temperatures.front -5).abs * 0.08f) - 1
   }
   
   def increment() {
     if (tictac) {
-      if (usagePoint > usagePointNb) {
-        usagePoint = 1
-        transformer += 1
-      }
-      if (transformer > transformerNb) {
-        transformer = 1
-        line += 1
-      }
-      if (line > lineNb) {
-        line = 1
-        date = date.plusMinutes(incr)
-        returnTemperature = true
+      if (returnType == ReturnType.TEMPERATURE) {
+        returnType = ReturnType.FORECAST
       } else {
-        returnTemperature = false
+        if (usagePoint > usagePointNb) {
+          usagePoint = 1
+          transformer += 1
+        }
+        if (transformer > transformerNb) {
+          transformer = 1
+          line += 1
+        }
+        if (line > lineNb) {
+          line = 1
+          date = date.plusMinutes(incr)
+          returnType = ReturnType.TEMPERATURE
+        } else {
+          returnType = ReturnType.VOLTAGE
+        }
       }
     }
     tictac = ! tictac
-    print("tictac: " + tictac) 
-    println
   }
       
   def getSubject() = { 
     increment()
-    if (returnTemperature) ".temperature" else ".data." + point()
+    returnType match {
+      case ReturnType.TEMPERATURE => ".temperature"
+      case ReturnType.FORECAST => ".forecast.12"
+      case ReturnType.VOLTAGE => ".data." + point()
+    }
   }
   
   def getPayload(): Array[Byte] = {
     increment()
-    val value = 
-      if (returnTemperature) temperature()
-         else voltage() 
+    val value = returnType match {
+      case ReturnType.TEMPERATURE => temperature()
+      case ReturnType.FORECAST => forecast()
+      case ReturnType.VOLTAGE => voltage()
+    }
     
     usagePoint += 1
 
@@ -107,11 +115,11 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   def encodePayload(date: LocalDateTime, value: Float): Array[Byte] = {
     // https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html
     val buffer = ByteBuffer.allocate(8+4);
-    buffer.putLong(date.atOffset(ZoneOffset.MIN).toEpochSecond())
+    returnType match {
+      case ReturnType.FORECAST => buffer.putLong(date.plusHours(12).atOffset(ZoneOffset.MIN).toEpochSecond())
+      case _ => buffer.putLong(date.atOffset(ZoneOffset.MIN).toEpochSecond())
+    }
     buffer.putFloat(value)
-    
-    //print(buffer.array().deep)    
-    //println
     
     return buffer.array()    
   }
