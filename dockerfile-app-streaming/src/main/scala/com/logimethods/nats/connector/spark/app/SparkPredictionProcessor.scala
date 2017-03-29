@@ -61,6 +61,16 @@ object SparkPredictionProcessor extends App with SparkProcessor {
     .setInputCols(Array("hourSin", "hourCos", "dayOfWeek", "temperature"))
     .setOutputCol("features")
   
+  def extractDateComponents(date: LocalDateTime) = {
+    val hour = date.getHour
+    val hourAngle = (hour.toFloat / 24) * 2 * Pi
+    val hourSin = 50 * sin(hourAngle)
+    val hourCos = 50 * cos(hourAngle)
+    val dayOfWeek = (date.getDayOfWeek.ordinal / 4) * 50 // Mon to Friday -> 0, Sat & Sun -> 50
+   
+    (hour, hourSin, hourCos, dayOfWeek)
+  }
+    
   def getData() = {
     val max_voltage = sc.cassandraTable("smartmeter", "max_voltage")
     val table = max_voltage.joinWithCassandraTable("smartmeter", "temperature")
@@ -71,11 +81,8 @@ object SparkPredictionProcessor extends App with SparkProcessor {
       val label = (voltage > 117):Int
       val temperature = t.get[Float]("temperature")
       // https://www.reddit.com/r/MachineLearning/comments/2hzuj5/how_do_i_encode_day_of_the_week_as_a_predictor/
-      val hour = date.getHour
-      val hourAngle = (hour.toFloat / 24) * 2 * Pi
-      val hourSin = 50 * sin(hourAngle)
-      val hourCos = 50 * cos(hourAngle)
-      val dayOfWeek = (date.getDayOfWeek.ordinal / 4) * 50 // Mon to Friday -> 0, Sat & Sun -> 50
+      val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+      
       (label, voltage, hour, hourSin, hourCos, dayOfWeek, temperature)})
     
     val dataframes = flatten.toDF("label", "voltage", "hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
@@ -101,13 +108,30 @@ object SparkPredictionProcessor extends App with SparkProcessor {
           val temperature = buffer.getFloat()
           
           val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-          println("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
+//println("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
           
+          val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+          val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
+          val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+          val entry = assembler.transform(dataFrame)
+          
+          // entry.show()
+          
+          val data = getData()
+          // data.show()
+          
+          val model = trainer.fit(data)
+          
+          val result = model.transform(entry)
+          // result.show()
+          
+//println("PREDICTION: " + result.first.getDouble(6).toInt)
+          
+          conn.publish(outputSubject, result.first.getDouble(6).toInt.toString)
         })
-
   } else {    
     val data = getData()
-    data.show
+    data.show()
     
     val splits = data.randomSplit(Array(0.6, 0.4), seed = 1234L)
     val train = splits(0)
@@ -117,7 +141,7 @@ object SparkPredictionProcessor extends App with SparkProcessor {
     
     val result = model.transform(test)
     
-    result.show
+    result.show()
     
     val predictionAndLabels = result.select("prediction", "label")
     val evaluator = new MulticlassClassificationEvaluator().setMetricName("accuracy")
