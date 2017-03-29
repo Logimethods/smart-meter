@@ -55,6 +55,7 @@ natsConnectorSparkVersion := {
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
 libraryDependencies += "org.apache.spark" %% "spark-streaming" % sparkVersion.value
+libraryDependencies += "org.apache.spark" %% "spark-mllib" % sparkVersion.value
 libraryDependencies += "com.logimethods"  %% "nats-connector-spark-scala" % natsConnectorSparkVersion.value changing()
 libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion.value % "provided"
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % sparkCassandraConnectorVersion.value

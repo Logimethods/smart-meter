@@ -32,11 +32,11 @@ import java.util.function._
 
 import java.time.{LocalDateTime, ZoneOffset}
 
-object SparkMaxProcessor extends App with SparkProcessor {
+object SparkMaxProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  val (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setup(args)
+  val (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setupStreaming(args)
   ssc.checkpoint("/spark/storage")
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {

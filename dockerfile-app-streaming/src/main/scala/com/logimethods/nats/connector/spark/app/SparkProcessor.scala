@@ -33,9 +33,9 @@ import java.time.{LocalDateTime, ZoneOffset}
 trait SparkProcessor {
   def setup(args: Array[String]) = {
     val inputSubject = args(0)
-    val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
+//    val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
     val outputSubject = args(1)
-    val outputStreaming = outputSubject.toUpperCase.contains("STREAMING")
+//    val outputStreaming = outputSubject.toUpperCase.contains("STREAMING")
     println("Will process messages from " + inputSubject + " to " + outputSubject)
     
     val logLevel = scala.util.Properties.envOrElse("LOG_LEVEL", "INFO")
@@ -52,13 +52,12 @@ trait SparkProcessor {
                   .setMaster(sparkMasterUrl)
                   .set("spark.cassandra.connection.host", cassandraUrl);
     val sc = new SparkContext(conf);
-  //  val jarFilesRegex = "java-nats-streaming-(.*)jar|guava(.*)jar|protobuf-java(.*)jar|jnats-(.*)jar|nats-connector-spark-(.*)jar|docker-nats-connector-spark(.*)jar"
     val jarFilesRegex = "(.*)jar"
     for (file <- new File("/app/").listFiles.filter(_.getName.matches(jarFilesRegex))) 
       { sc.addJar(file.getAbsolutePath) }
-    val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
-    val ssc = new StreamingContext(sc, new Duration(streamingDuration));
-//    ssc.checkpoint("/spark/storage")
+//    val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
+//    val ssc = new StreamingContext(sc, new Duration(streamingDuration));
+///    ssc.checkpoint("/spark/storage")
   
     val properties = new Properties();
     val natsUrl = System.getenv("NATS_URI")
@@ -67,6 +66,21 @@ trait SparkProcessor {
     properties.put(PROP_URL, natsUrl)
   
     val clusterId = System.getenv("NATS_CLUSTER_ID")
+    
+    (properties, logLevel, sc, inputSubject, outputSubject, clusterId, natsUrl)
+  }
+}
+
+
+trait SparkStreamingProcessor extends SparkProcessor {
+  def setupStreaming(args: Array[String]) = {
+    val (properties, logLevel, sc, inputSubject, outputSubject, clusterId, natsUrl) = setup(args)
+    
+    val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
+    val outputStreaming = outputSubject.toUpperCase.contains("STREAMING")
+    val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
+    val ssc = new StreamingContext(sc, new Duration(streamingDuration));
+//    ssc.checkpoint("/spark/storage")
     
     (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl)
   }

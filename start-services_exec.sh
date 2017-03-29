@@ -205,14 +205,13 @@ docker ${remote} service create \
 #    --constraint 'node.role == manager' \
 }
 
-__run_app_prediction() {
+run_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} run --rm \
   	--name app_prediction \
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_NAME} \
-    -e STREAMING_DURATION=${STREAMING_DURATION} \
   	-e LOG_LEVEL=INFO \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
