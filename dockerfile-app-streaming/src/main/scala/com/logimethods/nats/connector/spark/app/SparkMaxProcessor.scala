@@ -36,8 +36,8 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  val (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setupStreaming(args)
-  ssc.checkpoint("/spark/storage")
+  val (properties, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setupStreaming(args)
+//  ssc.checkpoint("/spark/storage")
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
@@ -47,7 +47,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
       }
   
   val messages =
-    if (inputStreaming) {
+    if (inputNatsStreaming) {
       NatsToSparkConnector
         .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
         .withNatsURL(natsUrl)

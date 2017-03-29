@@ -33,10 +33,10 @@ import java.time.{LocalDateTime, ZoneOffset}
 trait SparkProcessor {
   def setup(args: Array[String]) = {
     val inputSubject = args(0)
-//    val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
+//    val inputNatsStreaming = inputSubject.toUpperCase.contains("STREAMING")
     val outputSubject = args(1)
-//    val outputStreaming = outputSubject.toUpperCase.contains("STREAMING")
-    println("Will process messages from " + inputSubject + " to " + outputSubject)
+//    val outputNatsStreaming = outputSubject.toUpperCase.contains("STREAMING")
+    println("Will process messages from '" + inputSubject + "' to '" + outputSubject + "'")
     
     val logLevel = scala.util.Properties.envOrElse("LOG_LEVEL", "INFO")
     println("LOG_LEVEL = " + logLevel)
@@ -67,21 +67,22 @@ trait SparkProcessor {
   
     val clusterId = System.getenv("NATS_CLUSTER_ID")
     
-    (properties, logLevel, sc, inputSubject, outputSubject, clusterId, natsUrl)
+    val inputNatsStreaming = inputSubject.toUpperCase.contains("STREAMING")
+    val outputNatsStreaming = outputSubject.toUpperCase.contains("STREAMING")
+    
+    (properties, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl)
   }
 }
 
 
 trait SparkStreamingProcessor extends SparkProcessor {
   def setupStreaming(args: Array[String]) = {
-    val (properties, logLevel, sc, inputSubject, outputSubject, clusterId, natsUrl) = setup(args)
+    val (properties, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
     
-    val inputStreaming = inputSubject.toUpperCase.contains("STREAMING")
-    val outputStreaming = outputSubject.toUpperCase.contains("STREAMING")
     val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
     val ssc = new StreamingContext(sc, new Duration(streamingDuration));
 //    ssc.checkpoint("/spark/storage")
     
-    (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl)
+    (properties, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl)
   }
 }

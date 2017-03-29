@@ -34,7 +34,7 @@ object SparkAlertProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  val (properties, logLevel, sc, ssc, inputStreaming, inputSubject, outputSubject, clusterId, outputStreaming, natsUrl) = setupStreaming(args)
+  val (properties, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setupStreaming(args)
   
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
@@ -44,7 +44,7 @@ object SparkAlertProcessor extends App with SparkStreamingProcessor {
       }
   
   val messages =
-    if (inputStreaming) {
+    if (inputNatsStreaming) {
       NatsToSparkConnector
         .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
         .withNatsURL(natsUrl)
@@ -79,7 +79,7 @@ object SparkAlertProcessor extends App with SparkStreamingProcessor {
         buffer.array()    
       }
 
-  if (outputStreaming) {
+  if (outputNatsStreaming) {
     SparkToNatsConnectorPool.newStreamingPool(clusterId)
                             .withNatsURL(natsUrl)
                             .withSubjects(outputSubject)
@@ -131,7 +131,7 @@ object SparkAlertProcessor extends App with SparkStreamingProcessor {
       }
   
   val outputAlertSubject = outputSubject.replace("max", "alert")
-  if (outputStreaming) {
+  if (outputNatsStreaming) {
     SparkToNatsConnectorPool.newStreamingPool(clusterId)
                             .withNatsURL(natsUrl)
                             .withSubjects(outputAlertSubject)

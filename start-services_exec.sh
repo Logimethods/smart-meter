@@ -178,7 +178,7 @@ __run_app_streaming() {
   	-e LOG_LEVEL=INFO \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
-  		\"smartmeter.voltage.data.>\" \"smartmeter.voltage.data. => smartmeter.voltage.extract.max.\" \
+  		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
       \"Smartmeter MAX Streaming\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -192,13 +192,12 @@ docker ${remote} service create \
 	--name app_prediction \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
-  -e STREAMING_DURATION=${STREAMING_DURATION} \
   -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
 	-e LOG_LEVEL=INFO \
 	--network smartmeter \
-  --mode global \
+  --replicas=${replicas} \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkPredictionProcessor" \
-		"smartmeter.voltage.data.>" "smartmeter.voltage.data. => smartmeter.voltage.extract.max." \
+		"smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" \
     "Smartmeter PREDICTION Streaming"
 
 #    --replicas=${replicas} \
@@ -212,10 +211,10 @@ run_app_prediction() {
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_NAME} \
-  	-e LOG_LEVEL=DEBUG \
+  	-e LOG_LEVEL=INFO \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
-  		\"smartmeter.voltage.data.>\" \"smartmeter.voltage.data. => smartmeter.voltage.extract.max.\" \
+  		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
       \"Smartmeter PREDICTION Streaming\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
