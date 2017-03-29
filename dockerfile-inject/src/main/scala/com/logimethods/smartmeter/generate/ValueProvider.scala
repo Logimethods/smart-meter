@@ -12,7 +12,7 @@ import com.logimethods.connector.gatling.to_nats.NatsMessage
 import java.nio.ByteBuffer
 import math._
 
-class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, streamingDuration: Int) extends NatsMessage {
+class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, streamingDuration: Int, randomness: Float) extends NatsMessage {
   import java.time._
   import scala.math._
   import scala.collection.mutable.Queue
@@ -60,7 +60,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
                           .valueAtDayAndHour(point(), 
                                             date.getDayOfWeek().ordinal(),
                                             date.getHour(),
-                                            (random.nextFloat() - 0.5f))
+                                            randomness * (random.nextFloat() - 0.5f))
                                             
     baseVoltage + ((temperatures.front -5).abs * 0.08f) - 1
   }

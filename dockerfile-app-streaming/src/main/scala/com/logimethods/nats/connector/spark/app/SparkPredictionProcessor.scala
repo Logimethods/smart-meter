@@ -87,21 +87,26 @@ object SparkPredictionProcessor extends App with SparkProcessor {
     .setOutputCol("features")
   
   val all = assembler.transform(data)
-  all.show
   
-  val splits = all.randomSplit(Array(0.6, 0.4), seed = 1234L)
-  val train = splits(0)
-  val test = splits(1)
-  
-  val model = trainer.fit(train)
-  
-  val result = model.transform(test)
-  
-  result.show
-  
-  val predictionAndLabels = result.select("prediction", "label")
-  val evaluator = new MulticlassClassificationEvaluator().setMetricName("accuracy")
-  
-  println("Test set accuracy = " + evaluator.evaluate(predictionAndLabels))
-
+  if (logLevel != "DEBUG") {
+    
+  } else {    
+    all.show
+    
+    val splits = all.randomSplit(Array(0.6, 0.4), seed = 1234L)
+    val train = splits(0)
+    val test = splits(1)
+    
+    val model = trainer.fit(train)
+    
+    val result = model.transform(test)
+    
+    result.show
+    
+    val predictionAndLabels = result.select("prediction", "label")
+    val evaluator = new MulticlassClassificationEvaluator().setMetricName("accuracy")
+    
+    println("Size: " + all.count())
+    println("Test Set Accuracy = " + evaluator.evaluate(predictionAndLabels))
+  }
 }

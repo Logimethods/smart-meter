@@ -38,8 +38,10 @@ class NatsInjection extends Simulation {
     val duration = System.getenv("GATLING_DURATION").toInt
     val streamingDuration = System.getenv("STREAMING_DURATION").toInt
     val slot = System.getenv("TASK_SLOT").toInt
+    val randomness = System.getenv("RANDOMNESS").toFloat
     	    
-    val natsScn = scenario("smartmeter_"+slot).exec(NatsBuilder(new ConsumerInterpolatedVoltageProvider(slot, usersPerSec, streamingDuration)))
+    val natsScn = scenario("smartmeter_"+slot).exec(
+        NatsBuilder(new ConsumerInterpolatedVoltageProvider(slot, usersPerSec, streamingDuration, randomness)))
    
     setUp(
       natsScn.inject(constantUsersPerSec(usersPerSec) during (duration minute))

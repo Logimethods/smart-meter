@@ -212,7 +212,7 @@ run_app_prediction() {
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_NAME} \
-  	-e LOG_LEVEL=INFO \
+  	-e LOG_LEVEL=DEBUG \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
   		\"smartmeter.voltage.data.>\" \"smartmeter.voltage.data. => smartmeter.voltage.extract.max.\" \
@@ -305,6 +305,7 @@ cmd="docker ${remote} service create \
   -e TASK_ID={{.Task.ID}}
   -e TASK_NAME={{.Task.Name}}
   -e TASK_SLOT={{.Task.Slot}}
+  -e RANDOMNESS=${VOLTAGE_RANDOMNESS}
 	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:inject${postfix} \
@@ -328,6 +329,7 @@ run_inject() {
     -e GATLING_DURATION=${GATLING_DURATION} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e TASK_SLOT=1
+    -e RANDOMNESS=${VOLTAGE_RANDOMNESS}
   	--network smartmeter \
   	logimethods/smart-meter:inject${postfix} \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
