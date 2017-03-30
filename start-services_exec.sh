@@ -156,11 +156,11 @@ docker ${remote} service create \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
   -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
-	-e LOG_LEVEL=INFO \
+	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
 	--network smartmeter \
   --mode global \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
-		"smartmeter.voltage.raw.>" "smartmeter.voltage.raw.data. => smartmeter.voltage.extract.max." \
+		"smartmeter.voltage.raw.>" "smartmeter.voltage.extract.max" \
     "Smartmeter MAX Streaming"
 
 #    --replicas=${replicas} \
@@ -175,7 +175,7 @@ __run_app_streaming() {
     -e CASSANDRA_URL=${CASSANDRA_NAME} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
-  	-e LOG_LEVEL=INFO \
+  	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
   		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
@@ -194,7 +194,7 @@ docker ${remote} service create \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
 	-e LOG_LEVEL=INFO \
-  -e ALERT_TRIGGER=${ALERT_TRIGGER} \
+  -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
 	--network smartmeter \
   --replicas=${replicas} \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkPredictionProcessor" \
@@ -213,7 +213,7 @@ run_app_prediction() {
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_NAME} \
   	-e LOG_LEVEL=INFO \
-    -e ALERT_TRIGGER=${ALERT_TRIGGER} \
+    -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
   		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \

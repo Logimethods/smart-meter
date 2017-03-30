@@ -162,7 +162,7 @@
             {
               "hide": false,
               "refId": "A",
-              "target": "smartmeter"
+              "target": "smartmeter.voltage"
             },
             {
               "hide": true,
@@ -563,7 +563,7 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": 355,
       "panels": [
         {
           "columns": [],
@@ -574,7 +574,7 @@
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 1,
+            "col": 0,
             "desc": true
           },
           "span": 6,
@@ -593,7 +593,79 @@
               ],
               "dateFormat": "YYYY-MM-DD HH:mm:ss",
               "decimals": 2,
-              "pattern": "prediction.timestamp",
+              "pattern": "/.*timestamp/",
+              "thresholds": [],
+              "type": "date",
+              "unit": "short"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "hide": true,
+              "refId": "A",
+              "target": "prediction.timestamp"
+            },
+            {
+              "hide": true,
+              "refId": "B",
+              "target": "prediction.alert"
+            },
+            {
+              "refId": "C",
+              "target": "smartmeter.timestamp"
+            },
+            {
+              "refId": "D",
+              "target": "smartmeter.voltage"
+            }
+          ],
+          "title": "Voltage",
+          "transform": "timeseries_to_columns",
+          "type": "table"
+        },
+        {
+          "columns": [],
+          "fontSize": "100%",
+          "id": 13,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 0,
+            "desc": true
+          },
+          "span": 6,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "pattern": "/.*timestamp/",
               "thresholds": [],
               "type": "date",
               "unit": "short"
@@ -621,6 +693,16 @@
             {
               "refId": "B",
               "target": "prediction.alert"
+            },
+            {
+              "hide": true,
+              "refId": "C",
+              "target": "smartmeter.timestamp"
+            },
+            {
+              "hide": true,
+              "refId": "D",
+              "target": "smartmeter.voltage"
             }
           ],
           "title": "Alerts",
@@ -673,5 +755,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 5
+  "version": 9
 }

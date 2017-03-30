@@ -80,19 +80,26 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
   if (logLevel.equals("MAX")) {
     max.print()
   }
-  
-  val maxReport = max.map(
-      {case (subject, (epoch, voltage)) 
-          => (subject, voltage.toString()) })
+                             
+  val maxByEpoch = max.map({case (subject, (epoch, voltage)) => (epoch, voltage) }).reduceByKey(Math.max(_, _))
+
+  val maxReport = maxByEpoch.map(
+      {case (epoch, voltage) 
+          => val timestamp = epoch * 1000 ; 
+             (s"""{"timestamp": $timestamp, "epoch": $epoch, "voltage": $voltage}""") })
+             
+  if (logLevel.equals("MAX_REPORT")) {
+    maxReport.print()
+  }
+          
   SparkToNatsConnectorPool.newPool()
                           .withProperties(properties)
-                          .withSubjects(outputSubject.replace("extract", "report"))
-                          .publishToNatsAsKeyValue(maxReport)
-  // maxReport.print()   
-                            
-  val maxByEpoch = max.map({case (subject, (epoch, voltage)) => (epoch, voltage) }).reduceByKey(Math.max(_, _))
+                          .withSubjects(outputSubject)
+                          .publishToNats(maxReport)
   
-  maxByEpoch.print()
+  if (logLevel.equals("MAX_EPOCH")) {
+    maxByEpoch.print()
+  }
   
   maxByEpoch.saveToCassandra("smartmeter", "max_voltage")
   
