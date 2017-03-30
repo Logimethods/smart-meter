@@ -138,7 +138,8 @@ object SparkPredictionProcessor extends App with SparkProcessor {
           
 //println("PREDICTION: " + result.first.getDouble(6).toInt)
           
-          conn.publish(outputSubject, result.first.getDouble(6).toInt.toString)
+          val alert = result.first.getDouble(6) > 0
+          if (alert) conn.publish(outputSubject, TRIGGER.toString)
         })
   } else {    
     val data = getData()

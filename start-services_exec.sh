@@ -194,7 +194,7 @@ docker ${remote} service create \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
 	-e LOG_LEVEL=INFO \
-  -e ALERT_TRIGGER=${ALERT_TRIGGER}
+  -e ALERT_TRIGGER=${ALERT_TRIGGER} \
 	--network smartmeter \
   --replicas=${replicas} \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkPredictionProcessor" \
@@ -213,7 +213,7 @@ run_app_prediction() {
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_NAME} \
   	-e LOG_LEVEL=INFO \
-    -e ALERT_TRIGGER=${ALERT_TRIGGER}
+    -e ALERT_TRIGGER=${ALERT_TRIGGER} \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
   		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
@@ -300,13 +300,13 @@ cmd="docker ${remote} service create \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
   -e GATLING_DURATION=${GATLING_DURATION} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
-  -e SERVICE_ID={{.Service.ID}}
-  -e SERVICE_NAME={{.Service.Name}}
-  -e SERVICE_LABELS={{.Service.Labels}}
-  -e TASK_ID={{.Task.ID}}
-  -e TASK_NAME={{.Task.Name}}
-  -e TASK_SLOT={{.Task.Slot}}
-  -e RANDOMNESS=${VOLTAGE_RANDOMNESS}
+  -e SERVICE_ID={{.Service.ID}} \
+  -e SERVICE_NAME={{.Service.Name}} \
+  -e SERVICE_LABELS={{.Service.Labels}} \
+  -e TASK_ID={{.Task.ID}} \
+  -e TASK_NAME={{.Task.Name}} \
+  -e TASK_SLOT={{.Task.Slot}} \
+  -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
 	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:inject${postfix} \
@@ -329,8 +329,8 @@ run_inject() {
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
-    -e TASK_SLOT=1
-    -e RANDOMNESS=${VOLTAGE_RANDOMNESS}
+    -e TASK_SLOT=1 \
+    -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
   	--network smartmeter \
   	logimethods/smart-meter:inject${postfix} \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
