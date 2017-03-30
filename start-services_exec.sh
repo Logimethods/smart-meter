@@ -194,6 +194,7 @@ docker ${remote} service create \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
 	-e LOG_LEVEL=INFO \
+  -e ALERT_TRIGGER=${ALERT_TRIGGER}
 	--network smartmeter \
   --replicas=${replicas} \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkPredictionProcessor" \
@@ -212,6 +213,7 @@ run_app_prediction() {
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_NAME} \
   	-e LOG_LEVEL=INFO \
+    -e ALERT_TRIGGER=${ALERT_TRIGGER}
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
   		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \

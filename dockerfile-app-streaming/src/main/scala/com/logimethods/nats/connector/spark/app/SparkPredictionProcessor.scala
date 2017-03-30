@@ -39,6 +39,9 @@ object SparkPredictionProcessor extends App with SparkProcessor {
   
   val (properties, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
 
+  val TRIGGER = System.getenv("ALERT_TRIGGER").toFloat
+  println("ALERT_TRIGGER = " + TRIGGER)
+  
   val sqlContext= new org.apache.spark.sql.SQLContext(sc)
   import sqlContext.implicits._
 
@@ -78,7 +81,7 @@ object SparkPredictionProcessor extends App with SparkProcessor {
     val flatten = table.map({case (v,t) =>
       val date = LocalDateTime.ofEpochSecond(v.get[Long]("epoch"), 0, ZoneOffset.MIN)
       val voltage = v.get[Float]("voltage")
-      val label = (voltage > 117):Int
+      val label = (voltage > TRIGGER):Int
       val temperature = t.get[Float]("temperature")
       // https://www.reddit.com/r/MachineLearning/comments/2hzuj5/how_do_i_encode_day_of_the_week_as_a_predictor/
       val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
