@@ -90,6 +90,21 @@ object SparkPredictionProcessor extends App with SparkProcessor {
     assembler.transform(dataframes)
   }
   
+  // Initial training
+  var model = trainer.fit(getData())
+  
+  new Thread(new Runnable {
+              def run() {
+                 while( true ){
+                   try {
+                     model = trainer.fit(getData())
+                   } catch {
+                     case e: Throwable => log.error(e)
+                   }
+                 }
+              }
+             }).start()
+  
   if (logLevel != "DEBUG") {
     // @See https://github.com/tyagihas/scala_nats
     import java.util.Properties
@@ -114,14 +129,7 @@ object SparkPredictionProcessor extends App with SparkProcessor {
           val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
           val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
           val entry = assembler.transform(dataFrame)
-          
-          // entry.show()
-          
-          val data = getData()
-          // data.show()
-          
-          val model = trainer.fit(data)
-          
+                    
           val result = model.transform(entry)
           // result.show()
           
