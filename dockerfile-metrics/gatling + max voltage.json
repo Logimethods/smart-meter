@@ -163,6 +163,10 @@
               "hide": false,
               "refId": "A",
               "target": "smartmeter"
+            },
+            {
+              "refId": "B",
+              "target": "prediction"
             }
           ],
           "thresholds": [
@@ -171,7 +175,7 @@
               "fill": false,
               "line": true,
               "op": "gt",
-              "value": 116
+              "value": 117
             }
           ],
           "timeFrom": null,
@@ -594,5 +598,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 24
+  "version": 2
 }

@@ -12,7 +12,8 @@ import com.logimethods.connector.gatling.to_nats.NatsMessage
 import java.nio.ByteBuffer
 import math._
 
-class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, streamingDuration: Int, randomness: Float) extends NatsMessage {
+class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, streamingDuration: Int, 
+                                          randomness: Float, predictionLength: Int) extends NatsMessage {
   import java.time._
   import scala.math._
   import scala.collection.mutable.Queue
@@ -39,7 +40,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   var returnType: ReturnType = ReturnType.TEMPERATURE
   
   var temperatures = Queue(5.0f)
-  for (i <- 1 until 12) {
+  for (i <- 1 until predictionLength) {
     temperatures += (temperatures.front + (random.nextFloat() - 0.5f))
   }
   
