@@ -165,8 +165,9 @@
               "target": "smartmeter"
             },
             {
+              "hide": true,
               "refId": "B",
-              "target": "prediction"
+              "target": "prediction.alert"
             }
           ],
           "thresholds": [
@@ -175,7 +176,7 @@
               "fill": false,
               "line": true,
               "op": "gt",
-              "value": 117
+              "value": 116
             }
           ],
           "timeFrom": null,
@@ -559,6 +560,80 @@
       "showTitle": false,
       "title": "New row",
       "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 250,
+      "panels": [
+        {
+          "columns": [],
+          "fontSize": "100%",
+          "id": 12,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 1,
+            "desc": true
+          },
+          "span": 6,
+          "styles": [
+            {
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "pattern": "prediction.timestamp",
+              "thresholds": [],
+              "type": "date",
+              "unit": "short"
+            },
+            {
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "refId": "A",
+              "target": "prediction.timestamp"
+            },
+            {
+              "refId": "B",
+              "target": "prediction.alert"
+            }
+          ],
+          "title": "Alerts",
+          "transform": "timeseries_to_columns",
+          "type": "table"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
     }
   ],
   "schemaVersion": 14,
@@ -598,5 +673,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 2
+  "version": 5
 }

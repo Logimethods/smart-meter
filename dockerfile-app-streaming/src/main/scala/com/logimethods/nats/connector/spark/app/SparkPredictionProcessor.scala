@@ -39,8 +39,8 @@ object SparkPredictionProcessor extends App with SparkProcessor {
   
   val (properties, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
 
-  val TRIGGER = System.getenv("ALERT_TRIGGER").toFloat
-  println("ALERT_TRIGGER = " + TRIGGER)
+  val THRESHOLD = System.getenv("ALERT_THRESHOLD").toFloat
+  println("ALERT_THRESHOLD = " + THRESHOLD)
   
   val sqlContext= new org.apache.spark.sql.SQLContext(sc)
   import sqlContext.implicits._
@@ -81,7 +81,7 @@ object SparkPredictionProcessor extends App with SparkProcessor {
     val flatten = table.map({case (v,t) =>
       val date = LocalDateTime.ofEpochSecond(v.get[Long]("epoch"), 0, ZoneOffset.MIN)
       val voltage = v.get[Float]("voltage")
-      val label = (voltage > TRIGGER):Int
+      val label = (voltage > THRESHOLD):Int
       val temperature = t.get[Float]("temperature")
       // https://www.reddit.com/r/MachineLearning/comments/2hzuj5/how_do_i_encode_day_of_the_week_as_a_predictor/
       val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
@@ -140,7 +140,11 @@ object SparkPredictionProcessor extends App with SparkProcessor {
           
           val alert = result.first.getDouble(6) > 0
           if (alert) {
-            val message = s"""{"timestamp": $epoch, "epoch": $epoch, "alert": $TRIGGER}"""
+            //1490904494058586310
+            //1490905520000 
+            //1491429514
+            val timestamp = epoch * 1000
+            val message = s"""{"timestamp": $timestamp, "epoch": $epoch, "alert": $THRESHOLD}"""
             conn.publish(outputSubject, message)
           }
         })
