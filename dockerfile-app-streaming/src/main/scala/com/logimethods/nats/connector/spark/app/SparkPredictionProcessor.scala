@@ -139,14 +139,11 @@ object SparkPredictionProcessor extends App with SparkProcessor {
 //println("PREDICTION: " + result.first.getDouble(6).toInt)
           
           val alert = result.first.getDouble(6) > 0
-          if (alert) {
-            //1490904494058586310
-            //1490905520000 
-            //1491429514
-            val timestamp = epoch * 1000
-            val message = s"""{"timestamp": $timestamp, "epoch": $epoch, "alert": $THRESHOLD}"""
-            conn.publish(outputSubject, message)
-          }
+          val timestamp = epoch * 1000
+          val message = 
+            if (alert) s"""{"timestamp":$timestamp,"temperature":$temperature,"alert": $THRESHOLD}"""
+            else s"""{"timestamp":$timestamp,"temperature":$temperature,"alert":0}"""
+          conn.publish(outputSubject, message)
         })
   } else {    
     val data = getData()

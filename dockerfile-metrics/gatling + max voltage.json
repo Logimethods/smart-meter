@@ -563,79 +563,75 @@
     },
     {
       "collapse": false,
-      "height": 355,
+      "height": 269,
       "panels": [
         {
-          "columns": [],
-          "fontSize": "100%",
-          "id": 12,
-          "links": [],
-          "pageSize": null,
-          "scroll": true,
-          "showHeader": true,
-          "sort": {
-            "col": 0,
-            "desc": true
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_GRAPHITE}",
+          "fill": 0,
+          "id": 14,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
           },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
           "span": 6,
-          "styles": [
-            {
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "pattern": "Time",
-              "type": "date"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "decimals": 2,
-              "pattern": "/.*timestamp/",
-              "thresholds": [],
-              "type": "date",
-              "unit": "short"
-            },
-            {
-              "colorMode": null,
-              "colors": [
-                "rgba(245, 54, 54, 0.9)",
-                "rgba(237, 129, 40, 0.89)",
-                "rgba(50, 172, 45, 0.97)"
-              ],
-              "dateFormat": "YYYY-MM-DD HH:mm:ss",
-              "decimals": 2,
-              "pattern": "/.*/",
-              "thresholds": [],
-              "type": "number",
-              "unit": "short"
-            }
-          ],
+          "stack": false,
+          "steppedLine": false,
           "targets": [
             {
-              "hide": true,
               "refId": "A",
-              "target": "prediction.timestamp"
-            },
-            {
-              "hide": true,
-              "refId": "B",
-              "target": "prediction.alert"
-            },
-            {
-              "refId": "C",
-              "target": "smartmeter.timestamp"
-            },
-            {
-              "refId": "D",
-              "target": "smartmeter.voltage"
+              "target": "prediction.temperature"
             }
           ],
-          "title": "Voltage",
-          "transform": "timeseries_to_columns",
-          "type": "table"
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Temperature",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "celsius",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
         },
         {
           "columns": [],
@@ -646,7 +642,7 @@
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 0,
+            "col": 1,
             "desc": true
           },
           "span": 6,
@@ -755,5 +751,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 9
+  "version": 16
 }
