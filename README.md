@@ -1,3 +1,5 @@
+** /!\ Work in progress, this README needs to be completed. **
+
 # smart-meter
 To demonstrate a Smart Meter Big Data Application.
 
