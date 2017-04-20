@@ -20,7 +20,7 @@ class ValueProviderTest extends FunSuite {
     val date = LocalDateTime.now()
     val value = 12345.6789f
     
-    val bytes = new ConsumerInterpolatedVoltageProvider(1, 100, 5000).encodePayload(date, value)
+    val bytes = new ConsumerInterpolatedVoltageProvider(1, 100, 5000, 0, 12).encodePayload(date, value)
     // print(new String(ByteBuffer.wrap(bytes).array()))
     
     val tuple = dataDecoder.apply(bytes)    
