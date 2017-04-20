@@ -4,18 +4,18 @@
 
 pushd dockerfile-inject
 sbt update
-sbt docker
+sbt test docker
 sbt eclipse
 popd
 
 pushd dockerfile-app-streaming
 sbt update
-sbt docker
+sbt test docker
 sbt eclipse
 popd
 
 pushd dockerfile-app-batch
-sbt update assembly eclipse
+sbt update test assembly eclipse
 mkdir -p libs
 mv target/scala-*/*.jar libs/
 docker build -t logimethods/smart-meter:app-batch-local .
@@ -23,7 +23,7 @@ popd
 
 pushd dockerfile-monitor
 sbt update
-sbt docker
+sbt test docker
 sbt eclipse
 popd
 
