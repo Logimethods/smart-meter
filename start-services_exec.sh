@@ -46,7 +46,7 @@ create_service_visualizer() {
   docker ${remote} service create \
   	--name visualizer \
   	--network smartmeter \
-    --constraint 'node.role == manager' \
+    ${ON_MASTER_NODE} \
   	-p 8080:8080/tcp \
     --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
     dockersamples/visualizer
@@ -105,7 +105,7 @@ create_service_cassandra() {
   docker ${remote} service create \
   	--name ${CASSANDRA_MAIN_NAME} \
   	--network smartmeter \
-    --constraint 'node.role == manager' \
+    ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
   	logimethods/smart-meter:cassandra${postfix}
 
@@ -122,7 +122,7 @@ create_service_cassandra() {
   	--name ${CASSANDRA_NODE_NAME} \
   	--network smartmeter \
     --mode global \
-    --constraint 'node.role != manager' \
+    ${ON_WORKER_NODE} \
     --env CASSANDRA_SEEDS=$CASSANDRA_SEED \
   	logimethods/smart-meter:cassandra${postfix}
 }
@@ -135,7 +135,7 @@ docker ${remote} service create \
 	--name ${CASSANDRA_MAIN_NAME} \
 	--network smartmeter \
 	--mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
-  --constraint 'node.role == manager' \
+  ${ON_MASTER_NODE} \
 	-e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
 	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
 	-p 9042:9042 \
@@ -149,7 +149,7 @@ docker ${remote} service create \
 	-e SERVICE_NAME=spark-master \
 	--network smartmeter \
 	--replicas=${replicas} \
-	--constraint 'node.role == manager' \
+	${ON_MASTER_NODE} \
 	${spark_image}:${spark_version}-hadoop-${hadoop_version}
 }
 
@@ -159,6 +159,7 @@ docker ${remote} service create \
 	-e SERVICE_NAME=spark-slave \
 	--network smartmeter \
 	--replicas=${replicas} \
+  ${ON_WORKER_NODE} \
 	${spark_image}:${spark_version}-hadoop-${hadoop_version} \
 		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
 }
@@ -185,7 +186,7 @@ docker ${remote} service create \
 	--replicas=${replicas} \
 	-e NATS_USERNAME=${NATS_USERNAME} \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
-  --constraint 'node.role == manager' \
+  ${ON_MASTER_NODE} \
   -p 4222:4222 \
   -p 8222:8222 \
 	logimethods/smart-meter:nats-server${postfix}  -m 8222
@@ -201,7 +202,7 @@ docker ${remote} service create \
   -e CASSANDRA_URL=${CASSANDRA_URL} \
 	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
   --replicas=1 \
-  --constraint 'node.role == manager' \
+  ${ON_MASTER_NODE} \
 	--network smartmeter \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
 		"smartmeter.voltage.raw.>" "smartmeter.voltage.extract.max" \
@@ -259,6 +260,7 @@ run_app_prediction() {
     -e CASSANDRA_URL=${CASSANDRA_URL} \
   	-e LOG_LEVEL=INFO \
     -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
+    ${ON_MASTER_NODE} \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
   		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
@@ -322,6 +324,7 @@ docker ${remote} service create \
 	--name cassandra-inject \
 	--network smartmeter \
   --mode global \
+  ${ON_WORKER_NODE} \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e NATS_SUBJECT="smartmeter.voltage.raw.data.>" \
 	-e CASSANDRA_URL=${CASSANDRA_URL} \
