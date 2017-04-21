@@ -257,7 +257,7 @@ create_service_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
 docker ${remote} service create \
 	--name app_prediction \
-	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+	-e NATS_URI=${NATS_URI} \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e CASSANDRA_URL=${CASSANDRA_URL} \
 	-e LOG_LEVEL=INFO \
@@ -276,7 +276,7 @@ run_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} run --rm \
   	--name app_prediction \
-  	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+  	-e NATS_URI=${NATS_URI} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
   	-e LOG_LEVEL=INFO \
@@ -323,7 +323,7 @@ create_service_monitor() {
 #docker ${remote} pull logimethods/smart-meter:monitor
 docker ${remote} service create \
 	--name monitor \
-	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+	-e NATS_URI=${NATS_URI} \
 	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:monitor${postfix} \
@@ -346,7 +346,7 @@ docker ${remote} service create \
 	--network smartmeter \
   --mode global \
   ${ON_WORKER_NODE} \
-	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+	-e NATS_URI=${NATS_URI} \
 	-e NATS_SUBJECT="smartmeter.voltage.raw.data.>" \
 	-e CASSANDRA_URL=${CASSANDRA_URL} \
 	logimethods/smart-meter:cassandra-inject${postfix}
@@ -363,7 +363,7 @@ echo "GATLING_DURATION: ${GATLING_DURATION}"
 cmd="docker ${remote} service create \
 	--name inject \
 	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
-	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+	-e NATS_URI=${NATS_URI} \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
   -e GATLING_DURATION=${GATLING_DURATION} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
@@ -394,7 +394,7 @@ run_inject() {
   #docker ${remote} pull logimethods/smart-meter:inject
   cmd="docker ${remote} run \
   	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
-  	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+  	-e NATS_URI=${NATS_URI} \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
