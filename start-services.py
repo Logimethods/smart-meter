@@ -188,6 +188,27 @@ def run_inject():
 #		["logs", "service", "cassandra-inject-local"],
 		])
 
+def run_inject_aws():
+	run([
+		create_network,
+		run_metrics,
+		["create_volume", "cassandra"],
+		create_service_spark_master,
+		["wait", "service", "spark-master"],
+		create_service_spark_slave,
+		create_service_cassandra,
+		create_service_nats,
+		["wait", "service", "nats"],
+		create_cassandra_tables,
+		create_service_cassandra_inject,
+		create_service_app_streaming,
+		create_service_app_prediction,
+		["run", "telegraf", "max_voltage"],
+		["run", "telegraf", "prediction"],
+		["run", "telegraf", "cassandra_local_write_count"],
+		create_service_inject
+		])
+
 def monitor_cassandra():
 	run_or_kill([
 		create_network,
