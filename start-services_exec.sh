@@ -180,6 +180,27 @@ run_spark_autoscaling() {
 ### Create Service ###
 
 create_service_nats() {
+  docker ${remote} service create \
+  	--name nats \
+  	--network smartmeter \
+    ${ON_MASTER_NODE} \
+  	-e NATS_USERNAME=${NATS_USERNAME} \
+  	-e NATS_PASSWORD=${NATS_PASSWORD} \
+    -p 4222:4222 \
+    -p 8222:8222 \
+  	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
+
+  docker ${remote} service create \
+  	--name nats_cluster \
+  	--network smartmeter \
+  	--mode global \
+    ${ON_WORKER_NODE} \
+  	-e NATS_USERNAME=${NATS_USERNAME} \
+  	-e NATS_PASSWORD=${NATS_PASSWORD} \
+  	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
+}
+
+create_service_nats_single() {
 docker ${remote} service create \
 	--name nats \
 	--network smartmeter \
@@ -242,7 +263,7 @@ docker ${remote} service create \
 	-e LOG_LEVEL=INFO \
   -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
 	--network smartmeter \
-  --replicas=${replicas} \
+  ${ON_MASTER_NODE} \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkPredictionProcessor" \
 		"smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" \
     "Smartmeter PREDICTION Streaming"
