@@ -27,21 +27,7 @@ shift $shift_nb
 # source the properties:
 # https://coderanch.com/t/419731/read-properties-file-script
 . configuration.properties
-
-#NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222
-NATS_URI=nats://nats:4222
-#CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_MAIN_NAME}" | rev | cut -d' ' -f1 | rev)
-CASSANDRA_URL=$CASSANDRA_MAIN_NAME
-
-if [ "${postfix}" == "-remote" ]
-then
-  postfix=""
-  remote=" -H localhost:2374 "
-  CASSANDRA_URL=$CASSANDRA_NODE_NAME
-  # echo "Will use a REMOTE Docker Cluster"
-fi
-
-# echo "CASSANDRA_URL: ${CASSANDRA_URL}"
+. "configuration${postfix}.properties"
 
 stop_all() {
   docker ${remote} service rm $(docker ${remote} service ls -q)
