@@ -43,6 +43,11 @@ fi
 
 # echo "CASSANDRA_URL: ${CASSANDRA_URL}"
 
+stop_all() {
+  docker ${remote} service rm $(docker ${remote} service ls -q)
+  docker ${remote} stop $(docker ${remote} ps | grep -v aws | cut -d ' ' -f 1)
+}
+
 create_network() {
 	docker ${remote} network create --driver overlay --attachable smartmeter
 #docker ${remote} service rm $(docker ${remote} service ls -q)

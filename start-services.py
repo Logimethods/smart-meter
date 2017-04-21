@@ -144,6 +144,9 @@ all_steps = [
 
 ## PREDEFINED SCENARII ##
 
+def stop_all():
+	run(["stop", "all"])
+
 def run_all_steps():
 	run(all_steps)
 
