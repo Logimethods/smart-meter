@@ -39,6 +39,19 @@ create_network() {
 #docker ${remote} service rm $(docker ${remote} service ls -q)
 }
 
+### DOCKER VISUALIZER ###
+
+# https://github.com/dockersamples/docker-swarm-visualizer
+create_service_visualizer() {
+  docker ${remote} service create \
+  	--name visualizer \
+  	--network smartmeter \
+    --constraint 'node.role == manager' \
+  	-p 8080:8080/tcp \
+    --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+    dockersamples/visualizer
+}
+
 ### Cassandra ###
 
 create_volume_cassandra() {

@@ -194,6 +194,7 @@ def run_inject():
 def run_inject_aws():
 	run([
 		create_network,
+		["create_service", "visualizer", 1],
 		run_metrics,
 		["create_volume", "cassandra"],
 		create_service_spark_master,
