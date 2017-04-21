@@ -24,16 +24,24 @@ done
 
 shift $shift_nb
 
+# source the properties:
+# https://coderanch.com/t/419731/read-properties-file-script
+. configuration.properties
+
+#NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222
+NATS_URI=nats://nats:4222
+#CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_MAIN_NAME}" | rev | cut -d' ' -f1 | rev)
+CASSANDRA_URL=$CASSANDRA_MAIN_NAME
+
 if [ "${postfix}" == "-remote" ]
 then
   postfix=""
   remote=" -H localhost:2374 "
+  CASSANDRA_URL=$CASSANDRA_NODE_NAME
   # echo "Will use a REMOTE Docker Cluster"
 fi
 
-# source the properties:
-# https://coderanch.com/t/419731/read-properties-file-script
-. configuration.properties
+# echo "CASSANDRA_URL: ${CASSANDRA_URL}"
 
 create_network() {
 	docker ${remote} network create --driver overlay --attachable smartmeter
@@ -66,13 +74,13 @@ docker-compose ${remote} -f docker-cassandra-compose.yml down
 }
 
 call_cassandra_cql() {
-	until docker ${remote} exec -it $(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
+	until docker ${remote} exec -it $(docker ${remote} ps | grep "${CASSANDRA_MAIN_NAME}" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
   # docker ${remote} run ${DOCKER_RESTART_POLICY} --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
 }
 
-create_service_cassandra() {
+run_cassandra() {
   cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
-    --name ${CASSANDRA_NAME} \
+    --name ${CASSANDRA_MAIN_NAME} \
   	--network smartmeter \
     -p 8778:8778 \
     -e LOCAL_JMX=no \
@@ -84,12 +92,43 @@ create_service_cassandra() {
   exec $cmd
 }
 
+create_service_cassandra() {
+  # https://hub.docker.com/_/cassandra/
+  # http://serverfault.com/questions/806649/docker-swarm-and-volumes
+  # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
+  # https://github.com/Yannael/kafka-sparkstreaming-cassandra-swarm/blob/master/service-management/start-cassandra-services.sh
+
+  docker ${remote} service create \
+  	--name ${CASSANDRA_MAIN_NAME} \
+  	--network smartmeter \
+    --constraint 'node.role == manager' \
+    -e LOCAL_JMX=no \
+  	logimethods/smart-meter:cassandra${postfix}
+
+  #Need to sleep a bit so IP can be retrieved below
+  while [[ -z $(docker ${remote} service ls |grep ${CASSANDRA_MAIN_NAME}| grep 1/1) ]]; do
+  	Echo Waiting for Cassandra seed service to start...
+  	sleep 2
+  	done;
+
+  export CASSANDRA_SEED="$(docker ${remote} ps |grep ${CASSANDRA_MAIN_NAME}|cut -d ' ' -f 1)"
+  echo "CASSANDRA_SEED: $CASSANDRA_SEED"
+
+  docker ${remote} service create \
+  	--name ${CASSANDRA_NODE_NAME} \
+  	--network smartmeter \
+    --mode global \
+    --constraint 'node.role != manager' \
+    --env CASSANDRA_SEEDS=$CASSANDRA_SEED \
+  	logimethods/smart-meter:cassandra${postfix}
+}
+
 create_full_service_cassandra() {
 # https://hub.docker.com/_/cassandra/
 # http://serverfault.com/questions/806649/docker-swarm-and-volumes
 # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
 docker ${remote} service create \
-	--name ${CASSANDRA_NAME} \
+	--name ${CASSANDRA_MAIN_NAME} \
 	--network smartmeter \
 	--mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
   --constraint 'node.role == manager' \
@@ -107,7 +146,6 @@ docker ${remote} service create \
 	--network smartmeter \
 	--replicas=${replicas} \
 	--constraint 'node.role == manager' \
-	--log-driver=json-file \
 	${spark_image}:${spark_version}-hadoop-${hadoop_version}
 }
 
@@ -143,6 +181,7 @@ docker ${remote} service create \
 	--replicas=${replicas} \
 	-e NATS_USERNAME=${NATS_USERNAME} \
 	-e NATS_PASSWORD=${NATS_PASSWORD} \
+  --constraint 'node.role == manager' \
   -p 4222:4222 \
   -p 8222:8222 \
 	logimethods/smart-meter:nats-server${postfix}  -m 8222
@@ -152,17 +191,19 @@ create_service_app_streaming() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
 docker ${remote} service create \
 	--name app_streaming \
-	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+	-e NATS_URI=${NATS_URI} \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
-  -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
+  -e CASSANDRA_URL=${CASSANDRA_URL} \
 	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
+  --replicas=1 \
+  --constraint 'node.role == manager' \
 	--network smartmeter \
-  --mode global \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
 		"smartmeter.voltage.raw.>" "smartmeter.voltage.extract.max" \
     "Smartmeter MAX Streaming"
 
+#   --mode global \
 #    --replicas=${replicas} \
 #    --constraint 'node.role == manager' \
 }
@@ -172,7 +213,7 @@ __run_app_streaming() {
   cmd="docker ${remote} run --rm -d \
   	--name app_streaming \
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
-    -e CASSANDRA_URL=${CASSANDRA_NAME} \
+    -e CASSANDRA_URL=${CASSANDRA_URL} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
   	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
@@ -192,7 +233,7 @@ docker ${remote} service create \
 	--name app_prediction \
 	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
-  -e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
+  -e CASSANDRA_URL=${CASSANDRA_URL} \
 	-e LOG_LEVEL=INFO \
   -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
 	--network smartmeter \
@@ -211,7 +252,7 @@ run_app_prediction() {
   	--name app_prediction \
   	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
-    -e CASSANDRA_URL=${CASSANDRA_NAME} \
+    -e CASSANDRA_URL=${CASSANDRA_URL} \
   	-e LOG_LEVEL=INFO \
     -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
   	--network smartmeter \
@@ -229,7 +270,7 @@ run_app-batch() {
   cmd="docker ${remote} run --rm \
     --name app_batch \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
-    -e CASSANDRA_URL=${CASSANDRA_NAME} \
+    -e CASSANDRA_URL=${CASSANDRA_URL} \
     -e APP_BATCH_LOG_LEVEL=${APP_BATCH_LOG_LEVEL} \
     --network smartmeter \
     logimethods/smart-meter:app-batch${postfix}"
@@ -245,7 +286,7 @@ docker ${remote} service create \
 	--name app-batch \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
 	-e LOG_LEVEL=INFO \
-	-e CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev) \
+	-e CASSANDRA_URL=${CASSANDRA_URL} \
 	--network smartmeter \
 	--replicas=${replicas} \
 	logimethods/smart-meter:app-batch${postfix}
@@ -273,8 +314,6 @@ docker ${remote} service create \
 }
 
 create_service_cassandra-inject() {
-CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev)
-echo "CASSANDRA_URL: ${CASSANDRA_URL}"
 docker ${remote} service create \
 	--name cassandra-inject \
 	--network smartmeter \
@@ -398,12 +437,14 @@ run_telegraf() {
    if [ "$@" == "docker" ]
      then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
    fi
-   CASSANDRA_URL=$(docker ${remote} ps | grep "${CASSANDRA_NAME}" | rev | cut -d' ' -f1 | rev)
    cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
      --name telegraf_$@\
-     -e CASSANDRA_URL=${CASSANDRA_URL} \
+     -e CASSANDRA_URL=${CASSANDRA_MAIN_NAME} \
      -e JMX_PASSWORD=$JMX_PASSWORD \
+     -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
+     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
+     --log-driver=json-file \
      $DOCKER_ACCES \
      logimethods/smart-meter:telegraf${postfix}\
        telegraf -config /etc/telegraf/$@.conf"
