@@ -173,7 +173,7 @@ def run_inject():
 #		rm_service_cassandra_inject,
 #		["build", "inject"],
 		create_service_cassandra,
-		create_service_nats,
+		["create_service", "nats_single", 1],
 #		["wait", "service", "cassandra"],
 		["wait", "service", "nats"],
 		create_cassandra_tables,

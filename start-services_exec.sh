@@ -201,16 +201,15 @@ create_service_nats() {
 }
 
 create_service_nats_single() {
-docker ${remote} service create \
-	--name nats \
-	--network smartmeter \
-	--replicas=${replicas} \
-	-e NATS_USERNAME=${NATS_USERNAME} \
-	-e NATS_PASSWORD=${NATS_PASSWORD} \
-  ${ON_MASTER_NODE} \
-  -p 4222:4222 \
-  -p 8222:8222 \
-	logimethods/smart-meter:nats-server${postfix}  -m 8222
+  docker ${remote} service create \
+  	--name nats \
+  	--network smartmeter \
+  	--replicas=${replicas} \
+  	-e NATS_USERNAME=${NATS_USERNAME} \
+  	-e NATS_PASSWORD=${NATS_PASSWORD} \
+    -p 4222:4222 \
+    -p 8222:8222 \
+  	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG}
 }
 
 create_service_app_streaming() {
@@ -470,8 +469,8 @@ run_telegraf() {
      --network smartmeter \
      --name telegraf_$@\
      -e CASSANDRA_URL=${CASSANDRA_MAIN_NAME} \
-     -e TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE
-     -e TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP
+     -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
+     -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
      -e JMX_PASSWORD=$JMX_PASSWORD \
      -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
      -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
@@ -482,7 +481,7 @@ run_telegraf() {
     echo "-----------------------------------------------------------------"
     echo "$cmd"
     echo "-----------------------------------------------------------------"
-    exec $cmd
+    eval $cmd
 }
 
 run_service_telegraf_docker() {
