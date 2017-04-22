@@ -474,6 +474,7 @@ run_telegraf() {
      -e JMX_PASSWORD=$JMX_PASSWORD \
      -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
      -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
+     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
      --log-driver=json-file \
      $DOCKER_ACCES \
      logimethods/smart-meter:telegraf${postfix}\
