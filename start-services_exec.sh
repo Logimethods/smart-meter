@@ -218,7 +218,7 @@ create_service_app_streaming() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
 docker ${remote} service create \
 	--name app_streaming \
-	-e NATS_URI=${NATS_CLUSTER_URI} \
+	-e NATS_URI=${NATS_URI} \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
   -e CASSANDRA_URL=${CASSANDRA_URL} \
@@ -258,10 +258,10 @@ create_service_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
 docker ${remote} service create \
 	--name app_prediction \
-	-e NATS_URI=${NATS_CLUSTER_URI} \
+	-e NATS_URI=${NATS_URI} \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e CASSANDRA_URL=${CASSANDRA_URL} \
-	-e LOG_LEVEL=INFO \
+	-e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
   -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
 	--network smartmeter \
   ${ON_MASTER_NODE} \
