@@ -463,9 +463,10 @@ update_service_scale() {
 }
 
 run_telegraf() {
-   if [ "$@" == "docker" ]
-     then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
-   fi
+   #if [ "$@" == "docker" ]
+  #   then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
+   #fi
+   DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
    cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
      --name telegraf_$@\
