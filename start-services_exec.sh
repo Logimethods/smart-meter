@@ -154,14 +154,15 @@ docker ${remote} service create \
 }
 
 create_service_spark-slave() {
-docker ${remote} service create \
-	--name spark-slave \
-	-e SERVICE_NAME=spark-slave \
-	--network smartmeter \
-	--replicas=${replicas} \
-  ${ON_WORKER_NODE} \
-	${spark_image}:${spark_version}-hadoop-${hadoop_version} \
-		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+  docker ${remote} service create \
+  	--name spark-slave \
+  	-e SERVICE_NAME=spark-slave \
+  	--network smartmeter \
+    --mode global \
+    ${ON_WORKER_NODE} \
+  	${spark_image}:${spark_version}-hadoop-${hadoop_version} \
+  		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+  # 	--replicas=${replicas} \
 }
 
 run_spark_autoscaling() {
@@ -181,7 +182,7 @@ run_spark_autoscaling() {
 
 create_service_nats() {
   docker ${remote} service create \
-  	--name nats \
+  	--name $NATS_NAME \
   	--network smartmeter \
     ${ON_MASTER_NODE} \
   	-e NATS_USERNAME=${NATS_USERNAME} \
@@ -191,7 +192,7 @@ create_service_nats() {
   	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
 
   docker ${remote} service create \
-  	--name nats_cluster \
+  	--name $NATS_CLUSTER_NAME \
   	--network smartmeter \
   	--mode global \
     ${ON_WORKER_NODE} \
@@ -216,7 +217,7 @@ create_service_app_streaming() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
 docker ${remote} service create \
 	--name app_streaming \
-	-e NATS_URI=${NATS_URI} \
+	-e NATS_URI=${NATS_CLUSTER_URI} \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
   -e CASSANDRA_URL=${CASSANDRA_URL} \
@@ -237,7 +238,7 @@ __run_app_streaming() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} run --rm -d \
   	--name app_streaming \
-  	-e NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222 \
+  	-e NATS_URI=${NATS_CLUSTER_URI} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
@@ -256,7 +257,7 @@ create_service_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
 docker ${remote} service create \
 	--name app_prediction \
-	-e NATS_URI=${NATS_URI} \
+	-e NATS_URI=${NATS_CLUSTER_URI} \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e CASSANDRA_URL=${CASSANDRA_URL} \
 	-e LOG_LEVEL=INFO \
@@ -275,7 +276,7 @@ run_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} run --rm \
   	--name app_prediction \
-  	-e NATS_URI=${NATS_URI} \
+  	-e NATS_URI=${NATS_CLUSTER_URI} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
   	-e LOG_LEVEL=INFO \
@@ -345,7 +346,7 @@ docker ${remote} service create \
 	--network smartmeter \
   --mode global \
   ${ON_WORKER_NODE} \
-	-e NATS_URI=${NATS_URI} \
+	-e NATS_URI=${NATS_CLUSTER_URI} \
 	-e NATS_SUBJECT="smartmeter.voltage.raw.data.>" \
 	-e CASSANDRA_URL=${CASSANDRA_URL} \
 	logimethods/smart-meter:cassandra-inject${postfix}
@@ -393,7 +394,7 @@ run_inject() {
   #docker ${remote} pull logimethods/smart-meter:inject
   cmd="docker ${remote} run \
   	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
-  	-e NATS_URI=${NATS_URI} \
+  	-e NATS_URI=${NATS_CLUSTER_URI} \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
