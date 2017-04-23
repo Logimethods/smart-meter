@@ -46,10 +46,14 @@ trait SparkProcessor {
   
     val sparkMasterUrl = System.getenv("SPARK_MASTER_URL")
     println("SPARK_MASTER_URL = " + sparkMasterUrl)
+  
+    val sparkCoresMax = System.getenv("SPARK_CORES_MAX")
+    println("SPARK_CORES_MAX = " + sparkCoresMax)
     
     val conf = new SparkConf()
                   .setAppName(args(2))
                   .setMaster(sparkMasterUrl)
+                  .set("spark.cores.max", sparkCoresMax)
                   .set("spark.cassandra.connection.host", cassandraUrl);
     val sc = new SparkContext(conf);
     val jarFilesRegex = "(.*)jar"
