@@ -14,5 +14,8 @@ RUN cd /nodetool && \
     tar -zxf dsc-cassandra-3.0.9-bin.tar.gz &&\
     rm dsc-cassandra-3.0.9-bin.tar.gz
 
+VOLUME ["/script"]
+VOLUME ["/conf"]
+
 COPY script/ /etc/telegraf/
 COPY conf/ /etc/telegraf/
