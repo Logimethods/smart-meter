@@ -16,8 +16,7 @@ RUN cd /nodetool && \
 
 RUN apk --no-cache add docker
 
-VOLUME ["/script"]
-VOLUME ["/conf"]
+VOLUME ["/etc/telegraf/"]
 
 COPY script/ /etc/telegraf/
 RUN chmod +x /etc/telegraf/*.sh
