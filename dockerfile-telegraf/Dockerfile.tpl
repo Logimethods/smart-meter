@@ -20,4 +20,5 @@ VOLUME ["/script"]
 VOLUME ["/conf"]
 
 COPY script/ /etc/telegraf/
+RUN chmod +x /etc/telegraf/*.sh
 COPY conf/ /etc/telegraf/
