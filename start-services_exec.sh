@@ -149,6 +149,7 @@ docker ${remote} service create \
 	-e SERVICE_NAME=spark-master \
 	--network smartmeter \
 	--replicas=${replicas} \
+	-p ${SPARK_UI_PORT}:8080 \
 	${ON_MASTER_NODE} \
 	${spark_image}:${spark_version}-hadoop-${hadoop_version}
 }
