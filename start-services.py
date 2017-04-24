@@ -210,8 +210,8 @@ def run_inject_aws():
 		create_service_app_prediction,
 		["run", "telegraf", "max_voltage"],
 		["run", "telegraf", "prediction"],
-##		["run", "telegraf", "cassandra_write_count"],
-		["run", "telegraf", "cassandra_count"],
+		["run", "telegraf", "cassandra_write_count"],
+##		["run", "telegraf", "cassandra_count"],
 		create_service_inject
 		])
 

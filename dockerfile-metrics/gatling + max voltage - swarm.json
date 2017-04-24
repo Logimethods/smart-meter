@@ -261,6 +261,10 @@
               "hide": false,
               "refId": "A",
               "target": "cassandra.*.smartmeter.raw_voltage_data"
+            },
+            {
+              "refId": "B",
+              "target": "scale(cassandra.write_count.smartmeter.raw_voltage_data, 3)"
             }
           ],
           "thresholds": [],
@@ -426,8 +430,14 @@
               "target": "gatling.natsinjection.users.*.active"
             },
             {
+              "hide": false,
               "refId": "C",
               "target": "perSecond(cassandra.*.smartmeter.raw_voltage_data)"
+            },
+            {
+              "hide": false,
+              "refId": "D",
+              "target": "perSecond(scale(cassandra.write_count.smartmeter.raw_voltage_data, 3))"
             }
           ],
           "thresholds": [],
@@ -584,5 +594,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage - swarm",
-  "version": 3
+  "version": 4
 }
