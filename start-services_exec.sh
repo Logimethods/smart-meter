@@ -223,6 +223,7 @@ docker ${remote} service create \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
   -e CASSANDRA_URL=${CASSANDRA_URL} \
 	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
+  -e SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX} \
   --replicas=1 \
   ${ON_MASTER_NODE} \
 	--network smartmeter \
@@ -244,6 +245,7 @@ __run_app_streaming() {
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
   	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
+    -e SPARK_CORES_MAX=${SPARK_CORES_MAX} \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
   		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
@@ -262,6 +264,7 @@ docker ${remote} service create \
 	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
   -e CASSANDRA_URL=${CASSANDRA_URL} \
 	-e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
+  -e SPARK_CORES_MAX=${APP_PREDICTION_SPARK_CORES_MAX} \
   -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
 	--network smartmeter \
   ${ON_MASTER_NODE} \
