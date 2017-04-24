@@ -453,7 +453,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -584,5 +584,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage - swarm",
-  "version": 2
+  "version": 3
 }
