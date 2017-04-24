@@ -260,13 +260,13 @@
             {
               "hide": false,
               "refId": "A",
-              "target": "write_count.smartmeter.raw_voltage_data"
+              "target": "cassandra.*.smartmeter.raw_voltage_data"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Estimated Cassandra Raw Voltage Writes Count",
+          "title": "Estimated Cassandra Raw Voltage Count",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -411,7 +411,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "hide": false,
+              "hide": true,
               "refId": "E",
               "target": "perSecond(write_count.smartmeter.raw_voltage_data)"
             },
@@ -424,12 +424,16 @@
               "hide": true,
               "refId": "B",
               "target": "gatling.natsinjection.users.*.active"
+            },
+            {
+              "refId": "C",
+              "target": "perSecond(cassandra.*.smartmeter.raw_voltage_data)"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Estimated Cassandra Writes Count per Second",
+          "title": "Estimated Cassandra Count per Second",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -580,5 +584,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage - swarm",
-  "version": 7
+  "version": 12
 }
