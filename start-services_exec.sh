@@ -350,8 +350,9 @@ docker ${remote} service create \
 	--network smartmeter \
   --mode global \
   ${ON_WORKER_NODE} \
-	-e NATS_URI=${NATS_CLUSTER_URI} \
+	-e NATS_URI=${NATS_URI} \
 	-e NATS_SUBJECT="smartmeter.voltage.raw.data.>" \
+  -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
 	-e CASSANDRA_URL=${CASSANDRA_URL} \
 	logimethods/smart-meter:cassandra-inject${postfix}
 
