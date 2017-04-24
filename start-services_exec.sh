@@ -482,6 +482,7 @@ run_telegraf() {
      -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
      -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
      -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
+     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
      --log-driver=json-file \
      $DOCKER_ACCES \
      logimethods/smart-meter:telegraf${postfix}\
