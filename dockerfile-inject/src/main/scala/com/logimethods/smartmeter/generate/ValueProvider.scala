@@ -27,7 +27,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   var usagePoint = usagePointNb + 1
   
   val incr = ProviderUtil.computeIncr(streamingDuration)
-  var date = LocalDateTime.now()
+  var date =  LocalDateTime.ofEpochSecond(TimeProvider.time(), 0, ZoneOffset.MIN)
   var tictac = true
   
   sealed trait ReturnType
@@ -45,10 +45,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   }
   
   def temperature() = {
-    val last = temperatures.last
-    val dayOfWeek = date.getDayOfWeek.ordinal + 1
-    val bias = ( if (date.getDayOfYear % 2 == 0) (8 - dayOfWeek) else - dayOfWeek ).toFloat / 6
-    temperatures += (last + (bias * (random.nextFloat() - 0.2f)))
+    temperatures += TemperatureProvider.temperature(date, random.nextFloat())
     temperatures.dequeue()
   }
   
@@ -67,6 +64,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   }
   
   def increment() {
+    date = LocalDateTime.ofEpochSecond(TimeProvider.time(), 0, ZoneOffset.MIN)
     if (tictac) {
       if (returnType == ReturnType.TEMPERATURE) {
         returnType = ReturnType.FORECAST
@@ -81,7 +79,6 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
         }
         if (line > lineNb) {
           line = 1
-          date = date.plusMinutes(incr)
           returnType = ReturnType.TEMPERATURE
         } else {
           returnType = ReturnType.VOLTAGE
