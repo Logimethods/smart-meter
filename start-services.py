@@ -43,6 +43,9 @@ def create_service(name, replicas, postfix):
 	else:
 		run_service(name, replicas, postfix)
 
+def create_service_telegraf(name, postfix):
+	subprocess.run(["bash", "start-services_exec.sh", "-p", postfix, "create_service_telegraf", name])
+
 def rm_service(name, postfix):
 	# subprocess.run(["docker", "service", "rm", name])
 	subprocess.run(["bash", "start-services_exec.sh", "-p", postfix, "rm_service", name])
@@ -60,6 +63,8 @@ def run(steps):
 			create_service(step[1], step[2], postfix)
 		elif step[0] == "rm_service" :
 			rm_service(step[1], postfix)
+		elif step[0] == "create_service_telegraf" :
+			create_service_telegraf(step[1], postfix)
 		else:
 			call(step[0], step[1], step[2:])
 
@@ -210,7 +215,7 @@ def run_inject_aws():
 		create_service_app_prediction,
 		["run", "telegraf", "max_voltage"],
 		["run", "telegraf", "prediction"],
-		["run", "telegraf", "cassandra_write_count"],
+		["create_service_telegraf", "cassandra_write_count"],
 ##		["run", "telegraf", "cassandra_count"],
 		create_service_inject
 		])

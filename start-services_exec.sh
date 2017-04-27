@@ -494,18 +494,29 @@ run_telegraf() {
     eval $cmd
 }
 
-run_service_telegraf_docker() {
+create_service_telegraf() {
+  DOCKER_ACCES="--mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
   cmd="docker ${remote} service create \
-  	--name telegraf_docker \
-  	--network smartmeter \
-  	--mode global \
-    --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
+    --network smartmeter \
+    --name telegraf_$@\
+    -e CASSANDRA_URL="localhost" \
+    -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
+    -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
+    -e JMX_PASSWORD=$JMX_PASSWORD \
+    -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
+    -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
+    -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
+    -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+    --log-driver=json-file \
+    --mode global \
+    $DOCKER_ACCES \
     logimethods/smart-meter:telegraf${postfix}\
-      telegraf -config /etc/telegraf/docker.conf"
+      telegraf -config /etc/telegraf/$@.conf"
+  # ${CASSANDRA_MAIN_NAME}
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 }
 
 ### ZEPPELIN ###
