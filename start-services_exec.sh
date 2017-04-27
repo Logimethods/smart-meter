@@ -380,8 +380,9 @@ cmd="docker ${remote} service create \
   -e TASK_SLOT={{.Task.Slot}} \
   -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
   -e PREDICTION_LENGTH=${PREDICTION_LENGTH} \
+  -e TIME_ROOT=$(date +%s)
 	--network smartmeter \
-  ${ON_MASTER_NODE} \
+  ${ON_WORKER_NODE} \
 	--replicas=${replicas} \
 	logimethods/smart-meter:inject${postfix} \
 		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
