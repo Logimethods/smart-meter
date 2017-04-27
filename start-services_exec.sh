@@ -123,6 +123,7 @@ create_service_cassandra() {
   	--network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
+    -e LOCAL_JMX=no \
     --env CASSANDRA_SEEDS=$CASSANDRA_SEED \
   	logimethods/smart-meter:cassandra${postfix}
 }

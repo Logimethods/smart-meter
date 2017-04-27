@@ -250,21 +250,35 @@
           "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 1,
-          "points": true,
+          "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
           "span": 6,
-          "stack": false,
-          "steppedLine": false,
+          "stack": true,
+          "steppedLine": true,
           "targets": [
             {
-              "hide": false,
+              "hide": true,
               "refId": "A",
               "target": "cassandra.*.smartmeter.raw_voltage_data"
             },
             {
+              "hide": true,
               "refId": "B",
-              "target": "scale(cassandra.write_count.smartmeter.raw_voltage_data, 3)"
+              "target": "scale(cassandra.write_count.smartmeter.raw_voltage_data, 4)"
+            },
+            {
+              "hide": false,
+              "refId": "C",
+              "target": "*.*.*.*.*.execcassandra_write_count",
+              "textEditor": true
+            },
+            {
+              "hide": true,
+              "refId": "D",
+              "target": "group(cassandra.write_count.smartmeter.raw_voltage_data.*.execcassandra_write_count",
+              "targetFull": "group(cassandra.write_count.smartmeter.raw_voltage_data, cassandra.*.smartmeter.raw_voltage_data, scale(cassandra.write_count.smartmeter.raw_voltage_data, 4))",
+              "textEditor": true
             }
           ],
           "thresholds": [],
@@ -411,7 +425,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "span": 6,
-          "stack": false,
+          "stack": true,
           "steppedLine": false,
           "targets": [
             {
@@ -430,14 +444,18 @@
               "target": "gatling.natsinjection.users.*.active"
             },
             {
-              "hide": false,
+              "hide": true,
               "refId": "C",
               "target": "perSecond(cassandra.*.smartmeter.raw_voltage_data)"
             },
             {
-              "hide": false,
+              "hide": true,
               "refId": "D",
-              "target": "perSecond(scale(cassandra.write_count.smartmeter.raw_voltage_data, 3))"
+              "target": "perSecond(scale(cassandra.write_count.smartmeter.raw_voltage_data, 4))"
+            },
+            {
+              "refId": "F",
+              "target": "perSecond(*.*.*.*.*.execcassandra_write_count)"
             }
           ],
           "thresholds": [],
