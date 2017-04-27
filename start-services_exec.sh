@@ -476,7 +476,7 @@ run_telegraf() {
    cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
      --name telegraf_$@\
-     -e CASSANDRA_URL=${CASSANDRA_MAIN_NAME} \
+     -e CASSANDRA_URL=${CASSANDRA_ROOT_NAME} \
      -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
      -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
      -e JMX_PASSWORD=$JMX_PASSWORD \
@@ -499,7 +499,7 @@ create_service_telegraf() {
   cmd="docker ${remote} service create \
     --network smartmeter \
     --name telegraf_$@\
-    -e CASSANDRA_URL="localhost" \
+    -e CASSANDRA_URL="${CASSANDRA_ROOT_NAME}" \
     -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
     -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
     -e JMX_PASSWORD=$JMX_PASSWORD \
@@ -507,11 +507,11 @@ create_service_telegraf() {
     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
-    --log-driver=json-file \
     --mode global \
     $DOCKER_ACCES \
     logimethods/smart-meter:telegraf${postfix}\
       telegraf -config /etc/telegraf/$@.conf"
+  #     --log-driver=json-file \
   # ${CASSANDRA_MAIN_NAME}
   echo "-----------------------------------------------------------------"
   echo "$cmd"

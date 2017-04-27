@@ -7,7 +7,7 @@ if [ ! -f "tmp_value.lock" ]
 then
   echo $(date) >> tmp_value.lock
 
-  values=$( /nodetool/dsc-cassandra-3.0.9/bin/nodetool -h ${CASSANDRA_URL} -u cassandra -pw ${JMX_PASSWORD} cfstats ${TELEGRAF_CASSANDRA_TABLE}  | grep "$TELEGRAF_CASSANDRA_GREP" | rev | cut -d ' ' -f 1 | rev )
+  values=$( /nodetool/dsc-cassandra-3.0.9/bin/nodetool -h $(docker ps | grep $CASSANDRA_URL | awk '{ print $1 }') -u cassandra -pw ${JMX_PASSWORD} cfstats ${TELEGRAF_CASSANDRA_TABLE}  | grep "$TELEGRAF_CASSANDRA_GREP" | rev | cut -d ' ' -f 1 | rev )
 
   total=0
   IFS=$'\n'
