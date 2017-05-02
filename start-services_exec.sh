@@ -465,6 +465,21 @@ run_metrics_grafana() {
   sh -c "$cmd"
 }
 
+create_service_influxdb() {
+  cmd="docker ${remote} service create \
+  	--name influxdb \
+  	--network smartmeter \
+    ${ON_MASTER_NODE} \
+    -p 8083:8083 \
+    -p 8086:8086 \
+    -p 2003:2003 \
+  	influxdb"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
+}
+
 update_service_scale() {
 	docker ${remote} service scale SERVICE=REPLICAS
 }
