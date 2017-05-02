@@ -204,15 +204,18 @@ create_service_nats() {
 }
 
 create_service_nats_single() {
-  docker ${remote} service create \
-  	--name nats \
+  cmd="docker ${remote} service create \
+  	--name $NATS_NAME \
   	--network smartmeter \
-  	--replicas=${replicas} \
   	-e NATS_USERNAME=${NATS_USERNAME} \
   	-e NATS_PASSWORD=${NATS_PASSWORD} \
     -p 4222:4222 \
     -p 8222:8222 \
-  	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG}
+  	logimethods/smart-meter:nats-server${postfix} ${NATS_DEBUG}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval "$cmd"
 }
 
 create_service_app_streaming() {
@@ -470,6 +473,7 @@ create_service_influxdb() {
   	--name influxdb \
   	--network smartmeter \
     ${ON_MASTER_NODE} \
+    -e INFLUXDB_ADMIN_ENABLED=true \
     -p 8083:8083 \
     -p 8086:8086 \
     -p 2003:2003 \
