@@ -269,7 +269,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "decimals": 0,
           "fill": 1,
           "id": 10,
@@ -298,9 +298,77 @@
           "steppedLine": true,
           "targets": [
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "policy": "default",
               "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "docker.*.moby.docker.n_containers_running",
               "textEditor": false
+            },
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "previous"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "docker_container_cpu",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "usage_percent"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "count"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "thresholds": [],
@@ -370,9 +438,77 @@
           "steppedLine": false,
           "targets": [
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
               "hide": false,
+              "policy": "default",
               "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "write_count"
+            },
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
+              "target": ""
             }
           ],
           "thresholds": [],
@@ -426,7 +562,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "editable": true,
           "error": false,
           "fill": 1,
@@ -460,32 +596,31 @@
           "steppedLine": false,
           "targets": [
             {
-              "hide": false,
-              "refId": "A",
-              "target": "aliasByNode(docker.*.*.*.*.cpu-total.moby.docker_container_cpu.usage_percent, 3)",
-              "textEditor": true
-            },
-            {
-              "hide": true,
-              "refId": "B",
-              "target": "docker.*.*.*.spark-*.*.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent",
-              "textEditor": true
-            },
-            {
-              "hide": false,
-              "refId": "C",
-              "target": "aliasByNode(docker.*.*.*.*.*.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent, 8)",
-              "textEditor": true
-            },
-            {
-              "hide": true,
-              "refId": "D",
-              "target": "docker.*.*.*.inject.*.*.logimethods-smart-meter.*.inject-local.cpu-total.moby.docker_container_cpu.usage_percent"
-            },
-            {
-              "hide": true,
-              "refId": "E",
-              "target": "docker.*.*.*.cassandra*.*.*.logimethods-smart-meter.*.select metric"
+              "alias": "$tag_container_name",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "container_name"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "docker_container_cpu",
+              "policy": "default",
+              "refId": "F",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "usage_percent"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "thresholds": [],
@@ -539,7 +674,7 @@
               "value": "max"
             }
           ],
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "fontSize": "100%",
           "hideTimeOverride": false,
           "id": 11,
@@ -577,15 +712,31 @@
           ],
           "targets": [
             {
-              "hide": false,
-              "refId": "A",
-              "target": "aliasByNode(docker.*.*.*.*.cpu-total.moby.docker_container_cpu.usage_percent, 3)",
-              "textEditor": true
-            },
-            {
-              "refId": "B",
-              "target": "aliasByNode(docker.*.*.*.*.*.*.*.*.*.cpu-total.*.docker_container_cpu.usage_percent, 8)",
-              "textEditor": true
+              "alias": "$tag_container_name",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "container_name"
+                  ],
+                  "type": "tag"
+                }
+              ],
+              "measurement": "docker_container_cpu",
+              "policy": "default",
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "usage_percent"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "timeFrom": "30s",
@@ -608,7 +759,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "fill": 0,
           "id": 14,
           "legend": {
@@ -634,8 +785,76 @@
           "steppedLine": false,
           "targets": [
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "policy": "default",
               "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "prediction.temperature"
+            },
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "prediction",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "temperature"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "thresholds": [],
@@ -675,6 +894,7 @@
         },
         {
           "columns": [],
+          "datasource": "${DS_INFLUXDB}",
           "fontSize": "100%",
           "id": 13,
           "links": [],
@@ -682,7 +902,7 @@
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 1,
+            "col": 0,
             "desc": true
           },
           "span": 6,
@@ -723,22 +943,186 @@
           ],
           "targets": [
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "policy": "default",
               "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "prediction.timestamp"
             },
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "policy": "default",
               "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "prediction.alert"
             },
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
               "hide": true,
+              "policy": "default",
               "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "smartmeter.timestamp"
             },
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
               "hide": true,
+              "policy": "default",
               "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "smartmeter.voltage"
+            },
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "prediction",
+              "policy": "default",
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "alert"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "distinct"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "title": "Alerts",
@@ -791,5 +1175,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 1
+  "version": 9
 }
