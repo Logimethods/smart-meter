@@ -7,6 +7,14 @@
       "type": "datasource",
       "pluginId": "graphite",
       "pluginName": "Graphite"
+    },
+    {
+      "name": "DS_INFLUXDB",
+      "label": "InfluxDB",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "influxdb",
+      "pluginName": "InfluxDB"
     }
   ],
   "__requires": [
@@ -26,6 +34,12 @@
       "type": "datasource",
       "id": "graphite",
       "name": "Graphite",
+      "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "influxdb",
+      "name": "InfluxDB",
       "version": "1.0.0"
     },
     {
@@ -131,7 +145,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "editable": true,
           "error": false,
           "fill": 1,
@@ -160,14 +174,43 @@
           "steppedLine": false,
           "targets": [
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
               "hide": false,
-              "refId": "A",
-              "target": "smartmeter.voltage"
-            },
-            {
-              "hide": true,
-              "refId": "B",
-              "target": "prediction.alert"
+              "measurement": "max_voltage",
+              "policy": "default",
+              "query": "SELECT distinct(\"voltage\") FROM \"max_voltage\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
+              "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "voltage"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "thresholds": [
@@ -229,7 +272,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "editable": true,
           "error": false,
           "fill": 1,
@@ -258,27 +301,40 @@
           "steppedLine": true,
           "targets": [
             {
-              "hide": true,
-              "refId": "A",
-              "target": "cassandra.*.smartmeter.raw_voltage_data"
-            },
-            {
-              "hide": true,
-              "refId": "B",
-              "target": "scale(cassandra.write_count.smartmeter.raw_voltage_data, 4)"
-            },
-            {
-              "hide": false,
-              "refId": "C",
-              "target": "*.*.*.*.*.execcassandra_write_count",
-              "textEditor": true
-            },
-            {
-              "hide": true,
-              "refId": "D",
-              "target": "group(cassandra.write_count.smartmeter.raw_voltage_data.*.execcassandra_write_count",
-              "targetFull": "group(cassandra.write_count.smartmeter.raw_voltage_data, cassandra.*.smartmeter.raw_voltage_data, scale(cassandra.write_count.smartmeter.raw_voltage_data, 4))",
-              "textEditor": true
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "execcassandra_write_count",
+              "policy": "default",
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "distinct"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "thresholds": [],
@@ -320,7 +376,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "fill": 0,
           "id": 14,
           "legend": {
@@ -346,7 +402,40 @@
           "steppedLine": false,
           "targets": [
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "prediction",
+              "policy": "default",
               "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "temperature"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "prediction.temperature"
             }
           ],
@@ -400,7 +489,7 @@
         {
           "aliasColors": {},
           "bars": true,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "editable": true,
           "error": false,
           "fill": 1,
@@ -429,33 +518,46 @@
           "steppedLine": false,
           "targets": [
             {
-              "hide": true,
-              "refId": "E",
-              "target": "perSecond(write_count.smartmeter.raw_voltage_data)"
-            },
-            {
-              "hide": true,
-              "refId": "A",
-              "target": "summarize(perSecond(write_count.smartmeter.raw_voltage_data), '1m', 'avg', false)"
-            },
-            {
-              "hide": true,
-              "refId": "B",
-              "target": "gatling.natsinjection.users.*.active"
-            },
-            {
-              "hide": true,
-              "refId": "C",
-              "target": "perSecond(cassandra.*.smartmeter.raw_voltage_data)"
-            },
-            {
-              "hide": true,
-              "refId": "D",
-              "target": "perSecond(scale(cassandra.write_count.smartmeter.raw_voltage_data, 4))"
-            },
-            {
-              "refId": "F",
-              "target": "perSecond(*.*.*.*.*.execcassandra_write_count)"
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "execcassandra_write_count",
+              "policy": "default",
+              "refId": "G",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "distinct"
+                  },
+                  {
+                    "params": [
+                      "1s"
+                    ],
+                    "type": "derivative"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "thresholds": [],
@@ -496,6 +598,7 @@
         },
         {
           "columns": [],
+          "datasource": "${DS_INFLUXDB}",
           "fontSize": "100%",
           "id": 13,
           "links": [],
@@ -503,7 +606,7 @@
           "scroll": true,
           "showHeader": true,
           "sort": {
-            "col": 1,
+            "col": 0,
             "desc": true
           },
           "span": 6,
@@ -544,22 +647,186 @@
           ],
           "targets": [
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "policy": "default",
               "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "prediction.timestamp"
             },
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "policy": "default",
               "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "prediction.alert"
             },
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
               "hide": true,
+              "policy": "default",
               "refId": "C",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "smartmeter.timestamp"
             },
             {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
               "hide": true,
+              "policy": "default",
               "refId": "D",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [],
               "target": "smartmeter.voltage"
+            },
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "prediction",
+              "policy": "default",
+              "refId": "E",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "alert"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "distinct"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "title": "Alerts",
@@ -612,5 +879,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage - swarm",
-  "version": 4
+  "version": 8
 }

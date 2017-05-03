@@ -191,6 +191,8 @@
               ],
               "measurement": "max_voltage",
               "policy": "default",
+              "query": "SELECT distinct(\"voltage\") FROM \"max_voltage\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -203,7 +205,7 @@
                   },
                   {
                     "params": [],
-                    "type": "distinct"
+                    "type": "mean"
                   }
                 ]
               ],
@@ -409,7 +411,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "editable": true,
           "error": false,
           "fill": 1,
@@ -430,12 +432,12 @@
           "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 1,
-          "points": true,
+          "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
           "span": 6,
           "stack": false,
-          "steppedLine": false,
+          "steppedLine": true,
           "targets": [
             {
               "dsType": "influxdb",
@@ -453,9 +455,9 @@
                   "type": "fill"
                 }
               ],
-              "hide": false,
+              "measurement": "execcassandra_write_count",
               "policy": "default",
-              "refId": "A",
+              "refId": "C",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -467,48 +469,11 @@
                   },
                   {
                     "params": [],
-                    "type": "mean"
+                    "type": "distinct"
                   }
                 ]
               ],
-              "tags": [],
-              "target": "write_count"
-            },
-            {
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
-                }
-              ],
-              "policy": "default",
-              "refId": "B",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "mean"
-                  }
-                ]
-              ],
-              "tags": [],
-              "target": ""
+              "tags": []
             }
           ],
           "thresholds": [],
@@ -765,9 +730,11 @@
           "legend": {
             "avg": false,
             "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -784,42 +751,6 @@
           "stack": false,
           "steppedLine": false,
           "targets": [
-            {
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
-                }
-              ],
-              "policy": "default",
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "value"
-                    ],
-                    "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "mean"
-                  }
-                ]
-              ],
-              "tags": [],
-              "target": "prediction.temperature"
-            },
             {
               "dsType": "influxdb",
               "groupBy": [
@@ -1175,5 +1106,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 9
+  "version": 16
 }

@@ -96,6 +96,20 @@ run_cassandra() {
   exec $cmd
 }
 
+create_service_cassandra_single() {
+  # https://hub.docker.com/_/cassandra/
+  # http://serverfault.com/questions/806649/docker-swarm-and-volumes
+  # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
+  # https://github.com/Yannael/kafka-sparkstreaming-cassandra-swarm/blob/master/service-management/start-cassandra-services.sh
+
+  docker ${remote} service create \
+  	--name ${CASSANDRA_MAIN_NAME} \
+  	--network smartmeter \
+    ${ON_MASTER_NODE} \
+    -e LOCAL_JMX=no \
+  	logimethods/smart-meter:cassandra${postfix}
+}
+
 create_service_cassandra() {
   # https://hub.docker.com/_/cassandra/
   # http://serverfault.com/questions/806649/docker-swarm-and-volumes
@@ -496,7 +510,7 @@ run_telegraf() {
    cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
      --name telegraf_$@\
-     -e CASSANDRA_URL=${CASSANDRA_ROOT_NAME} \
+     -e CASSANDRA_URL=${TELEGRAF_CASSANDRA_URL} \
      -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
      -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
      -e JMX_PASSWORD=$JMX_PASSWORD \
@@ -519,7 +533,7 @@ create_service_telegraf() {
   cmd="docker ${remote} service create \
     --network smartmeter \
     --name telegraf_$@\
-    -e CASSANDRA_URL="${CASSANDRA_ROOT_NAME}" \
+    -e CASSANDRA_URL="${TELEGRAF_CASSANDRA_URL}" \
     -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
     -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
     -e JMX_PASSWORD=$JMX_PASSWORD \
