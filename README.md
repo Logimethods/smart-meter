@@ -74,6 +74,8 @@ Images will be postfixed by -local
 
 ## Training & Predictions
 
+![SmartMeter-Training.png](images/SmartMeter-Training.png "SmartMeter Training Architecture")
+
 See [Multilayer perceptron classifier](http://spark.apache.org/docs/latest/ml-classification-regression.html#multilayer-perceptron-classifier) and [SparkPredictionProcessor.scala](dockerfile-app-streaming/src/main/scala/com/logimethods/nats/connector/spark/app/SparkPredictionProcessor.scala)
 ```
 +-----+----------+----+--------------------+--------------------+---------+-----------+--------------------+----------+
