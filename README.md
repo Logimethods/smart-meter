@@ -6,13 +6,25 @@ To demonstrate a Smart Meter Big Data Application.
 ![SmartMeter.png](images/SmartMeter.png "SmartMeter Architecture")
 
 ## Python CLI
+
+### Local
+
 See [start-services.py](start-services.py)
 ```
 > python3 -i ./start-services.py
 >>> run_inject()
 >>> run_app_batch()
+...
+>>> stop_all()
+...
 >>> exit()
 ```
+
+Setup the Grafana DB (see bellow) + Import [gatling + max voltage.json](dockerfile-metrics/gatling%20%2B%20max%20voltage.json)
+
+[http://localhost/dashboard/db/gatling-max-voltage](http://localhost/dashboard/db/gatling-max-voltage)
+
+![gatling-max-voltage_screenshot.png](images/gatling-max-voltage_screenshot.png "Gatling-max-voltage Screenshot")
 
 In parallel, you can play with the number of injectors:
 ```
@@ -20,12 +32,46 @@ In parallel, you can play with the number of injectors:
 > docker service scale inject=1
 ```
 
-### Schemas
+### Local (DEV mode)
+
+```
+> ./build-local.sh
+> ./stop.sh
+> python3 -i start-services.py "local"
+Images will be postfixed by -local
+>>> run_inject()
+```
+
+### Remote (on Docker Swarm)
+
+```
+> ssh -NL localhost:2374:/var/run/docker.sock docker@xxxxx.amazonaws.com &
+> python3 -i ./start-services.py "remote"
+> Remote Docker Client
+>>> run_inject_aws()
+...
+>>> stop_all()
+...
+>>> exit()
+```
+
+Setup the Grafana DB (see bellow) + Import [gatling + max voltage - swarm.json](dockerfile-metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
+
+![gatling-max-voltage-swarm_screenshot.png](images/gatling-max-voltage-swarm_screenshot.png "Gatling-max-voltage-swarm Screenshot")
+
+## Schemas
 The *Injection* demo schema:
 ![SmartMeter-Inject.png](images/SmartMeter-Inject.png "SmartMeter Injection Architecture")
 
 The *Batch* demo schema:
 ![SmartMeter-Batch.png](images/SmartMeter-Batch.png "SmartMeter Injection Architecture")
+
+## Grafana Setup
+
+From [Grafana](http://localhost:80), setup the Graphite & InfluxDB Data Sources (see bellow).
+
+<img src="images/graphite_data_source.png" alt="Graphite Data Source" width="300x">
+<img src="images/influxdb_data_source.png" alt="InfluxDB Data Source" width="300x">
 
 ## CQLSH (Cassandra CLI)
 To access to the RAW Voltage Data:
@@ -40,36 +86,6 @@ cqlsh> select * from smartmeter.raw_voltage_data limit 2;
 ------+-------------+------------+------+-------+-----+------+--------+-------------+-----------
     3 |           2 |          2 | 2016 |    12 |  24 |    3 |     16 |           6 | 121.15018
     3 |           2 |          2 | 2016 |    12 |  24 |    3 |      1 |           6 | 121.66259
-```
-
-## Grafana metrics
-
-From [Grafana](http://localhost:80), setup the Graphite & InfluxDB Data Sources (see bellow).
-
-<img src="images/graphite_data_source.png" alt="Graphite Data Source" width="300x">
-<img src="images/influxdb_data_source.png" alt="InfluxDB Data Source" width="300x">
-
-### Local
-
-Import [gatling + max voltage.json](dockerfile-metrics/gatling%20%2B%20max%20voltage.json).
-
-[http://localhost/dashboard/db/gatling-max-voltage](http://localhost/dashboard/db/gatling-max-voltage)
-
-![gatling-max-voltage_screenshot.png](images/gatling-max-voltage_screenshot.png "Gatling-max-voltage Screenshot")
-
-### Remote (on Docker Swarm)
-
-Import [gatling + max voltage - swarm.json](dockerfile-metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
-
-![gatling-max-voltage-swarm_screenshot.png](images/gatling-max-voltage-swarm_screenshot.png "Gatling-max-voltage-swarm Screenshot")
-
-## Local DEV
-```
-> ./build-local.sh
-> ./stop.sh
-> python3 -i start-services.py "local"
-Images will be postfixed by -local
->>>
 ```
 
 ## Training & Predictions
