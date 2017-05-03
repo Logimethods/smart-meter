@@ -210,6 +210,7 @@ def run_inject_aws():
 		create_service_cassandra,
 		create_service_nats,
 		["wait", "service", "nats"],
+		["create_service", "influxdb", 1],
 		create_cassandra_tables,
 		create_service_cassandra_inject,
 		create_service_app_streaming,
