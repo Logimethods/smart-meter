@@ -44,13 +44,24 @@ cqlsh> select * from smartmeter.raw_voltage_data limit 2;
 
 ## Grafana metrics
 
-From [Grafana](http://localhost:80), setup the Graphite Data Source (see bellow) & import [gatling + max voltage.json](dockerfile-metrics/gatling%20%2B%20max%20voltage.json).
+From [Grafana](http://localhost:80), setup the Graphite & InfluxDB Data Sources (see bellow).
 
 <img src="images/graphite_data_source.png" alt="Graphite Data Source" width="300x">
+<img src="images/influxdb_data_source.png" alt="InfluxDB Data Source" width="300x">
+
+### Local
+
+Import [gatling + max voltage.json](dockerfile-metrics/gatling%20%2B%20max%20voltage.json).
 
 [http://localhost/dashboard/db/gatling-max-voltage](http://localhost/dashboard/db/gatling-max-voltage)
 
 ![gatling-max-voltage_screenshot.png](images/gatling-max-voltage_screenshot.png "Gatling-max-voltage Screenshot")
+
+### Remote (on Docker Swarm)
+
+Import [gatling + max voltage - swarm.json](dockerfile-metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
+
+![gatling-max-voltage-swarm_screenshot.png](images/gatling-max-voltage-swarm_screenshot.png "Gatling-max-voltage-swarm Screenshot")
 
 ## Local DEV
 ```
