@@ -507,7 +507,7 @@ run_telegraf() {
      --log-driver=json-file \
      $DOCKER_ACCES \
      logimethods/smart-meter:telegraf${postfix}\
-       telegraf -config /etc/telegraf/$@.conf"
+       telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/$@.conf"
     echo "-----------------------------------------------------------------"
     echo "$cmd"
     echo "-----------------------------------------------------------------"
@@ -530,7 +530,7 @@ create_service_telegraf() {
     --mode global \
     $DOCKER_ACCES \
     logimethods/smart-meter:telegraf${postfix}\
-      telegraf -config /etc/telegraf/$@.conf"
+      telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/$@.conf"
   #     --log-driver=json-file \
   # ${CASSANDRA_MAIN_NAME}
   echo "-----------------------------------------------------------------"

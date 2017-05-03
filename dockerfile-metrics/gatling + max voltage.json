@@ -7,6 +7,14 @@
       "type": "datasource",
       "pluginId": "graphite",
       "pluginName": "Graphite"
+    },
+    {
+      "name": "DS_INFLUXDB",
+      "label": "InfluxDB",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "influxdb",
+      "pluginName": "InfluxDB"
     }
   ],
   "__requires": [
@@ -26,6 +34,12 @@
       "type": "datasource",
       "id": "graphite",
       "name": "Graphite",
+      "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "influxdb",
+      "name": "InfluxDB",
       "version": "1.0.0"
     },
     {
@@ -131,7 +145,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_GRAPHITE}",
+          "datasource": "${DS_INFLUXDB}",
           "editable": true,
           "error": false,
           "fill": 1,
@@ -160,14 +174,40 @@
           "steppedLine": false,
           "targets": [
             {
-              "hide": false,
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "max_voltage",
+              "policy": "default",
               "refId": "A",
-              "target": "smartmeter.voltage"
-            },
-            {
-              "hide": true,
-              "refId": "B",
-              "target": "prediction.alert"
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "voltage"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "distinct"
+                  }
+                ]
+              ],
+              "tags": []
             }
           ],
           "thresholds": [
@@ -751,5 +791,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 16
+  "version": 1
 }
