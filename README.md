@@ -59,11 +59,11 @@ Setup the Grafana DB (see bellow) + Import [gatling + max voltage - swarm.json](
 
 ![gatling-max-voltage-swarm_screenshot.png](images/gatling-max-voltage-swarm_screenshot.png "Gatling-max-voltage-swarm Screenshot")
 
-## Schemas
-The *Injection* demo schema:
+## Architectures
+The *Injection* demo architecture:
 ![SmartMeter-Inject.png](images/SmartMeter-Inject.png "SmartMeter Injection Architecture")
 
-The *Batch* demo schema:
+The *Batch* demo architecture:
 ![SmartMeter-Batch.png](images/SmartMeter-Batch.png "SmartMeter Injection Architecture")
 
 ## Grafana Setup
