@@ -47,7 +47,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
   
   // MAX Voltages by Epoch //
   
-  if ((target == "ALL") || (target.contains("MAX"))) {
+  if ((target.equals("ALL")) || (target.contains("MAX"))) {
     val inputDataSubject = inputSubject + ".data.>"
     
     val messages =
@@ -97,7 +97,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
   
   // Temperature //
 
-  if ((target == "ALL") || (target.contains("TEMPERATURE"))) {  
+  if ((target.equals("ALL")) || (target.contains("TEMPERATURE"))) {  
     val inputTemperatureSubject = inputSubject + ".temperature"
     
     val temperatures =
