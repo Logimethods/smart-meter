@@ -10,7 +10,7 @@
     },
     {
       "name": "DS_INFLUXDB",
-      "label": "InfluxDB",
+      "label": "Influxdb",
       "description": "",
       "type": "datasource",
       "pluginId": "influxdb",
@@ -305,20 +305,14 @@
               "groupBy": [
                 {
                   "params": [
-                    "$interval"
+                    "host"
                   ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
+                  "type": "tag"
                 }
               ],
               "measurement": "execcassandra_write_count",
               "policy": "default",
-              "refId": "E",
+              "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -327,10 +321,6 @@
                       "value"
                     ],
                     "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "distinct"
                   }
                 ]
               ],
@@ -522,15 +512,9 @@
               "groupBy": [
                 {
                   "params": [
-                    "$interval"
+                    "host"
                   ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
+                  "type": "tag"
                 }
               ],
               "measurement": "execcassandra_write_count",
@@ -544,10 +528,6 @@
                       "value"
                     ],
                     "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "distinct"
                   },
                   {
                     "params": [
@@ -879,5 +859,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage - swarm",
-  "version": 8
+  "version": 1
 }
