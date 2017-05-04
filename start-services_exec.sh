@@ -27,9 +27,10 @@ shift $shift_nb
 
 # source the properties:
 # https://coderanch.com/t/419731/read-properties-file-script
+location="$postfix"
 . configuration.properties
-. "configuration${postfix}.properties"
-. "configuration${postfix}-debug.properties"
+. "configuration${location}.properties"
+. "configuration${location}-debug.properties"
 
 stop_all() {
   docker ${remote} service rm $(docker ${remote} service ls -q)
@@ -235,22 +236,27 @@ create_service_nats_single() {
 }
 
 create_service_app_streaming() {
-#docker ${remote} pull logimethods/smart-meter:app-streaming
-docker ${remote} service create \
-	--name app_streaming \
-	-e NATS_URI=${NATS_URI} \
-	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
-  -e STREAMING_DURATION=${STREAMING_DURATION} \
-  -e CASSANDRA_URL=${CASSANDRA_URL} \
-  -e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
-  -e TARGET=${APP_STREAMING_TARGET} \
-  -e SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX} \
-  --replicas=1 \
-  ${ON_MASTER_NODE} \
-	--network smartmeter \
-	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
-		"smartmeter.voltage.raw" "smartmeter.voltage.extract.max" \
-    "Smartmeter MAX Streaming"
+    #docker ${remote} pull logimethods/smart-meter:app-streaming
+  cmd="docker ${remote} service create \
+    --name app_streaming \
+    -e NATS_URI=${NATS_URI} \
+    -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    -e STREAMING_DURATION=${STREAMING_DURATION} \
+    -e CASSANDRA_URL=${CASSANDRA_URL} \
+    -e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
+    -e TARGETS=${APP_STREAMING_TARGETS} \
+    -e SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX} \
+    --replicas=1 \
+    ${ON_MASTER_NODE} \
+    --network smartmeter \
+    logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkMaxProcessor\" \
+    	\"smartmeter.voltage.raw\" \"smartmeter.voltage.extract.max\" \
+      \"Smartmeter MAX Streaming\""
+
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval "$cmd"
 
 #   --mode global \
 #    --replicas=${replicas} \
@@ -266,6 +272,7 @@ __run_app_streaming() {
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
   	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
+    -e TARGETS=${APP_STREAMING_TARGETS} \
     -e SPARK_CORES_MAX=${SPARK_CORES_MAX} \
   	--network smartmeter \
   	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
@@ -274,7 +281,7 @@ __run_app_streaming() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec "$cmd"
+  eval "$cmd"
 }
 
 create_service_app_prediction() {

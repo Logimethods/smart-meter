@@ -117,11 +117,14 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
           .asStreamOf(ssc)
       }
   
+    // Ideally, should be the AVG
+    val singleTemperature = temperatures.reduceByKey(Math.max(_,_))
+    
     if (logLevel.contains("TEMPERATURE")) {
-      temperatures.print()
+      singleTemperature.print()
     }
   
-    temperatures.saveToCassandra("smartmeter", "temperature")
+    singleTemperature.saveToCassandra("smartmeter", "temperature")
   }
   
   // Start //
