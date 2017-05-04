@@ -32,7 +32,7 @@ import java.util.function._
 
 import java.time.{LocalDateTime, ZoneOffset}
 
-object SparkMaxProcessor extends App with SparkStreamingProcessor {
+object SparkMaxByEpochProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
@@ -67,22 +67,41 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
     messages.print()
   }
   
+  // TEMPERATURES
+
+  val temperatures = messages.filter({case (s, v) => s.endsWith("temperature")}).map({case (s, v) => v})
+  temperatures.saveToCassandra("smartmeter", "temperature")
+  
   // MAXIMUM values
   
   val voltages = messages.filter({case (s, v) => s.startsWith("smartmeter.voltage.raw.data")})  
-  /** (subject, (epoch, voltage)) **/
-  val max_voltage = voltages.map({case (subject, (epoch, voltage)) => (voltage) })
-                            .reduce(Math.max(_, _))
-                            .map({case (voltage) => (s"""{"voltage": $voltage}""") })
+  val max = voltages.reduceByKey((t1, t2) => (Math.max(t1._1,t2._1), Math.max(t1._2,t2._2)))
 
   if (logLevel.equals("MAX")) {
-    max_voltage.print()
+    max.print()
+  }
+                             
+  val maxByEpoch = max.map({case (subject, (epoch, voltage)) => (epoch, voltage) }).reduceByKey(Math.max(_, _))
+
+  val maxReport = maxByEpoch.map(
+      {case (epoch, voltage) 
+          => val timestamp = epoch * 1000 ; 
+             (s"""{"timestamp": $timestamp, "epoch": $epoch, "voltage": $voltage}""") })
+             
+  if (logLevel.equals("MAX_REPORT")) {
+    maxReport.print()
   }
           
   SparkToNatsConnectorPool.newPool()
                           .withProperties(properties)
                           .withSubjects(outputSubject)
-                          .publishToNats(max_voltage)
+                          .publishToNats(maxReport)
+  
+  if (logLevel.equals("MAX_EPOCH")) {
+    maxByEpoch.print()
+  }
+  
+  maxByEpoch.saveToCassandra("smartmeter", "max_voltage")
   
   // Start
   ssc.start();		
