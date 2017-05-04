@@ -248,7 +248,7 @@ docker ${remote} service create \
   ${ON_MASTER_NODE} \
 	--network smartmeter \
 	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkMaxProcessor" \
-		"smartmeter.voltage.raw.>" "smartmeter.voltage.extract.max" \
+		"smartmeter.voltage.raw.data.>" "smartmeter.voltage.extract.max" \
     "Smartmeter MAX Streaming"
 
 #   --mode global \

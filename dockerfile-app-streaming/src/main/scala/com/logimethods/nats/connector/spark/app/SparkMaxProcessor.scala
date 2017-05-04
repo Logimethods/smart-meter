@@ -37,45 +37,41 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
   log.setLevel(Level.WARN)
   
   val (properties, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setupStreaming(args)
-//  ssc.checkpoint("/spark/storage")
   
-  def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
+  def dataDecoder: Array[Byte] => Float = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
         val epoch = buffer.getLong()
         val voltage = buffer.getFloat()
-        (epoch, voltage)  
+        (voltage)  
       }
   
   val messages =
     if (inputNatsStreaming) {
       NatsToSparkConnector
-        .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
+        .receiveFromNatsStreaming(classOf[Float], StorageLevel.MEMORY_ONLY, clusterId)
         .withNatsURL(natsUrl)
         .withSubjects(inputSubject)
         .withDataDecoder(dataDecoder)
-        .asStreamOfKeyValue(ssc)
+        .asStreamOf(ssc)
     } else {
       NatsToSparkConnector
-        .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
+        .receiveFromNats(classOf[Float], StorageLevel.MEMORY_ONLY)
         .withProperties(properties)
         .withSubjects(inputSubject)
         .withDataDecoder(dataDecoder)
-        .asStreamOfKeyValue(ssc)
+        .asStreamOf(ssc)
     }
 
-  if (logLevel.equals("MESSAGES")) {
+  if (logLevel.contains("MESSAGES")) {
     messages.print()
   }
   
   // MAXIMUM values
   
-  val voltages = messages.filter({case (s, v) => s.startsWith("smartmeter.voltage.raw.data")})  
-  /** (subject, (epoch, voltage)) **/
-  val max_voltage = voltages.map({case (subject, (epoch, voltage)) => (voltage) })
-                            .reduce(Math.max(_, _))
+  val max_voltage = messages.reduce(Math.max(_, _))
                             .map({case (voltage) => (s"""{"voltage": $voltage}""") })
 
-  if (logLevel.equals("MAX")) {
+  if (logLevel.contains("MAX")) {
     max_voltage.print()
   }
           
