@@ -84,16 +84,20 @@ func main() {
 	// CASSANDRA
 
 	cassandra_url := os.Getenv("CASSANDRA_URL")
-	fmt.Printf("Cassandra URL: ", cassandra_url)
+	fmt.Println("Cassandra URL: ", cassandra_url)
 
 	// LOG LEVEL
 	log_level := os.Getenv("LOG_LEVEL")
-	fmt.Printf("LOG LEVEL: ", log_level)
+	fmt.Println("LOG LEVEL: ", log_level)
 
 	// connect to the cluster
 	cluster := gocql.NewCluster(cassandra_url)
 	cluster.Keyspace = "smartmeter"
-	cluster.Consistency = gocql.Quorum
+
+	cluster_consistency := os.Getenv("CASSANDRA_INJECT_CONSISTENCY")
+	cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
+	fmt.Println("CONSISTENCY: ", cluster.Consistency)
+
 	session, _ := cluster.CreateSession()
 	defer session.Close()
 

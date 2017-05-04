@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 
 replicas=1
@@ -364,17 +365,21 @@ docker ${remote} service create \
 }
 
 create_service_cassandra-inject() {
-docker ${remote} service create \
-	--name cassandra-inject \
-	--network smartmeter \
-  --mode global \
-  ${ON_WORKER_NODE} \
-	-e NATS_URI=${NATS_URI} \
-	-e NATS_SUBJECT="smartmeter.voltage.raw.data.>" \
-  -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
-	-e CASSANDRA_URL=${CASSANDRA_URL} \
-	logimethods/smart-meter:cassandra-inject${postfix}
-
+  cmd="docker ${remote} service create \
+  	--name cassandra-inject \
+  	--network smartmeter \
+    --mode global \
+    ${ON_WORKER_NODE} \
+  	-e NATS_URI=${NATS_URI} \
+  	-e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
+    -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
+    -e CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY} \
+  	-e CASSANDRA_URL=${CASSANDRA_URL} \
+  	logimethods/smart-meter:cassandra-inject${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 # 	--replicas=${replicas} \
 }
 
