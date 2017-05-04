@@ -36,7 +36,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  val (properties, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setupStreaming(args)
+  val (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setupStreaming(args)
     
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
@@ -47,78 +47,82 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
   
   // MAX Voltages by Epoch //
   
-  val inputDataSubject = inputSubject + ".data.>"
+  if ((target == "ALL") || (target.contains("MAX"))) {
+    val inputDataSubject = inputSubject + ".data.>"
+    
+    val messages =
+      if (inputNatsStreaming) {
+        NatsToSparkConnector
+          .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
+          .withNatsURL(natsUrl)
+          .withSubjects(inputDataSubject)
+          .withDataDecoder(dataDecoder)
+          .asStreamOf(ssc)
+      } else {
+        NatsToSparkConnector
+          .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
+          .withProperties(properties)
+          .withSubjects(inputDataSubject)
+          .withDataDecoder(dataDecoder)
+          .asStreamOf(ssc)
+      }
   
-  val messages =
-    if (inputNatsStreaming) {
-      NatsToSparkConnector
-        .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
-        .withNatsURL(natsUrl)
-        .withSubjects(inputDataSubject)
-        .withDataDecoder(dataDecoder)
-        .asStreamOf(ssc)
-    } else {
-      NatsToSparkConnector
-        .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
-        .withProperties(properties)
-        .withSubjects(inputDataSubject)
-        .withDataDecoder(dataDecoder)
-        .asStreamOf(ssc)
+    if (logLevel.contains("MESSAGES")) {
+      messages.print()
     }
-
-  if (logLevel.contains("MESSAGES")) {
-    messages.print()
+    
+    // To Cassandra
+    
+    val maxByEpoch = messages.reduceByKey(Math.max(_,_))
+    maxByEpoch.saveToCassandra("smartmeter", "max_voltage")
+  
+    if (logLevel.contains("MAX")) {
+      maxByEpoch.print()
+    }
+    
+    // To NATS 
+    
+    val maxReport = maxByEpoch.map({case (epoch, voltage) => (s"""{"epoch": $epoch, "voltage": $voltage}""") })
+            
+    SparkToNatsConnectorPool.newPool()
+                            .withProperties(properties)
+                            .withSubjects(outputSubject)
+                            .publishToNats(maxReport)
+  
+               
+    if (logLevel.contains("MAX_REPORT")) {
+      maxReport.print()
+    }
   }
   
-  // To Cassandra
-  
-  val maxByEpoch = messages.reduceByKey(Math.max(_,_))
-  maxByEpoch.saveToCassandra("smartmeter", "max_voltage")
-
-  if (logLevel.contains("MAX")) {
-    maxByEpoch.print()
-  }
-  
-  // To NATS 
-  
-  val maxReport = maxByEpoch.map({case (epoch, voltage) => (s"""{"epoch": $epoch, "voltage": $voltage}""") })
-          
-  SparkToNatsConnectorPool.newPool()
-                          .withProperties(properties)
-                          .withSubjects(outputSubject)
-                          .publishToNats(maxReport)
-
-             
-  if (logLevel.contains("MAX_REPORT")) {
-    maxReport.print()
-  }
-
   // Temperature //
+
+  if ((target == "ALL") || (target.contains("TEMPERATURE"))) {  
+    val inputTemperatureSubject = inputSubject + ".temperature"
+    
+    val temperatures =
+      if (inputNatsStreaming) {
+        NatsToSparkConnector
+          .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
+          .withNatsURL(natsUrl)
+          .withSubjects(inputTemperatureSubject)
+          .withDataDecoder(dataDecoder)
+          .asStreamOf(ssc)
+      } else {
+        NatsToSparkConnector
+          .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
+          .withProperties(properties)
+          .withSubjects(inputTemperatureSubject)
+          .withDataDecoder(dataDecoder)
+          .asStreamOf(ssc)
+      }
   
-  val inputTemperatureSubject = inputSubject + ".temperature"
-  
-  val temperatures =
-    if (inputNatsStreaming) {
-      NatsToSparkConnector
-        .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
-        .withNatsURL(natsUrl)
-        .withSubjects(inputTemperatureSubject)
-        .withDataDecoder(dataDecoder)
-        .asStreamOf(ssc)
-    } else {
-      NatsToSparkConnector
-        .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
-        .withProperties(properties)
-        .withSubjects(inputTemperatureSubject)
-        .withDataDecoder(dataDecoder)
-        .asStreamOf(ssc)
+    if (logLevel.contains("TEMPERATURE")) {
+      temperatures.print()
     }
-
-  if (logLevel.contains("TEMPERATURE")) {
-    temperatures.print()
+  
+    temperatures.saveToCassandra("smartmeter", "temperature")
   }
-
-  temperatures.saveToCassandra("smartmeter", "temperature")
   
   // Start //
   ssc.start();		

@@ -37,7 +37,7 @@ object SparkPredictionProcessor extends App with SparkProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  val (properties, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
+  val (properties, target, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
 
   val THRESHOLD = System.getenv("ALERT_THRESHOLD").toFloat
   println("ALERT_THRESHOLD = " + THRESHOLD)

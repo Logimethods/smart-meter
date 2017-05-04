@@ -40,6 +40,9 @@ trait SparkProcessor {
     
     val logLevel = scala.util.Properties.envOrElse("LOG_LEVEL", "INFO")
     println("LOG_LEVEL = " + logLevel)
+    
+    val targets = scala.util.Properties.envOrElse("TARGETS", "ALL")
+    println("TARGETS = " + targets)
   
     val cassandraUrl = System.getenv("CASSANDRA_URL")
     println("CASSANDRA_URL = " + cassandraUrl)
@@ -74,19 +77,19 @@ trait SparkProcessor {
     val inputNatsStreaming = inputSubject.toUpperCase.contains("STREAMING")
     val outputNatsStreaming = outputSubject.toUpperCase.contains("STREAMING")
     
-    (properties, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl)
+    (properties, targets, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl)
   }
 }
 
 
 trait SparkStreamingProcessor extends SparkProcessor {
   def setupStreaming(args: Array[String]) = {
-    val (properties, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
+    val (properties, target, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
     
     val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
     val ssc = new StreamingContext(sc, new Duration(streamingDuration));
 //    ssc.checkpoint("/spark/storage")
     
-    (properties, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl)
+    (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl)
   }
 }
