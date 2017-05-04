@@ -28,6 +28,7 @@ shift $shift_nb
 # https://coderanch.com/t/419731/read-properties-file-script
 . configuration.properties
 . "configuration${postfix}.properties"
+. "configuration${postfix}-debug.properties"
 
 stop_all() {
   docker ${remote} service rm $(docker ${remote} service ls -q)
