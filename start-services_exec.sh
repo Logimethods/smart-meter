@@ -128,7 +128,7 @@ create_service_cassandra() {
 
   #Need to sleep a bit so IP can be retrieved below
   while [[ -z $(docker ${remote} service ls |grep ${CASSANDRA_MAIN_NAME}| grep 1/1) ]]; do
-  	Echo Waiting for Cassandra seed service to start...
+  	echo Waiting for Cassandra seed service to start...
   	sleep 2
   	done;
 
