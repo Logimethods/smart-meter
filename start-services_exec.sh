@@ -194,30 +194,38 @@ run_spark_autoscaling() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 }
 
 ### Create Service ###
 
 create_service_nats() {
-  docker ${remote} service create \
-  	--name $NATS_NAME \
-  	--network smartmeter \
-    ${ON_MASTER_NODE} \
-  	-e NATS_USERNAME=${NATS_USERNAME} \
-  	-e NATS_PASSWORD=${NATS_PASSWORD} \
-    -p 4222:4222 \
-    -p 8222:8222 \
-  	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
+  cmd="docker ${remote} service create \
+    	--name $NATS_NAME \
+    	--network smartmeter \
+      ${ON_MASTER_NODE} \
+    	-e NATS_USERNAME=${NATS_USERNAME} \
+    	-e NATS_PASSWORD=${NATS_PASSWORD} \
+      -p 4222:4222 \
+      -p 8222:8222 \
+    	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 
-  docker ${remote} service create \
-  	--name $NATS_CLUSTER_NAME \
-  	--network smartmeter \
-  	--mode global \
-    ${ON_WORKER_NODE} \
-  	-e NATS_USERNAME=${NATS_USERNAME} \
-  	-e NATS_PASSWORD=${NATS_PASSWORD} \
-  	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
+  cmd="docker ${remote} service create \
+    	--name $NATS_CLUSTER_NAME \
+    	--network smartmeter \
+    	--mode global \
+      ${ON_WORKER_NODE} \
+    	-e NATS_USERNAME=${NATS_USERNAME} \
+    	-e NATS_PASSWORD=${NATS_PASSWORD} \
+    	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 create_service_nats_single() {
@@ -236,7 +244,6 @@ create_service_nats_single() {
 }
 
 create_service_app_streaming() {
-    #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name app_streaming \
     -e NATS_URI=${NATS_URI} \
@@ -257,10 +264,6 @@ create_service_app_streaming() {
   echo "$cmd"
   echo "-----------------------------------------------------------------"
   eval "$cmd"
-
-#   --mode global \
-#    --replicas=${replicas} \
-#    --constraint 'node.role == manager' \
 }
 
 __run_app_streaming() {
