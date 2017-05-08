@@ -30,6 +30,8 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   var date =  LocalDateTime.ofEpochSecond(TimeProvider.time(), 0, ZoneOffset.MIN)
   var tictac = true
   
+  val defaultValues: Array[Float] = Array(100.1f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f, 10.10f, 11.11f, 12.12f)
+  
   sealed trait ReturnType
   object ReturnType {
     case object VOLTAGE extends ReturnType;
@@ -112,12 +114,22 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   
   def encodePayload(date: LocalDateTime, value: Float): Array[Byte] = {
     // https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html
-    val buffer = ByteBuffer.allocate(8+4);
+    val buffer = returnType match {
+      case ReturnType.VOLTAGE => ByteBuffer.allocate(8+(4*12))
+      case _ => ByteBuffer.allocate(8+4)
+    }
+    
     returnType match {
       case ReturnType.FORECAST => buffer.putLong(date.plusHours(12).atOffset(ZoneOffset.MIN).toEpochSecond())
       case _ => buffer.putLong(date.atOffset(ZoneOffset.MIN).toEpochSecond())
     }
+    
     buffer.putFloat(value)
+
+    returnType match {
+      case ReturnType.VOLTAGE => for (i <- 0 to (defaultValues.length - 1)) { buffer.putFloat(defaultValues(i)) }
+      case _ => 
+    }
     
     return buffer.array()    
   }

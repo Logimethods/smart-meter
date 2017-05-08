@@ -51,11 +51,11 @@ object SparkBatch extends App {
   spark
     .read
     .format("org.apache.spark.sql.cassandra")
-    .options(Map("keyspace" -> "smartmeter", "table" -> "raw_voltage_data"))
+    .options(Map("keyspace" -> "smartmeter", "table" -> "raw_data"))
     .load
-    .createOrReplaceTempView("raw_voltage_data")
+    .createOrReplaceTempView("raw_data")
   
-  val rawVoltageData = spark.sql("select * from raw_voltage_data")
+  val rawVoltageData = spark.sql("select * from raw_data")
   rawVoltageData.show(10)
   /**
     > ./run_spark_shell.sh

@@ -80,12 +80,12 @@ To access to the RAW Voltage Data:
 Connected to Smartmeter Cluster at 127.0.0.1:9042.
 [cqlsh 5.0.1 | Cassandra 3.5 | CQL spec 3.4.0 | Native protocol v4]
 Use HELP for help.
-cqlsh> select * from smartmeter.raw_voltage_data limit 2;
+cqlsh> select * from smartmeter.raw_data limit 2;
 
- line | transformer | usagepoint | year | month | day | hour | minute | day_of_week | voltage
-------+-------------+------------+------+-------+-----+------+--------+-------------+-----------
-    3 |           2 |          2 | 2016 |    12 |  24 |    3 |     16 |           6 | 121.15018
-    3 |           2 |          2 | 2016 |    12 |  24 |    3 |      1 |           6 | 121.66259
+line | transformer | usagepoint | year | month | day | hour | minute | day_of_week | demand | val10 | val11 | val12 | val3 | val4 | val5 | val6 | val7 | val8 | val9 | voltage
+------+-------------+------------+------+-------+-----+------+--------+-------------+--------+-------+-------+-------+------+------+------+------+------+------+------+-----------
+  11 |           2 |          5 | 2019 |     3 |  17 |   12 |     13 |           0 |    100 |    10 |    11 |    12 |    3 |    4 |    5 |    6 |    7 |    8 |    9 | 114.76842
+  11 |           2 |          5 | 2019 |     3 |  17 |   11 |     58 |           0 |    100 |    10 |    11 |    12 |    3 |    4 |    5 |    6 |    7 |    8 |    9 | 114.10834
 ```
 
 ## Training & Predictions
@@ -133,7 +133,7 @@ Test set accuracy = 0.9642857142857143
 
 ### Connect to the External Data from Excel using the `iODBC Data Source Chooser` (File DSN)
 
-* You might use the SQL syntax, such as `select * from smartmeter.raw_voltage_data limit 10;`
+* You might use the SQL syntax, such as `select * from smartmeter.raw_data limit 10;`
 * Et Voilà!
 
 ![from_Cassandra_2_Excel.png](excel/from_Cassandra_2_Excel.png)

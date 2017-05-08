@@ -17,10 +17,11 @@ import (
 	"github.com/gocql/gocql"
 )
 
-const query = "INSERT INTO raw_voltage_data (" +
-			  "line, transformer, usagePoint, year, month, day, hour, minute, day_of_week, voltage)" +
-			  " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-
+const query = "INSERT INTO raw_data (" +
+			  "line, transformer, usagePoint, year, month, day, hour, minute, day_of_week, voltage, demand, " +
+			  "val3, val4, val5, val6, val7, val8, val9, val10, val11, val12) " +
+			  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+			  
 func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) {
 	/*** Point ***/
 
@@ -48,9 +49,22 @@ func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) 
 
 	/*** Voltage ***/
 
-	floatBytes := m.Data[8:]
+	voltageFloatBytes := m.Data[8:12]
 	// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
-	voltage := math.Float32frombits(binary.BigEndian.Uint32(floatBytes))
+	voltage := math.Float32frombits(binary.BigEndian.Uint32(voltageFloatBytes))
+
+	/*** Demand ***/
+
+	demandFloatBytes := m.Data[12:16]
+	// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
+	demand := math.Float32frombits(binary.BigEndian.Uint32(demandFloatBytes))
+	
+	/*** Remaining Values ***/
+	
+	var values [10]float32
+	for i := 0; i < 10; i++ {
+		values[i] = math.Float32frombits(binary.BigEndian.Uint32(m.Data[(16+4*i):(20+4*i)]))
+	}
 
   // fmt.Print(".")
 
@@ -63,7 +77,9 @@ func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) 
 
     if err := session.Query(query,
         int8(line), int32(transformer), int32(usagePoint), int16(year), int8(month), int8(day),
-	    int8(hour), int8(minute), int8(day_of_week), voltage).Exec(); err != nil {
+	    int8(hour), int8(minute), int8(day_of_week), voltage, demand,
+	    values[0], values[1], values[2], values[3], values[4], 
+	    values[5], values[6], values[7], values[8], values[9]).Exec(); err != nil {
         log.Print(err)
     }
 }
