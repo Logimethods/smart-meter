@@ -7,10 +7,18 @@ replicas=1
 postfix=""
 shift_nb=0
 
-while getopts ":r:p:" opt; do
+while getopts ":r:l:m:p:" opt; do
   case $opt in
     r) replicas="$OPTARG"
-    # echo "replicas: $replicas"
+     echo "replicas: $replicas"
+    ((shift_nb+=2))
+    ;;
+    l) location="$OPTARG"
+    # echo "location: $location"
+    ((shift_nb+=2))
+    ;;
+    m) cluster_mode="$OPTARG"
+    # echo "cluster_mode: $cluster_mode"
     ((shift_nb+=2))
     ;;
     p) postfix="$OPTARG"
@@ -27,10 +35,11 @@ shift $shift_nb
 
 # source the properties:
 # https://coderanch.com/t/419731/read-properties-file-script
-location="$postfix"
-. configuration.properties
-. "configuration${location}.properties"
-. "configuration${location}-debug.properties"
+source configuration.properties
+source "configuration-location-${location}.properties"
+source "configuration-location-${location}-debug.properties"
+source "configuration-mode-${cluster_mode}.properties"
+source "configuration-mode-${cluster_mode}-debug.properties"
 
 stop_all() {
   docker ${remote} service rm $(docker ${remote} service ls -q)

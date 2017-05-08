@@ -4,30 +4,57 @@ import sys
 import subprocess
 import docker
 
-if (len(sys.argv) > 1):
-	postfix = "-" + sys.argv[1]
-	print("Images will be postfixed by " + postfix)
-else:
-	postfix = ""
+global_params = []
 
-if (sys.argv[1] == "remote"):
+## location
+
+if (len(sys.argv) > 1):
+	location = sys.argv[1]
+else:
+	location = "local"
+
+global_params += ["-l", location]
+print("Will run in " + location + " location.")
+
+if (location == "remote"):
 	client = docker.DockerClient(base_url='tcp://localhost:2374')
 	print("Remote Docker Client")
 else:
 	client = docker.from_env()
 	print("Local Docker Client")
 
+## Cluster Mode
+
+if (len(sys.argv) > 2):
+	cluster_mode = sys.argv[2]
+else:
+	cluster_mode = "single"
+
+global_params += ["-m", cluster_mode]
+print("Images will run in " + cluster_mode + " mode.")
+
+## Postfix
+
+if (len(sys.argv) > 3):
+	postfix = "-" + sys.argv[3]
+	global_params += ["-p", postfix]
+	print("Images will be postfixed by " + postfix)
+else:
+	postfix = ""
+
+#######
+
 def update_replicas(service, replicas):
 	param = service.name + "=" + str(replicas)
 	# subprocess.run(["docker", "service", "scale", param])
-	subprocess.run(["bash", "start-services_exec.sh", "-r", str(replicas), "-p", postfix, "scale_service", param])
+	subprocess.run(["bash", "start-services_exec.sh", "-r", str(replicas)] + global_params + ["scale_service", param])
 
 def run_service(name, replicas, postfix):
 	if replicas > 0:
-		subprocess.run(["bash", "start-services_exec.sh", "-r", str(replicas), "-p", postfix, "create_service_" + name])
+		subprocess.run(["bash", "start-services_exec.sh", "-r", str(replicas)] + global_params + ["create_service_" + name])
 
 def call(type, name, parameters):
-	subprocess.run(["bash", "start-services_exec.sh", "-p", postfix, type + "_" + name] + parameters)
+	subprocess.run(["bash", "start-services_exec.sh"] + global_params + [type + "_" + name] + parameters)
 
 def get_service(name):
 	services = client.services.list()
@@ -44,11 +71,11 @@ def create_service(name, replicas, postfix):
 		run_service(name, replicas, postfix)
 
 def create_service_telegraf(name, postfix):
-	subprocess.run(["bash", "start-services_exec.sh", "-p", postfix, "create_service_telegraf", name])
+	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["create_service_telegraf", name])
 
 def rm_service(name, postfix):
 	# subprocess.run(["docker", "service", "rm", name])
-	subprocess.run(["bash", "start-services_exec.sh", "-p", postfix, "rm_service", name])
+	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["rm_service", name])
 
 def create_network():
 	client.networks.create("smartmeter", driver="overlay")
