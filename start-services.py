@@ -185,7 +185,7 @@ def run_all_steps():
 def run_setup_cassandra():
 	run([
 		create_network,
-		["create_volume", "cassandra"],
+###		["create_volume", "cassandra"],
 		create_service_cassandra,
 #		["wait", "service", "cassandra"],
 		create_cassandra_tables,
@@ -195,7 +195,7 @@ def run_inject():
 	run([
 		create_network,
 		run_metrics,
-		["create_volume", "cassandra"],
+###		["create_volume", "cassandra"],
 #		rm_service_inject,
 		["run_service", "telegraf_docker"],
 ###		create_service_spark_master,

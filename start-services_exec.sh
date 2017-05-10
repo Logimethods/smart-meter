@@ -90,7 +90,12 @@ docker-compose ${remote} -f docker-cassandra-compose.yml down
 }
 
 call_cassandra_cql() {
-	until docker ${remote} exec -it $(docker ${remote} ps | grep "${CASSANDRA_MAIN_NAME}" | rev | cut -d' ' -f1 | rev) cqlsh -f "$1"; do echo "Try again to execute $1"; sleep 4; done
+  cassandra_ip=$(docker ${remote} ps | grep "${CASSANDRA_MAIN_NAME}" | rev | cut -d' ' -f1 | rev)
+	until docker ${remote} exec -it $cassandra_ip cqlsh -e \
+      "CREATE KEYSPACE IF NOT EXISTS $CASSANDRA_KEYSPACE_NAME WITH REPLICATION = $CASSANDRA_KEYSPACE_REPLICATION"; do
+    echo "Try again to create keyspace"; sleep 4;
+  done
+  docker ${remote} exec -it $cassandra_ip cqlsh -f "$1"
   # docker ${remote} run ${DOCKER_RESTART_POLICY} --net=smartmeter logimethods/smart-meter:cassandra sh -c 'exec cqlsh "cassandra-1" -f "$1"'
 }
 
