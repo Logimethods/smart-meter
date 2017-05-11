@@ -467,6 +467,8 @@ run_inject() {
 run_metrics() {
   # https://bronhaim.wordpress.com/2016/07/24/setup-toturial-for-collecting-metrics-with-statsd-and-grafana-containers/
   run_metrics_graphite
+  run_metrics_prometheus
+  create_service_influxdb
   run_metrics_grafana
 }
 
@@ -477,17 +479,30 @@ run_metrics_graphite() {
   fi
 
   cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
-  --network smartmeter \
-  --name metrics \
-  $local_conf \
-  -p 81:80 \
-  hopsoft/graphite-statsd:${graphite_statsd_tag}"
+        --network smartmeter \
+        --name metrics \
+        $local_conf \
+        -p 81:80 \
+        hopsoft/graphite-statsd:${graphite_statsd_tag}"
   # -v ${METRICS_PATH}/graphite/storage:/opt/graphite/storage\
   # -v ${METRICS_PATH}/statsd:/opt/statsd\
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  sh -c "$cmd"
+  eval "$cmd"
+}
+
+run_metrics_prometheus() {
+  cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
+        --network smartmeter \
+        --name prometheus \
+        -p 9090:9090 \
+        logimethods/smart-meter:prometheus${postfix} \
+        -storage.local.path=/data -config.file=/etc/prometheus/prometheus.yml -log.level debug"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval "$cmd"
 }
 
 create_volume_grafana() {
@@ -541,6 +556,7 @@ run_telegraf() {
      --network smartmeter \
      --name telegraf_$@\
      -e CASSANDRA_URL=${TELEGRAF_CASSANDRA_URL} \
+     -e DOCKER_TARGET_NAME=${TELEGRAF_CASSANDRA_URL} \
      -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
      -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
      -e JMX_PASSWORD=$JMX_PASSWORD \

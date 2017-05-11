@@ -21,3 +21,5 @@ VOLUME ["/etc/telegraf/"]
 COPY script/ /etc/telegraf/
 RUN chmod +x /etc/telegraf/*.sh
 COPY conf/ /etc/telegraf/
+
+COPY entrypoint.sh /entrypoint.sh

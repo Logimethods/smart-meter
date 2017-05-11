@@ -21,6 +21,10 @@ mv target/scala-*/*.jar libs/
 docker build -t logimethods/smart-meter:app-batch-local .
 popd
 
+pushd dockerfile-prometheus
+docker build -t logimethods/smart-meter:prometheus-local .
+popd
+
 pushd dockerfile-monitor
 sbt update
 sbt test docker
