@@ -30,7 +30,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   var date =  LocalDateTime.ofEpochSecond(TimeProvider.time(), 0, ZoneOffset.MIN)
   var tictac = true
   
-  val defaultValues: Array[Float] = Array(100.1f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f, 10.10f, 11.11f, 12.12f)
+  val defaultValues: Array[Float] = Array(100.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f)
   
   sealed trait ReturnType
   object ReturnType {
@@ -127,7 +127,8 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
     buffer.putFloat(value)
 
     returnType match {
-      case ReturnType.VOLTAGE => for (i <- 0 to (defaultValues.length - 1)) { buffer.putFloat(defaultValues(i)) }
+      case ReturnType.VOLTAGE => 
+        for (i <- 0 to (defaultValues.length - 1)) { buffer.putFloat(defaultValues(i) + random.nextFloat()) }
       case _ => 
     }
     
