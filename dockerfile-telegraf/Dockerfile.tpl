@@ -18,8 +18,8 @@ RUN apk --no-cache add docker
 
 VOLUME ["/etc/telegraf/"]
 
+COPY entrypoint.sh /entrypoint.sh
+
 COPY script/ /etc/telegraf/
 RUN chmod +x /etc/telegraf/*.sh
 COPY conf/ /etc/telegraf/
-
-COPY entrypoint.sh /entrypoint.sh

@@ -1,4 +1,5 @@
 docker pull logimethods/smart-meter:telegraf
+docker pull logimethods/smart-meter:prometheus
 docker pull logimethods/smart-meter:cassandra-inject
 docker pull logimethods/smart-meter:cassandra
 docker pull logimethods/smart-meter:inject

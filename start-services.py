@@ -217,6 +217,7 @@ def run_inject():
 ##		["run", "telegraf", "cassandra"],
 		["run", "telegraf", "docker"],
 		["run", "telegraf", "cassandra_write_count"],
+		["create_service_telegraf", "cassandra"],
 #		["run", "telegraf", "cassandra_count"],
 #		["wait", "service", "cassandra-inject"],
 		create_service_inject
@@ -243,7 +244,7 @@ def run_inject_aws():
 		["run", "telegraf", "max_voltage"],
 		["run", "telegraf", "prediction"],
 		["create_service_telegraf", "cassandra_write_count"],
-##		["run", "telegraf", "cassandra_count"],
+		["create_service_telegraf", "cassandra"],
 		create_service_inject
 		])
 
