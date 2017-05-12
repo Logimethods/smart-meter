@@ -580,6 +580,7 @@ create_service_telegraf() {
     --network smartmeter \
     --name telegraf_$@\
     -e CASSANDRA_URL="${TELEGRAF_CASSANDRA_URL}" \
+    -e DOCKER_TARGET_NAME=${TELEGRAF_CASSANDRA_URL} \
     -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
     -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
     -e JMX_PASSWORD=$JMX_PASSWORD \
