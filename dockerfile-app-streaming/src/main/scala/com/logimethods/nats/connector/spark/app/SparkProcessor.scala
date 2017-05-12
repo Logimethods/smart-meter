@@ -87,6 +87,8 @@ trait SparkStreamingProcessor extends SparkProcessor {
     val (properties, target, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
     
     val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
+    println("STREAMING_DURATION = " + streamingDuration)
+    
     val ssc = new StreamingContext(sc, new Duration(streamingDuration));
 //    ssc.checkpoint("/spark/storage")
     

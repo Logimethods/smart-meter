@@ -302,19 +302,24 @@ __run_app_streaming() {
 
 create_service_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
-docker ${remote} service create \
-	--name app_prediction \
-	-e NATS_URI=${NATS_URI} \
-	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
-  -e CASSANDRA_URL=${CASSANDRA_URL} \
-	-e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
-  -e SPARK_CORES_MAX=${APP_PREDICTION_SPARK_CORES_MAX} \
-  -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
-	--network smartmeter \
-  ${ON_MASTER_NODE} \
-	logimethods/smart-meter:app-streaming${postfix}  "com.logimethods.nats.connector.spark.app.SparkPredictionProcessor" \
-		"smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" \
-    "Smartmeter PREDICTION Streaming"
+  cmd="docker ${remote} service create \
+  	--name app_prediction \
+  	-e NATS_URI=${NATS_URI} \
+  	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    -e CASSANDRA_URL=${CASSANDRA_URL} \
+    -e STREAMING_DURATION=${STREAMING_DURATION} \
+  	-e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
+    -e SPARK_CORES_MAX=${APP_PREDICTION_SPARK_CORES_MAX} \
+    -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
+  	--network smartmeter \
+    ${ON_MASTER_NODE} \
+  	logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionProcessor\" \
+  		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
+      \"Smartmeter PREDICTION Streaming\" "
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  exec $cmd
 
 #    --replicas=${replicas} \
 #    --constraint 'node.role == manager' \
@@ -327,6 +332,7 @@ run_app_prediction() {
   	-e NATS_URI=${NATS_CLUSTER_URI} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
+    -e STREAMING_DURATION=${STREAMING_DURATION} \
   	-e LOG_LEVEL=INFO \
     -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
     ${ON_MASTER_NODE} \
