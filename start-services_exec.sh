@@ -553,9 +553,10 @@ run_telegraf() {
    #fi
    source configuration-telegraf.properties
    source configuration-telegraf-$@.properties
+   source configuration-telegraf-debug.properties
 
    DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
-   
+
    cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
      --name telegraf_$@\
@@ -581,6 +582,7 @@ run_telegraf() {
 create_service_telegraf() {
   source configuration-telegraf.properties
   source configuration-telegraf-$@.properties
+  source configuration-telegraf-debug.properties
 
   DOCKER_ACCES="--mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
 
