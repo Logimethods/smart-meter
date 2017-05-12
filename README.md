@@ -68,10 +68,11 @@ The *Batch* demo architecture:
 
 ## Grafana Setup
 
-From [Grafana](http://localhost:80), setup the Graphite & InfluxDB Data Sources (see bellow).
+From [Grafana](http://localhost:80), setup the Graphite, InfluxDB & Prometheus Data Sources (see bellow).
 
 <img src="images/graphite_data_source.png" alt="Graphite Data Source" width="300x">
 <img src="images/influxdb_data_source.png" alt="InfluxDB Data Source" width="300x">
+<img src="images/prometheus_data_source.png" alt="Prometheus Data Source" width="300x">
 
 ## CQLSH (Cassandra CLI)
 To access to the RAW Voltage Data:
