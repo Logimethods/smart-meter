@@ -33,11 +33,11 @@ import java.util.function._
 
 import java.time.{LocalDateTime, ZoneOffset}
 
-object SparkPredictionProcessor extends App with SparkProcessor {
+object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  val (properties, target, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
+  val (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setupStreaming(args)
 
   val THRESHOLD = System.getenv("ALERT_THRESHOLD").toFloat
   println("ALERT_THRESHOLD = " + THRESHOLD)
@@ -64,35 +64,6 @@ object SparkPredictionProcessor extends App with SparkProcessor {
     .setInputCols(Array("hourSin", "hourCos", "dayOfWeek", "temperature"))
     .setOutputCol("features")
   
-  def extractDateComponents(date: LocalDateTime) = {
-    val hour = date.getHour
-    val hourAngle = (hour.toFloat / 24) * 2 * Pi
-    val hourSin = 50 * sin(hourAngle)
-    val hourCos = 50 * cos(hourAngle)
-    val dayOfWeek = (date.getDayOfWeek.ordinal / 4) * 50 // Mon to Friday -> 0, Sat & Sun -> 50
-   
-    (hour, hourSin, hourCos, dayOfWeek)
-  }
-    
-  def getData() = {
-    val max_voltage = sc.cassandraTable("smartmeter", "max_voltage")
-    val table = max_voltage.joinWithCassandraTable("smartmeter", "temperature")
-
-    val flatten = table.map({case (v,t) =>
-      val date = LocalDateTime.ofEpochSecond(v.get[Long]("epoch"), 0, ZoneOffset.MIN)
-      val voltage = v.get[Float]("voltage")
-      val label = (voltage > THRESHOLD):Int
-      val temperature = t.get[Float]("temperature")
-      // https://www.reddit.com/r/MachineLearning/comments/2hzuj5/how_do_i_encode_day_of_the_week_as_a_predictor/
-      val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
-      
-      (label, voltage, hour, hourSin, hourCos, dayOfWeek, temperature)})
-    
-    val dataframes = flatten.toDF("label", "voltage", "hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
-  
-    assembler.transform(dataframes)
-  }
-  
   // Initial training
   var model = trainer.fit(getData())
   
@@ -101,6 +72,7 @@ object SparkPredictionProcessor extends App with SparkProcessor {
                  while( true ){
                    try {
                      model = trainer.fit(getData())
+                     println("New model trained")
                    } catch {
                      case e: Throwable => log.error(e)
                    }
@@ -109,42 +81,46 @@ object SparkPredictionProcessor extends App with SparkProcessor {
              }).start()
   
   if (logLevel != "DEBUG") {
-    // @See https://github.com/tyagihas/scala_nats
-    import java.util.Properties
-    import org.nats._
+    println("Start Predictions")
+    
+    val forecasts =
+      if (inputNatsStreaming) {
+        NatsToSparkConnector
+          .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
+          .withNatsURL(natsUrl)
+          .withSubjects(inputSubject)
+          .withDataDecoder(dataDecoder)
+          .asStreamOf(ssc)
+      } else {
+        NatsToSparkConnector
+          .receiveFromNats(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY)
+          .withProperties(properties)
+          .withSubjects(inputSubject)
+          .withDataDecoder(dataDecoder)
+          .asStreamOf(ssc)
+      }
+  
+    if (logLevel.contains("FORECASTS")) {
+      forecasts.print()
+    }
 
-    val opts : Properties = new Properties
-    opts.put("servers", natsUrl);
-    val conn = Conn.connect(opts)
+    val predictions = forecasts.map({case (epoch: Long, temperature: Float) => (epoch, temperature, predictionFunc(epoch,temperature)) })
+    
+    if (logLevel.contains("PREDICTIONS")) {
+      predictions.print()
+    }  
+    
+    val alerts = predictions.filter(_._3).map({case (epoch, temperature, flag) => predictionMessage(epoch, temperature) })
 
-    println("Connected to NATS: " + conn.isConnected())
-
-    conn.subscribe(inputSubject, 
-        (msg:MsgB)  => {
-          val buffer = ByteBuffer.wrap(msg.body);
-          val epoch = buffer.getLong()
-          val temperature = buffer.getFloat()
-          
-          val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-//println("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
-          
-          val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
-          val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
-          val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
-          val entry = assembler.transform(dataFrame)
-                    
-          val result = model.transform(entry)
-          // result.show()
-          
-//println("PREDICTION: " + result.first.getDouble(6).toInt)
-          
-          val alert = result.first.getDouble(6) > 0
-          val timestamp = epoch * 1000
-          val message = 
-            if (alert) s"""{"timestamp":$timestamp,"temperature":$temperature,"alert": $THRESHOLD}"""
-            else s"""{"timestamp":$timestamp,"temperature":$temperature,"alert":0}"""
-          conn.publish(outputSubject, message)
-        })
+    SparkToNatsConnectorPool.newPool()
+                            .withProperties(properties)
+                            .withSubjects(outputSubject)
+                            .publishToNats(alerts)
+    
+    // Start //
+    ssc.start();		   
+    ssc.awaitTermination()
+    
   } else {    
     val data = getData()
     data.show()
@@ -164,5 +140,58 @@ object SparkPredictionProcessor extends App with SparkProcessor {
     
     println("Size: " + data.count())
     println("Test Set Accuracy = " + evaluator.evaluate(predictionAndLabels))
+  }
+  
+  def extractDateComponents(date: LocalDateTime) = {
+    val hour = date.getHour
+    val hourAngle = (hour.toFloat / 24) * 2 * Pi
+    val hourSin = 50 * sin(hourAngle)
+    val hourCos = 50 * cos(hourAngle)
+    val dayOfWeek = (date.getDayOfWeek.ordinal / 4) * 50 // Mon to Friday -> 0, Sat & Sun -> 50
+   
+    (hour, hourSin, hourCos, dayOfWeek)
+  }
+
+  def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
+        val buffer = ByteBuffer.wrap(bytes);
+        val epoch = buffer.getLong()
+        val value = buffer.getFloat()
+        (epoch, value)  
+      }
+  
+  def getData() = {
+    val max_voltage = sc.cassandraTable("smartmeter", "max_voltage")
+    val table = max_voltage.joinWithCassandraTable("smartmeter", "temperature")
+
+    val flatten = table.map({case (v,t) =>
+      val date = LocalDateTime.ofEpochSecond(v.get[Long]("epoch"), 0, ZoneOffset.MIN)
+      val voltage = v.get[Float]("voltage")
+      val label = (voltage > THRESHOLD):Int
+      val temperature = t.get[Float]("temperature")
+      // https://www.reddit.com/r/MachineLearning/comments/2hzuj5/how_do_i_encode_day_of_the_week_as_a_predictor/
+      val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+      
+      (label, voltage, hour, hourSin, hourCos, dayOfWeek, temperature)})
+    
+    val dataframes = flatten.toDF("label", "voltage", "hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+  
+    assembler.transform(dataframes)
+  }
+  
+  def predictionFunc(epoch: Long, temperature: Float) = {
+          val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+//println("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
+          
+          val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+          val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
+          val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+          val entry = assembler.transform(dataFrame)
+                    
+          model.transform(entry).first.getDouble(6) > 0    
+  }
+  
+  def predictionMessage(epoch: Long, temperature: Float) = {
+    val timestamp = epoch * 1000
+    s"""{"timestamp":$timestamp,"temperature":$temperature,"alert": $THRESHOLD}"""
   }
 }
