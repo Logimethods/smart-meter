@@ -551,12 +551,16 @@ run_telegraf() {
    #if [ "$@" == "docker" ]
   #   then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
    #fi
+   source configuration-telegraf.properties
+   source configuration-telegraf-$@.properties
+
    DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
+   
    cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
      --name telegraf_$@\
      -e CASSANDRA_URL=${TELEGRAF_CASSANDRA_URL} \
-     -e DOCKER_TARGET_NAME=${TELEGRAF_CASSANDRA_URL} \
+     -e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
      -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
      -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
      -e JMX_PASSWORD=$JMX_PASSWORD \
@@ -575,12 +579,16 @@ run_telegraf() {
 }
 
 create_service_telegraf() {
+  source configuration-telegraf.properties
+  source configuration-telegraf-$@.properties
+
   DOCKER_ACCES="--mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+
   cmd="docker ${remote} service create \
     --network smartmeter \
     --name telegraf_$@\
     -e CASSANDRA_URL="${TELEGRAF_CASSANDRA_URL}" \
-    -e DOCKER_TARGET_NAME=${TELEGRAF_CASSANDRA_URL} \
+    -e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
     -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
     -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
     -e JMX_PASSWORD=$JMX_PASSWORD \
