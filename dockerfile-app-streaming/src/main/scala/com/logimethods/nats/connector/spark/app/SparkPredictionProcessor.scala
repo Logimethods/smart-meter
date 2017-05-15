@@ -38,7 +38,8 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
   
-  val (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setupStreaming(args)
+  val (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl, streamingDuration) = 
+      setupStreaming(args)
 
   val THRESHOLD = System.getenv("ALERT_THRESHOLD").toFloat
   println("ALERT_THRESHOLD = " + THRESHOLD)
@@ -72,8 +73,10 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
               def run() {
                  while( true ){
                    try {
-                     model = trainer.fit(getData())
-                     println("New model trained")
+                     val data = getData()
+                     model = trainer.fit(data)
+                     println("New model of size " + data.count() + " trained")
+                     Thread.sleep(streamingDuration)
                    } catch {
                      case e: Throwable => log.error(e)
                    }
@@ -81,10 +84,29 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
               }
              }).start()
   
-  if (logLevel != "DEBUG") {
+  
+/*      // @See https://github.com/tyagihas/scala_nats
+    import java.util.Properties
+    import org.nats._
+
+    val opts : Properties = new Properties
+    opts.put("servers", natsUrl);
+    val conn = Conn.connect(opts)
+    conn.subscribe(inputSubject, 
+        (msg:MsgB)  => {
+          val buffer = ByteBuffer.wrap(msg.body);
+          val epoch = buffer.getLong()
+          val temperature = buffer.getFloat()
+          
+          val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+          println("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
+        })*/
+        
+        
+  if (! logLevel.startsWith("DEBUG")) {
     println("Start Predictions")
     
-    val forecasts =
+    val distributedForecasts =
       if (inputNatsStreaming) {
         NatsToSparkConnector
           .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
@@ -101,13 +123,17 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
           .asStreamOf(ssc)
       }
   
+    val forecasts = distributedForecasts.repartition(1)
     if (logLevel.contains("FORECASTS")) {
-      forecasts.print()
+      println("FORECASTS will be shown")
+//      forecasts.print()
+      forecasts.count().print()
     }
 
     val predictions = forecasts.map({case (epoch: Long, temperature: Float) => (epoch, temperature, predictionFunc(epoch,temperature)) })
     
     if (logLevel.contains("PREDICTIONS")) {
+      println("PREDICTIONS will be shown")
       predictions.print()
     }  
     
@@ -116,7 +142,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     SparkToNatsConnectorPool.newPool()
                             .withProperties(properties)
                             .withSubjects(outputSubject)
-                            .publishToNats(alerts)
+                            .publishToNats(alerts) 
     
     // Start //
     ssc.start();		   
@@ -159,8 +185,11 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
 
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
+// println("BUFF " + buffer)
         val epoch = buffer.getLong()
         val value = buffer.getFloat()
+        
+// println("epoch : " + epoch + " value: "   + value) 
         (epoch, value)  
       }
   

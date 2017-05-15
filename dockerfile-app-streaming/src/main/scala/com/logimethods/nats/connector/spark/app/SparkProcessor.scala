@@ -92,6 +92,6 @@ trait SparkStreamingProcessor extends SparkProcessor {
     val ssc = new StreamingContext(sc, new Duration(streamingDuration));
 //    ssc.checkpoint("/spark/storage")
     
-    (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl)
+    (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl, streamingDuration)
   }
 }
