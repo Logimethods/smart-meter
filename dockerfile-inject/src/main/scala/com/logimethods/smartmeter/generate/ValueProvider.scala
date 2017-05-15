@@ -11,6 +11,7 @@ package com.logimethods.smartmeter.generate
 import com.logimethods.connector.gatling.to_nats.NatsMessage
 import java.nio.ByteBuffer
 import math._
+import java.time.DayOfWeek._
 
 class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, streamingDuration: Int, 
                                           randomness: Float, predictionLength: Int) extends NatsMessage {
@@ -58,7 +59,7 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   def voltage() = {
     val baseVoltage = ConsumerInterpolatedVoltageProfile
                           .valueAtDayAndHour(point(), 
-                                            date.getDayOfWeek().ordinal(),
+                                            date.getDayOfWeek(),
                                             date.getHour(),
                                             randomness * (random.nextFloat() - 0.5f))
                                             

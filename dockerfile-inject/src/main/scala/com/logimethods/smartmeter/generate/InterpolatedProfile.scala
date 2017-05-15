@@ -10,6 +10,8 @@ package com.logimethods.smartmeter.generate
 
 import breeze.interpolation._
 import breeze.linalg._
+import java.time.DayOfWeek
+import java.time.DayOfWeek._
 
 // https://github.com/scalanlp/breeze/wiki/Interpolation
 abstract class InterpolatedProfile {
@@ -39,11 +41,11 @@ abstract class InterpolatedProfile {
     0.4 * range * (rndValue + (((usagePointPK.hashCode() + dayInWeek + hourInDay) % 20) / 20) - 0.5)
   }
 
-  def valueAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = dayInWeek match {
-    case 1 | 2 | 3 | 4 | 5 => 
-            math.abs((bias(usagePointPK, dayInWeek, hourInDay, rndValue, weekRange) + weekFunction(hourInDay)).toFloat)
-    case 0 | 6 => 
-            math.abs((bias(usagePointPK, dayInWeek, hourInDay, rndValue, weekendRange) + weekendFunction(hourInDay)).toFloat)
+  def valueAtDayAndHour(usagePointPK: String, dayInWeek: DayOfWeek, hourInDay: Int, rndValue: Float): Float = dayInWeek match {
+    case MONDAY | TUESDAY | WEDNESDAY | THURSDAY | FRIDAY => 
+            math.abs((bias(usagePointPK, dayInWeek.ordinal(), hourInDay, rndValue, weekRange) + weekFunction(hourInDay)).toFloat)
+    case SATURDAY | SUNDAY => 
+            math.abs((bias(usagePointPK, dayInWeek.ordinal(), hourInDay, rndValue, weekendRange) + weekendFunction(hourInDay)).toFloat)
   }  
 }
 
@@ -114,13 +116,13 @@ object InterpolatedProfileByUsagePoint extends Profile {
   val caseNb = 10
   val caseFn = (usagePointPK: String) => usagePointPK.hashCode().abs % caseNb
 
-  def demandAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
+  def demandAtDayAndHour(usagePointPK: String, dayInWeek: DayOfWeek, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
     case 0 | 1 | 2 => BusinessInterpolatedDemandProfile.valueAtDayAndHour(usagePointPK, dayInWeek, hourInDay, rndValue)
     case 3 | 4 => IndustryInterpolatedDemandProfile.valueAtDayAndHour(usagePointPK, dayInWeek, hourInDay, rndValue)
     case 5 | 6 | 7 | 8 | 9 => ConsumerInterpolatedDemandProfile.valueAtDayAndHour(usagePointPK, dayInWeek, hourInDay, rndValue)
   }
 
-  def voltageAtDayAndHour(usagePointPK: String, dayInWeek: Int, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
+  def voltageAtDayAndHour(usagePointPK: String, dayInWeek: DayOfWeek, hourInDay: Int, rndValue: Float): Float = caseFn(usagePointPK) match {
     case 0 | 1 | 2 => BusinessInterpolatedVoltageProfile.valueAtDayAndHour(usagePointPK, dayInWeek, hourInDay, rndValue)
     case 3 | 4 => IndustryInterpolatedVoltageProfile.valueAtDayAndHour(usagePointPK, dayInWeek, hourInDay, rndValue)
     case 5 | 6 | 7 | 8 | 9 => ConsumerInterpolatedVoltageProfile.valueAtDayAndHour(usagePointPK, dayInWeek, hourInDay, rndValue)

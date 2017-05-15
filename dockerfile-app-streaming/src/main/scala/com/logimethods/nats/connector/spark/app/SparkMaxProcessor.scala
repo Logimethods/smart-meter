@@ -89,8 +89,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
                             .withProperties(properties)
                             .withSubjects(outputSubject)
                             .publishToNats(maxReport)
-  
-               
+                 
     if (logLevel.contains("MAX_REPORT")) {
       maxReport.print()
     }
@@ -126,6 +125,12 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
     }
   
     singleTemperature.saveToCassandra("smartmeter", "temperature")
+    
+    val temperatureReport = singleTemperature.map({case (epoch, temperature) => (s"""{"epoch": $epoch, "temperature": $temperature}""") })
+    SparkToNatsConnectorPool.newPool()
+                        .withProperties(properties)
+                        .withSubjects("smartmeter.extract.temperature")
+                        .publishToNats(temperatureReport)
   }
   
   // Start //

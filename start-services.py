@@ -211,8 +211,10 @@ def run_inject():
 		create_cassandra_tables,
 		create_service_cassandra_inject,
 		create_service_app_streaming,
-		create_service_app_prediction,
+##		create_service_app_prediction,
+	##	["run", "app_prediction"],
 		["run", "telegraf", "max_voltage"],
+		["run", "telegraf", "temperature"],
 		["run", "telegraf", "prediction"],
 ##		["run", "telegraf", "cassandra"],
 		["run", "telegraf", "docker"],
@@ -220,7 +222,8 @@ def run_inject():
 		["create_service_telegraf", "cassandra"],
 #		["run", "telegraf", "cassandra_count"],
 #		["wait", "service", "cassandra-inject"],
-		create_service_inject
+		create_service_inject,
+		["run", "app_prediction"]
 #		["run", "inject", "2"],
 #		["logs", "service", "cassandra-inject-local"],
 		])
@@ -242,6 +245,7 @@ def run_inject_aws():
 		create_service_app_streaming,
 		create_service_app_prediction,
 		["run", "telegraf", "max_voltage"],
+		["run", "telegraf", "temperature"],
 		["run", "telegraf", "prediction"],
 		["create_service_telegraf", "cassandra_write_count"],
 		["create_service_telegraf", "cassandra"],

@@ -51,7 +51,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   
   // http://stackoverflow.com/questions/37513667/how-to-create-a-spark-dataset-from-an-rdd
   // https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/ml/MultilayerPerceptronClassifierExample.scala
-  val layers = Array[Int](4, 12, 12, 2)
+  val layers = Array[Int](4, 16, 12, 6, 2)
   
   val trainer = new MultilayerPerceptronClassifier().setLayers(layers).setBlockSize(128).setSeed(1234L).setMaxIter(120)
   

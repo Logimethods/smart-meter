@@ -327,7 +327,7 @@ create_service_app_prediction() {
 
 run_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
-  cmd="docker ${remote} run --rm\
+  cmd="docker ${remote} run --rm -d \
   	--name app_prediction \
   	-e NATS_URI=${NATS_CLUSTER_URI} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
