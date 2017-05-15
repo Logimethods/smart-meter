@@ -109,7 +109,7 @@ run_cassandra() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 }
 
 create_service_cassandra_single() {
@@ -319,7 +319,7 @@ create_service_app_prediction() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 
 #    --replicas=${replicas} \
 #    --constraint 'node.role == manager' \
@@ -327,7 +327,7 @@ create_service_app_prediction() {
 
 run_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
-  cmd="docker ${remote} run --rm \
+  cmd="docker ${remote} run --rm\
   	--name app_prediction \
   	-e NATS_URI=${NATS_CLUSTER_URI} \
   	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
@@ -344,7 +344,7 @@ run_app_prediction() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 }
 
 run_app-batch() {
@@ -359,7 +359,7 @@ run_app-batch() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 }
 
 create_service_app-batch() {
@@ -468,7 +468,7 @@ run_inject() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 }
 
 run_metrics() {
@@ -712,7 +712,7 @@ scale_service() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 }
 
 ### RM ###
@@ -722,7 +722,7 @@ rm_service() {
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
-  exec $cmd
+  eval $cmd
 }
 
 ### WAIT ###
