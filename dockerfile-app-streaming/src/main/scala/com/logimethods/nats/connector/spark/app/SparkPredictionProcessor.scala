@@ -32,6 +32,7 @@ import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import java.util.function._
 
 import java.time.{LocalDateTime, ZoneOffset}
+import java.time.DayOfWeek._
 
 object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
@@ -147,7 +148,11 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     val hourAngle = (hour.toFloat / 24) * 2 * Pi
     val hourSin = 50 * sin(hourAngle)
     val hourCos = 50 * cos(hourAngle)
-    val dayOfWeek = (date.getDayOfWeek.ordinal / 4) * 50 // Mon to Friday -> 0, Sat & Sun -> 50
+    val dayOfWeek =  // Mon to Friday -> 0, Sat & Sun -> 50
+      date.getDayOfWeek match {
+        case SATURDAY | SUNDAY => 50
+        case _ => 0
+      }
    
     (hour, hourSin, hourCos, dayOfWeek)
   }
