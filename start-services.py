@@ -194,6 +194,7 @@ def run_setup_cassandra():
 def run_inject():
 	run([
 		create_network,
+		["create_service", "visualizer", 1],
 		run_metrics,
 ###		["create_volume", "cassandra"],
 #		rm_service_inject,
