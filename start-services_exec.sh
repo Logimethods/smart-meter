@@ -249,7 +249,7 @@ create_service_nats_single() {
   	-e NATS_PASSWORD=${NATS_PASSWORD} \
     -p 4222:4222 \
     -p 8222:8222 \
-  	logimethods/smart-meter:nats-server${postfix} ${NATS_DEBUG}"
+  	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -552,6 +552,20 @@ create_service_influxdb() {
 
 update_service_scale() {
 	docker ${remote} service scale SERVICE=REPLICAS
+}
+
+run_prometheus_nats_exporter() {
+  cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
+        --network smartmeter \
+        --name ${PROMETHEUS_NATS_EXPORTER_NAME} \
+        ${prometheus_nats_exporter_image}:${prometheus_nats_exporter_tag}${postfix} \
+        ${PROMETHEUS_NATS_EXPORTER_FLAGS} \
+        ${PROMETHEUS_NATS_EXPORTER_DEBUG} \
+        \"http://${NATS_NAME}:8222\" "
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval "$cmd"
 }
 
 run_telegraf() {
