@@ -223,10 +223,11 @@
           "id": 7,
           "legend": {
             "alignAsTable": true,
-            "avg": false,
-            "current": true,
+            "avg": true,
+            "current": false,
             "max": false,
             "min": false,
+            "rightSide": false,
             "show": true,
             "total": false,
             "values": true
@@ -299,8 +300,8 @@
           "id": 8,
           "legend": {
             "alignAsTable": true,
-            "avg": false,
-            "current": true,
+            "avg": true,
+            "current": false,
             "max": false,
             "min": false,
             "show": true,
@@ -376,8 +377,8 @@
           "id": 5,
           "legend": {
             "alignAsTable": true,
-            "avg": false,
-            "current": true,
+            "avg": true,
+            "current": false,
             "max": false,
             "min": false,
             "show": true,
@@ -453,8 +454,8 @@
           "id": 6,
           "legend": {
             "alignAsTable": true,
-            "avg": false,
-            "current": true,
+            "avg": true,
+            "current": false,
             "max": false,
             "min": false,
             "rightSide": false,
@@ -810,5 +811,5 @@
   },
   "timezone": "browser",
   "title": "NATS Servers",
-  "version": 8
+  "version": 10
 }
