@@ -247,9 +247,18 @@
           "targets": [
             {
               "expr": "rate(gnatsd_varz_in_bytes [5m])",
+              "hide": true,
               "intervalFactor": 2,
               "legendFormat": "{{server_id}}",
               "refId": "C",
+              "step": 2
+            },
+            {
+              "expr": "irate(gnatsd_varz_in_bytes [1m])",
+              "hide": false,
+              "intervalFactor": 2,
+              "legendFormat": "{{server_id}}",
+              "refId": "A",
               "step": 2
             }
           ],
@@ -322,7 +331,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(gnatsd_varz_in_msgs [5m])",
+              "expr": "irate(gnatsd_varz_in_msgs [1m])",
               "intervalFactor": 2,
               "legendFormat": "{{server_id}}",
               "metric": "gnatsd_varz_in_msgs",
@@ -399,7 +408,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(gnatsd_varz_out_bytes [5m])",
+              "expr": "irate(gnatsd_varz_out_bytes [1m])",
               "intervalFactor": 2,
               "legendFormat": "{{server_id}}",
               "metric": "gnatsd_varz_out_bytes",
@@ -477,7 +486,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(gnatsd_varz_out_msgs [5m])",
+              "expr": "irate(gnatsd_varz_out_msgs [1m])",
               "intervalFactor": 2,
               "legendFormat": "{{server_id}}",
               "metric": "gnatsd_varz_out_msgs",
@@ -811,5 +820,5 @@
   },
   "timezone": "browser",
   "title": "NATS Servers",
-  "version": 10
+  "version": 13
 }
