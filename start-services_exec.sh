@@ -561,7 +561,22 @@ run_prometheus_nats_exporter() {
         ${prometheus_nats_exporter_image}:${prometheus_nats_exporter_tag}${postfix} \
         ${PROMETHEUS_NATS_EXPORTER_FLAGS} \
         ${PROMETHEUS_NATS_EXPORTER_DEBUG} \
-        \"http://${NATS_NAME}:8222\" "
+        ${PROMETHEUS_NATS_EXPORTER_URLS} "
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval "$cmd"
+}
+
+create_service_prometheus_nats_exporter() {
+  cmd="docker ${remote} service create \
+        --network smartmeter \
+        --name ${PROMETHEUS_NATS_EXPORTER_NAME} \
+        ${PROMETHEUS_NATS_EXPORTER_SERVICE_MODE} \
+        ${prometheus_nats_exporter_image}:${prometheus_nats_exporter_tag}${postfix} \
+        ${PROMETHEUS_NATS_EXPORTER_FLAGS} \
+        ${PROMETHEUS_NATS_EXPORTER_DEBUG} \
+        ${PROMETHEUS_NATS_EXPORTER_URLS} "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
