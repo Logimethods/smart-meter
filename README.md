@@ -20,7 +20,7 @@ See [start-services.py](start-services.py)
 >>> exit()
 ```
 
-Setup the Grafana DB (see bellow) + Import [gatling + max voltage.json](dockerfile-metrics/gatling%20%2B%20max%20voltage.json)
+Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage.json](dockerfile-metrics/gatling%20%2B%20max%20voltage.json)
 
 [http://localhost/dashboard/db/gatling-max-voltage](http://localhost/dashboard/db/gatling-max-voltage)
 
@@ -55,7 +55,7 @@ Images will be postfixed by -local
 >>> exit()
 ```
 
-Setup the Grafana DB (see bellow) + Import [gatling + max voltage - swarm.json](dockerfile-metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
+Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage - swarm.json](dockerfile-metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
 
 ![gatling-max-voltage-swarm_screenshot.png](images/gatling-max-voltage-swarm_screenshot.png "Gatling-max-voltage-swarm Screenshot")
 
@@ -117,6 +117,12 @@ Test set accuracy = 0.9642857142857143
 ```
 
 ![grafana-predictions_screenshot.png](images/grafana-predictions_screenshot.png "Grafana Predictions Screenshot")
+
+## Additional Metrics
+
+### NATS Metrics
+Setup the Grafana Data Sources + Import [NATS Servers.json](dockerfile-metrics/NATS%20Servers.json).
+![grafana_nats_screenshot.png](images/grafana_nats_screenshot.png "Grafana NATS Metrics Screenshot")
 
 ## Excel
 
