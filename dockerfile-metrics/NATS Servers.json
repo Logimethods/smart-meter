@@ -246,7 +246,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(gnatsd_varz_in_bytes [5m])",
+              "expr": "gnatsd_varz_in_bytes",
               "hide": true,
               "intervalFactor": 2,
               "legendFormat": "{{server_id}}",
@@ -309,8 +309,8 @@
           "id": 8,
           "legend": {
             "alignAsTable": true,
-            "avg": true,
-            "current": false,
+            "avg": false,
+            "current": true,
             "max": false,
             "min": false,
             "show": true,
@@ -331,11 +331,20 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "irate(gnatsd_varz_in_msgs [1m])",
+              "expr": "gnatsd_varz_in_msgs",
               "intervalFactor": 2,
               "legendFormat": "{{server_id}}",
               "metric": "gnatsd_varz_in_msgs",
               "refId": "A",
+              "step": 2
+            },
+            {
+              "expr": "irate(gnatsd_varz_in_msgs [1m])",
+              "hide": true,
+              "intervalFactor": 2,
+              "legendFormat": "{{server_id}}",
+              "metric": "gnatsd_varz_in_msgs",
+              "refId": "B",
               "step": 2
             }
           ],
@@ -414,6 +423,15 @@
               "metric": "gnatsd_varz_out_bytes",
               "refId": "A",
               "step": 2
+            },
+            {
+              "expr": "gnatsd_varz_out_bytes",
+              "hide": true,
+              "intervalFactor": 2,
+              "legendFormat": "{{server_id}}",
+              "metric": "gnatsd_varz_out_bytes",
+              "refId": "B",
+              "step": 2
             }
           ],
           "thresholds": [],
@@ -463,8 +481,8 @@
           "id": 6,
           "legend": {
             "alignAsTable": true,
-            "avg": true,
-            "current": false,
+            "avg": false,
+            "current": true,
             "max": false,
             "min": false,
             "rightSide": false,
@@ -486,11 +504,20 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "irate(gnatsd_varz_out_msgs [1m])",
+              "expr": "gnatsd_varz_out_msgs",
               "intervalFactor": 2,
               "legendFormat": "{{server_id}}",
               "metric": "gnatsd_varz_out_msgs",
               "refId": "A",
+              "step": 2
+            },
+            {
+              "expr": "irate(gnatsd_varz_out_msgs [1m])",
+              "hide": true,
+              "intervalFactor": 2,
+              "legendFormat": "{{server_id}}",
+              "metric": "gnatsd_varz_out_msgs",
+              "refId": "B",
               "step": 2
             }
           ],
@@ -820,5 +847,5 @@
   },
   "timezone": "browser",
   "title": "NATS Servers",
-  "version": 13
+  "version": 2
 }
