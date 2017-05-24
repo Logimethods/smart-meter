@@ -583,6 +583,21 @@ create_service_prometheus_nats_exporter() {
   eval "$cmd"
 }
 
+create_service_registry() {
+  cmd="docker ${remote} service create \
+  	--name registry \
+  	--network smartmeter \
+    --mode global \
+    --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
+    -e FLASK_DEBUG=${FLASK_DEBUG} \
+    -p ${FLASK_PORT}:5000 \
+  	logimethod/service-registry${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
+}
+
 run_telegraf() {
    #if [ "$@" == "docker" ]
   #   then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
@@ -627,6 +642,7 @@ create_service_telegraf() {
     --name telegraf_$@\
     -e CASSANDRA_URL="${TELEGRAF_CASSANDRA_URL}" \
     -e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
+    -e TASK_SLOT={{.Task.Slot}} \
     -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
     -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
     -e JMX_PASSWORD=$JMX_PASSWORD \

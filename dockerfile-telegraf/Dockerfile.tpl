@@ -14,7 +14,7 @@ RUN cd /nodetool && \
     tar -zxf dsc-cassandra-3.0.9-bin.tar.gz &&\
     rm dsc-cassandra-3.0.9-bin.tar.gz
 
-RUN apk --no-cache add docker
+# RUN apk --no-cache add docker
 
 VOLUME ["/etc/telegraf/"]
 

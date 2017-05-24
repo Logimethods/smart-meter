@@ -195,10 +195,11 @@ def run_inject():
 	run([
 		create_network,
 		["create_service", "visualizer", 1],
+		["create_service", "registry", 1],
 		run_metrics,
 ###		["create_volume", "cassandra"],
 #		rm_service_inject,
-		["run_service", "telegraf_docker"],
+#		["run_service", "telegraf_docker"],
 ###		create_service_spark_master,
 ###		["wait", "service", "spark-master"],
 ###		create_service_spark_slave,
@@ -234,6 +235,7 @@ def run_inject_aws():
 	run([
 		create_network,
 		["create_service", "visualizer", 1],
+		["create_service", "registry", 1],
 		run_metrics,
 		["create_volume", "cassandra"],
 		create_service_spark_master,
