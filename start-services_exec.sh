@@ -588,7 +588,7 @@ create_service_registry() {
   cmd="docker ${remote} service create \
     --name registry \
     --network smartmeter \
-    --mode global \
+    ${ON_MASTER_NODE} \
     --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
     -e FLASK_DEBUG=${FLASK_DEBUG} \
     -p ${FLASK_PORT}:5000 \

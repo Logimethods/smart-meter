@@ -6,7 +6,7 @@ set -e
 #
 if [ -z "$NODE_ID" ]
 then
-    export DOCKER_TARGET_ID=$(wget -q -O - http://registry:5000/container/name/${DOCKER_TARGET_NAME}.)
+    export DOCKER_TARGET_ID=$(wget -q -O - http://registry:5000/container/name/${DOCKER_TARGET_NAME})
 else
     export DOCKER_TARGET_ID=$(wget -q -O - http://registry:5000/service/name/${NODE_ID}/${DOCKER_TARGET_NAME})
 fi
