@@ -86,6 +86,9 @@ def run(steps):
 	if not isinstance(steps[0], list):
 		steps = [steps]
 	for step in steps:
+		print()
+		print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+		print(step)
 		if step[0] == "create_service" :
 			create_service(step[1], step[2], postfix)
 		elif step[0] == "rm_service" :

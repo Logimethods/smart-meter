@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo
-echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+#echo
+#echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 
 replicas=1
 postfix=""
@@ -427,6 +427,7 @@ cmd="docker ${remote} service create \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
   -e GATLING_DURATION=${GATLING_DURATION} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
+  -e NODE_ID={{.Node.ID}} \
   -e SERVICE_ID={{.Service.ID}} \
   -e SERVICE_NAME={{.Service.Name}} \
   -e SERVICE_LABELS={{.Service.Labels}} \
@@ -585,13 +586,13 @@ create_service_prometheus_nats_exporter() {
 
 create_service_registry() {
   cmd="docker ${remote} service create \
-  	--name registry \
-  	--network smartmeter \
+    --name registry \
+    --network smartmeter \
     --mode global \
     --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
     -e FLASK_DEBUG=${FLASK_DEBUG} \
     -p ${FLASK_PORT}:5000 \
-  	logimethod/service-registry${postfix}"
+    logimethods/service-registry${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -620,8 +621,8 @@ run_telegraf() {
      -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
      -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
      -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+     ${DOCKER_ACCES} \
      --log-driver=json-file \
-     $DOCKER_ACCES \
      logimethods/smart-meter:telegraf${postfix}\
        telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/$@.conf"
     echo "-----------------------------------------------------------------"
@@ -642,6 +643,12 @@ create_service_telegraf() {
     --name telegraf_$@\
     -e CASSANDRA_URL="${TELEGRAF_CASSANDRA_URL}" \
     -e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
+    -e NODE_ID={{.Node.ID}} \
+    -e SERVICE_ID={{.Service.ID}} \
+    -e SERVICE_NAME={{.Service.Name}} \
+    -e SERVICE_LABELS={{.Service.Labels}} \
+    -e TASK_ID={{.Task.ID}} \
+    -e TASK_NAME={{.Task.Name}} \
     -e TASK_SLOT={{.Task.Slot}} \
     -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
     -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
@@ -650,8 +657,8 @@ create_service_telegraf() {
     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+    ${DOCKER_ACCES} \
     --mode global \
-    $DOCKER_ACCES \
     logimethods/smart-meter:telegraf${postfix}\
       telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/$@.conf"
   #     --log-driver=json-file \
