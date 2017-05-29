@@ -34,6 +34,8 @@ import java.util.function._
 import java.time.{LocalDateTime, ZoneOffset}
 import java.time.DayOfWeek._
 
+import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel
+
 object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
@@ -67,7 +69,9 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     .setOutputCol("features")
   
   // Initial training
-  var model = trainer.fit(getData())
+  val data = getData()
+  var model = trainer.fit(data)
+  println("New model of size " + data.count() + " trained")
   
   new Thread(new Runnable {
               def run() {
@@ -85,22 +89,22 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
              }).start()
   
   
-/*      // @See https://github.com/tyagihas/scala_nats
-    import java.util.Properties
-    import org.nats._
+/*  // @See https://github.com/tyagihas/scala_nats
+  import java.util.Properties
+  import org.nats._
 
-    val opts : Properties = new Properties
-    opts.put("servers", natsUrl);
-    val conn = Conn.connect(opts)
-    conn.subscribe(inputSubject, 
-        (msg:MsgB)  => {
-          val buffer = ByteBuffer.wrap(msg.body);
-          val epoch = buffer.getLong()
-          val temperature = buffer.getFloat()
-          
-          val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-          println("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
-        })*/
+  val opts : Properties = new Properties
+  opts.put("servers", natsUrl);
+  val conn = Conn.connect(opts)
+  conn.subscribe(inputSubject, 
+      (msg:MsgB)  => {
+        val buffer = ByteBuffer.wrap(msg.body);
+        val epoch = buffer.getLong()
+        val temperature = buffer.getFloat()
+        
+        val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+        println("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
+      })*/
         
         
   if (! logLevel.startsWith("DEBUG")) {
@@ -130,7 +134,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
       forecasts.count().print()
     }
 
-    val predictions = forecasts.map({case (epoch: Long, temperature: Float) => (epoch, temperature, predictionFunc(epoch,temperature)) })
+    val predictions = forecasts.map({case (epoch: Long, temperature: Float) => (epoch, temperature, predictionFunc(model, epoch,temperature)) })
     
     if (logLevel.contains("PREDICTIONS")) {
       println("PREDICTIONS will be shown")
@@ -212,16 +216,24 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     assembler.transform(dataframes)
   }
   
-  def predictionFunc(epoch: Long, temperature: Float) = {
+  def predictionFunc(model: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) : Boolean = {
           val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-//println("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
+
+          if (logLevel.contains("TRACE")) {
+              println(s"""Prediction for $temperature at $date based on $model""")
+          }
+          
+          if (model == null) {
+            System.err.println("ERROR: The MultilayerPerceptronClassificationModel is NULL!!!")
+            return false
+          }
           
           val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
           val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
           val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
           val entry = assembler.transform(dataFrame)
                     
-          model.transform(entry).first.getDouble(6) > 0    
+          return model.transform(entry).first.getDouble(6) > 0    
   }
   
   def predictionMessage(epoch: Long, temperature: Float) = {
