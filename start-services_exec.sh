@@ -380,7 +380,7 @@ docker ${remote} service create \
 	--name monitor \
 	-e NATS_URI=${NATS_URI} \
 	--network smartmeter \
-	--replicas=${replicas} \
+	${ON_MASTER_NODE} \
 	logimethods/smart-meter:monitor${postfix} \
 		"smartmeter.voltage.extract.>"
 }
@@ -390,7 +390,7 @@ create_service_reporter() {
 docker ${remote} service create \
 	--name reporter \
 	--network smartmeter \
-	--replicas=${replicas} \
+  ${ON_MASTER_NODE} \
 	-p 8888:8080 \
 	logimethods/nats-reporter
 }
