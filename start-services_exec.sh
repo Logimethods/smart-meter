@@ -47,7 +47,7 @@ stop_all() {
 }
 
 create_network() {
-	docker ${remote} network create --driver overlay --attachable smartmeter
+  docker ${remote} network create --driver overlay --attachable smartmeter
 #docker ${remote} service rm $(docker ${remote} service ls -q)
 }
 
@@ -56,10 +56,10 @@ create_network() {
 # https://github.com/dockersamples/docker-swarm-visualizer
 create_service_visualizer() {
   docker ${remote} service create \
-  	--name visualizer \
-  	--network smartmeter \
+    --name visualizer \
+    --network smartmeter \
     ${ON_MASTER_NODE} \
-  	-p 8080:8080/tcp \
+    -p 8080:8080/tcp \
     --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
     dockersamples/visualizer
 }
@@ -101,11 +101,11 @@ call_cassandra_cql() {
 run_cassandra() {
   cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
     --name ${CASSANDRA_MAIN_NAME} \
-  	--network smartmeter \
+    --network smartmeter \
     -p 8778:8778 \
     -e LOCAL_JMX=no \
     -v cassandra-volume-1:/var/lib/cassandra \
-  	logimethods/smart-meter:cassandra${postfix}"
+    logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -119,11 +119,11 @@ create_service_cassandra_single() {
   # https://github.com/Yannael/kafka-sparkstreaming-cassandra-swarm/blob/master/service-management/start-cassandra-services.sh
 
   docker ${remote} service create \
-  	--name ${CASSANDRA_MAIN_NAME} \
-  	--network smartmeter \
+    --name ${CASSANDRA_MAIN_NAME} \
+    --network smartmeter \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
-  	logimethods/smart-meter:cassandra${postfix}
+    logimethods/smart-meter:cassandra${postfix}
 }
 
 create_service_cassandra() {
@@ -133,29 +133,29 @@ create_service_cassandra() {
   # https://github.com/Yannael/kafka-sparkstreaming-cassandra-swarm/blob/master/service-management/start-cassandra-services.sh
 
   docker ${remote} service create \
-  	--name ${CASSANDRA_MAIN_NAME} \
-  	--network smartmeter \
+    --name ${CASSANDRA_MAIN_NAME} \
+    --network smartmeter \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
-  	logimethods/smart-meter:cassandra${postfix}
+    logimethods/smart-meter:cassandra${postfix}
 
   #Need to sleep a bit so IP can be retrieved below
   while [[ -z $(docker ${remote} service ls |grep ${CASSANDRA_MAIN_NAME}| grep 1/1) ]]; do
-  	echo Waiting for Cassandra seed service to start...
-  	sleep 2
-  	done;
+    echo Waiting for Cassandra seed service to start...
+    sleep 2
+    done;
 
   export CASSANDRA_SEED="$(docker ${remote} ps |grep ${CASSANDRA_MAIN_NAME}|cut -d ' ' -f 1)"
   echo "CASSANDRA_SEED: $CASSANDRA_SEED"
 
   docker ${remote} service create \
-  	--name ${CASSANDRA_NODE_NAME} \
-  	--network smartmeter \
+    --name ${CASSANDRA_NODE_NAME} \
+    --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
     -e LOCAL_JMX=no \
     --env CASSANDRA_SEEDS=$CASSANDRA_SEED \
-  	logimethods/smart-meter:cassandra${postfix}
+    logimethods/smart-meter:cassandra${postfix}
 }
 
 create_full_service_cassandra() {
@@ -163,38 +163,38 @@ create_full_service_cassandra() {
 # http://serverfault.com/questions/806649/docker-swarm-and-volumes
 # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
 docker ${remote} service create \
-	--name ${CASSANDRA_MAIN_NAME} \
-	--network smartmeter \
-	--mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
+  --name ${CASSANDRA_MAIN_NAME} \
+  --network smartmeter \
+  --mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
   ${ON_MASTER_NODE} \
-	-e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
-	-e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
-	-p 9042:9042 \
-	-p 9160:9160 \
-	logimethods/smart-meter:cassandra${postfix}
+  -e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
+  -e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
+  -p 9042:9042 \
+  -p 9160:9160 \
+  logimethods/smart-meter:cassandra${postfix}
 }
 
 create_service_spark-master() {
 docker ${remote} service create \
-	--name spark-master \
-	-e SERVICE_NAME=spark-master \
-	--network smartmeter \
-	--replicas=${replicas} \
-	-p ${SPARK_UI_PORT}:8080 \
-	${ON_MASTER_NODE} \
-	${spark_image}:${spark_version}-hadoop-${hadoop_version}
+  --name spark-master \
+  -e SERVICE_NAME=spark-master \
+  --network smartmeter \
+  --replicas=${replicas} \
+  -p ${SPARK_UI_PORT}:8080 \
+  ${ON_MASTER_NODE} \
+  ${spark_image}:${spark_version}-hadoop-${hadoop_version}
 }
 
 create_service_spark-slave() {
   docker ${remote} service create \
-  	--name spark-slave \
-  	-e SERVICE_NAME=spark-slave \
-  	--network smartmeter \
+    --name spark-slave \
+    -e SERVICE_NAME=spark-slave \
+    --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
-  	${spark_image}:${spark_version}-hadoop-${hadoop_version} \
-  		bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
-  # 	--replicas=${replicas} \
+    ${spark_image}:${spark_version}-hadoop-${hadoop_version} \
+      bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+  #   --replicas=${replicas} \
 }
 
 run_spark_autoscaling() {
@@ -214,27 +214,27 @@ run_spark_autoscaling() {
 
 create_service_nats() {
   cmd="docker ${remote} service create \
-    	--name $NATS_NAME \
-    	--network smartmeter \
+      --name $NATS_NAME \
+      --network smartmeter \
       ${ON_MASTER_NODE} \
-    	-e NATS_USERNAME=${NATS_USERNAME} \
-    	-e NATS_PASSWORD=${NATS_PASSWORD} \
+      -e NATS_USERNAME=${NATS_USERNAME} \
+      -e NATS_PASSWORD=${NATS_PASSWORD} \
       -p 4222:4222 \
       -p 8222:8222 \
-    	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222"
+      logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
   eval $cmd
 
   cmd="docker ${remote} service create \
-    	--name $NATS_CLUSTER_NAME \
-    	--network smartmeter \
-    	--mode global \
+      --name $NATS_CLUSTER_NAME \
+      --network smartmeter \
+      --mode global \
       ${ON_WORKER_NODE} \
-    	-e NATS_USERNAME=${NATS_USERNAME} \
-    	-e NATS_PASSWORD=${NATS_PASSWORD} \
-    	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222"
+      -e NATS_USERNAME=${NATS_USERNAME} \
+      -e NATS_PASSWORD=${NATS_PASSWORD} \
+      logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -243,13 +243,13 @@ create_service_nats() {
 
 create_service_nats_single() {
   cmd="docker ${remote} service create \
-  	--name $NATS_NAME \
-  	--network smartmeter \
-  	-e NATS_USERNAME=${NATS_USERNAME} \
-  	-e NATS_PASSWORD=${NATS_PASSWORD} \
+    --name $NATS_NAME \
+    --network smartmeter \
+    -e NATS_USERNAME=${NATS_USERNAME} \
+    -e NATS_PASSWORD=${NATS_PASSWORD} \
     -p 4222:4222 \
     -p 8222:8222 \
-  	logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG}"
+    logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -270,7 +270,7 @@ create_service_app_streaming() {
     ${ON_MASTER_NODE} \
     --network smartmeter \
     logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkMaxProcessor\" \
-    	\"smartmeter.voltage.raw\" \"smartmeter.voltage.extract.max\" \
+      \"smartmeter.voltage.raw\" \"smartmeter.voltage.extract.max\" \
       \"Smartmeter MAX Streaming\""
 
   echo "-----------------------------------------------------------------"
@@ -282,17 +282,17 @@ create_service_app_streaming() {
 __run_app_streaming() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} run --rm -d \
-  	--name app_streaming \
-  	-e NATS_URI=${NATS_CLUSTER_URI} \
+    --name app_streaming \
+    -e NATS_URI=${NATS_CLUSTER_URI} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
-  	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
-  	-e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
+    -e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
     -e TARGETS=${APP_STREAMING_TARGETS} \
     -e SPARK_CORES_MAX=${SPARK_CORES_MAX} \
-  	--network smartmeter \
-  	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
-  		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
+    --network smartmeter \
+    logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
+      \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
       \"Smartmeter MAX Streaming\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -303,18 +303,18 @@ __run_app_streaming() {
 create_service_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
-  	--name app_prediction \
-  	-e NATS_URI=${NATS_URI} \
-  	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    --name app_prediction \
+    -e NATS_URI=${NATS_URI} \
+    -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
-  	-e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
+    -e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
     -e SPARK_CORES_MAX=${APP_PREDICTION_SPARK_CORES_MAX} \
     -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
-  	--network smartmeter \
+    --network smartmeter \
     ${ON_MASTER_NODE} \
-  	logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionProcessor\" \
-  		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
+    logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionProcessor\" \
+      \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
       \"Smartmeter PREDICTION Streaming\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -328,18 +328,18 @@ create_service_app_prediction() {
 run_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} run --rm -d \
-  	--name app_prediction \
-  	-e NATS_URI=${NATS_CLUSTER_URI} \
-  	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    --name app_prediction \
+    -e NATS_URI=${NATS_CLUSTER_URI} \
+    -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
-  	-e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
+    -e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
     -e SPARK_CORES_MAX=${APP_PREDICTION_SPARK_CORES_MAX} \
     -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
     ${ON_MASTER_NODE} \
-  	--network smartmeter \
-  	logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
-  		\"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
+    --network smartmeter \
+    logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
+      \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
       \"Smartmeter PREDICTION Streaming\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -351,7 +351,7 @@ run_app-batch() {
   #docker ${remote} pull logimethods/smart-meter:inject
   cmd="docker ${remote} run --rm \
     --name app_batch \
-  	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
+    -e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
     -e APP_BATCH_LOG_LEVEL=${APP_BATCH_LOG_LEVEL} \
     --network smartmeter \
@@ -365,53 +365,53 @@ run_app-batch() {
 create_service_app-batch() {
 #docker ${remote} pull logimethods/smart-meter:app-batch
 docker ${remote} service create \
-	--name app-batch \
-	-e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
-	-e LOG_LEVEL=INFO \
-	-e CASSANDRA_URL=${CASSANDRA_URL} \
-	--network smartmeter \
-	--replicas=${replicas} \
-	logimethods/smart-meter:app-batch${postfix}
+  --name app-batch \
+  -e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
+  -e LOG_LEVEL=INFO \
+  -e CASSANDRA_URL=${CASSANDRA_URL} \
+  --network smartmeter \
+  --replicas=${replicas} \
+  logimethods/smart-meter:app-batch${postfix}
 }
 
 create_service_monitor() {
 #docker ${remote} pull logimethods/smart-meter:monitor
 docker ${remote} service create \
-	--name monitor \
-	-e NATS_URI=${NATS_URI} \
-	--network smartmeter \
-	${ON_MASTER_NODE} \
-	logimethods/smart-meter:monitor${postfix} \
-		"smartmeter.voltage.extract.>"
+  --name monitor \
+  -e NATS_URI=${NATS_URI} \
+  --network smartmeter \
+  ${ON_MASTER_NODE} \
+  logimethods/smart-meter:monitor${postfix} \
+    "smartmeter.voltage.extract.>"
 }
 
 create_service_reporter() {
 #docker ${remote} pull logimethods/nats-reporter
 docker ${remote} service create \
-	--name reporter \
-	--network smartmeter \
+  --name reporter \
+  --network smartmeter \
   ${ON_MASTER_NODE} \
-	-p 8888:8080 \
-	logimethods/nats-reporter
+  -p 8888:8080 \
+  logimethods/nats-reporter
 }
 
 create_service_cassandra-inject() {
   cmd="docker ${remote} service create \
-  	--name cassandra-inject \
-  	--network smartmeter \
+    --name cassandra-inject \
+    --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
-  	-e NATS_URI=${NATS_URI} \
-  	-e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
+    -e NATS_URI=${NATS_URI} \
+    -e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
     -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
     -e CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY} \
-  	-e CASSANDRA_URL=${CASSANDRA_URL} \
-  	logimethods/smart-meter:cassandra-inject${postfix}"
+    -e CASSANDRA_URL=${CASSANDRA_URL} \
+    logimethods/smart-meter:cassandra-inject${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
   eval $cmd
-# 	--replicas=${replicas} \
+#   --replicas=${replicas} \
 }
 
 create_service_inject() {
@@ -421,9 +421,9 @@ echo "GATLING_DURATION: ${GATLING_DURATION}"
 
 #docker ${remote} pull logimethods/smart-meter:inject
 cmd="docker ${remote} service create \
-	--name inject \
-	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
-	-e NATS_URI=${NATS_URI} \
+  --name inject \
+  -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
+  -e NATS_URI=${NATS_URI} \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
   -e GATLING_DURATION=${GATLING_DURATION} \
   -e STREAMING_DURATION=${STREAMING_DURATION} \
@@ -437,11 +437,11 @@ cmd="docker ${remote} service create \
   -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
   -e PREDICTION_LENGTH=${PREDICTION_LENGTH} \
   -e TIME_ROOT=$(date +%s)
-	--network smartmeter \
+  --network smartmeter \
   ${ON_WORKER_NODE} \
-	--replicas=${replicas} \
-	logimethods/smart-meter:inject${postfix} \
-		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
+  --replicas=${replicas} \
+  logimethods/smart-meter:inject${postfix} \
+    --no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
 echo "-----------------------------------------------------------------"
 echo "$cmd"
 echo "-----------------------------------------------------------------"
@@ -455,17 +455,17 @@ run_inject() {
 
   #docker ${remote} pull logimethods/smart-meter:inject
   cmd="docker ${remote} run \
-  	-e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
-  	-e NATS_URI=${NATS_CLUSTER_URI} \
+    -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
+    -e NATS_URI=${NATS_CLUSTER_URI} \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e TASK_SLOT=1 \
     -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
     -e PREDICTION_LENGTH=${PREDICTION_LENGTH} \
-  	--network smartmeter \
-  	logimethods/smart-meter:inject${postfix} \
-		--no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
+    --network smartmeter \
+    logimethods/smart-meter:inject${postfix} \
+    --no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -537,14 +537,14 @@ run_metrics_grafana() {
 
 create_service_influxdb() {
   cmd="docker ${remote} service create \
-  	--name influxdb \
-  	--network smartmeter \
+    --name influxdb \
+    --network smartmeter \
     ${ON_MASTER_NODE} \
     -e INFLUXDB_ADMIN_ENABLED=true \
     -p 8083:8083 \
     -p 8086:8086 \
     -p 2003:2003 \
-  	influxdb"
+    influxdb"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -552,7 +552,7 @@ create_service_influxdb() {
 }
 
 update_service_scale() {
-	docker ${remote} service scale SERVICE=REPLICAS
+  docker ${remote} service scale SERVICE=REPLICAS
 }
 
 run_prometheus_nats_exporter() {
@@ -686,24 +686,24 @@ run_zeppelin() {
 ### RUN DOCKER ###
 
 run_image() {
-#	name=${1}
-#	shift
-	echo "docker ${remote} run --network smartmeter ${DOCKER_RESTART_POLICY} $@"
-	docker ${remote} run --network smartmeter $@
+#  name=${1}
+#  shift
+  echo "docker ${remote} run --network smartmeter ${DOCKER_RESTART_POLICY} $@"
+  docker ${remote} run --network smartmeter $@
 }
 
 ### BUILDS ###
 
 build_inject() {
-	pushd dockerfile-inject
-	sbt --warn update docker
-	popd
+  pushd dockerfile-inject
+  sbt --warn update docker
+  popd
 }
 
 build_app-streaming() {
-	pushd dockerfile-app-streaming
-	sbt --warn update docker
-	popd
+  pushd dockerfile-app-streaming
+  sbt --warn update docker
+  popd
 }
 
 build_app-batch() {
@@ -724,35 +724,35 @@ build_app-batch() {
 }
 
 build_monitor() {
-	pushd dockerfile-monitor
-	sbt --warn update docker
-	popd
+  pushd dockerfile-monitor
+  sbt --warn update docker
+  popd
 }
 
 build_cassandra() {
   ./set_properties_to_dockerfile_templates.sh
-	pushd dockerfile-cassandra
-	docker build -t logimethods/smart-meter:cassandra-local .
-	popd
+  pushd dockerfile-cassandra
+  docker build -t logimethods/smart-meter:cassandra-local .
+  popd
 }
 
 build_cassandra-inject() {
   ./set_properties_to_dockerfile_templates.sh
-	pushd dockerfile-cassandra-inject
-	docker build -t logimethods/smart-meter:cassandra-inject-local .
-	popd
+  pushd dockerfile-cassandra-inject
+  docker build -t logimethods/smart-meter:cassandra-inject-local .
+  popd
 }
 
 build_nats-server() {
   ./set_properties_to_dockerfile_templates.sh
-	pushd dockerfile-nats-server
-	docker build -t logimethods/smart-meter:nats-server-local .
-	popd
+  pushd dockerfile-nats-server
+  docker build -t logimethods/smart-meter:nats-server-local .
+  popd
 }
 
 build_telegraf() {
   ./set_properties_to_dockerfile_templates.sh
-	pushd dockerfile-telegraf
+  pushd dockerfile-telegraf
   docker build -t logimethods/smart-meter:telegraf-local .
   popd
 }
@@ -780,48 +780,48 @@ rm_service() {
 ### WAIT ###
 
 wait_service() {
-	# http://unix.stackexchange.com/questions/213110/exiting-a-shell-script-with-nested-loops
-	echo "Waiting for the $1 Service to Start"
-	while :
-	do
-		echo "--------- $1 ----------"
-		docker ${remote} ps | while read -r line
-		do
-			tokens=( $line )
-			full_name=${tokens[1]}
-			name=${full_name##*:}
-			if [ "$name" == "$1" ] ; then
-				exit 1
-			fi
-		done
-		[[ $? != 0 ]] && exit 0
+  # http://unix.stackexchange.com/questions/213110/exiting-a-shell-script-with-nested-loops
+  echo "Waiting for the $1 Service to Start"
+  while :
+  do
+    echo "--------- $1 ----------"
+    docker ${remote} ps | while read -r line
+    do
+      tokens=( $line )
+      full_name=${tokens[1]}
+      name=${full_name##*:}
+      if [ "$name" == "$1" ] ; then
+        exit 1
+      fi
+    done
+    [[ $? != 0 ]] && exit 0
 
-		docker ${remote} service ls | while read -r line
-		do
-			tokens=( $line )
-			name=${tokens[1]}
-			if [ "$name" == "$1" ] ; then
-				replicas=${tokens[3]}
-				actual=${replicas%%/*}
-				expected=${replicas##*/}
-				#echo "$actual : $expected"
-				if [ "$actual" == "$expected" ] ; then
-					exit 1
-				else
-					break
-				fi
-			fi
-		done
-		[[ $? != 0 ]] && exit 0
+    docker ${remote} service ls | while read -r line
+    do
+      tokens=( $line )
+      name=${tokens[1]}
+      if [ "$name" == "$1" ] ; then
+        replicas=${tokens[3]}
+        actual=${replicas%%/*}
+        expected=${replicas##*/}
+        #echo "$actual : $expected"
+        if [ "$actual" == "$expected" ] ; then
+          exit 1
+        else
+          break
+        fi
+      fi
+    done
+    [[ $? != 0 ]] && exit 0
 
-		sleep 2
-	done
+    sleep 2
+  done
 }
 
 ### LOGS ###
 
 logs_service() {
-	docker ${remote} logs $(docker ${remote} ps | grep "$1" | rev | cut -d' ' -f1 | rev)
+  docker ${remote} logs $(docker ${remote} ps | grep "$1" | rev | cut -d' ' -f1 | rev)
 }
 
 ### Actual CMD ###
