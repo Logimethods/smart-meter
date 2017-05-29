@@ -219,9 +219,9 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   def predictionFunc(model: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) : Boolean = {
           val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
 
-          if (logLevel.contains("TRACE")) {
-              println(s"""Prediction for $temperature at $date based on $model""")
-          }
+//          if (logLevel.contains("TRACE")) {
+//              println(s"""Prediction for $temperature at $date based on $model""")
+//          }
           
           if (model == null) {
             System.err.println("ERROR: The MultilayerPerceptronClassificationModel is NULL!!!")
