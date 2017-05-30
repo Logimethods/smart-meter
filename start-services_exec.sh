@@ -176,24 +176,25 @@ docker ${remote} service create \
 
 create_service_spark-master() {
 docker ${remote} service create \
-  --name spark-master \
-  -e SERVICE_NAME=spark-master \
+  --name ${SPARK_MASTER_NAME} \
+  -e SERVICE_NAME=${SPARK_MASTER_NAME} \
   --network smartmeter \
   --replicas=${replicas} \
   -p ${SPARK_UI_PORT}:8080 \
+  -p 8020 \
   ${ON_MASTER_NODE} \
   ${spark_image}:${spark_version}-hadoop-${hadoop_version}
 }
 
 create_service_spark-slave() {
   docker ${remote} service create \
-    --name spark-slave \
+    --name ${SPARK_WORKER_NAME} \
     -e SERVICE_NAME=spark-slave \
     --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
     ${spark_image}:${spark_version}-hadoop-${hadoop_version} \
-      bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+      bin/spark-class org.apache.spark.deploy.worker.Worker spark://${SPARK_MASTER_NAME}:7077
   #   --replicas=${replicas} \
 }
 
