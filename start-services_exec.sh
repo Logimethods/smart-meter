@@ -299,27 +299,6 @@ create_service_app_streaming() {
   eval "$cmd"
 }
 
-__run_app_streaming() {
-#docker ${remote} pull logimethods/smart-meter:app-streaming
-  cmd="docker ${remote} run --rm -d \
-    --name app_streaming \
-    -e NATS_URI=${NATS_CLUSTER_URI} \
-    -e CASSANDRA_URL=${CASSANDRA_URL} \
-    -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
-    -e STREAMING_DURATION=${STREAMING_DURATION} \
-    -e LOG_LEVEL=${APP_STREAMING_LOG_LEVEL} \
-    -e TARGETS=${APP_STREAMING_TARGETS} \
-    -e SPARK_CORES_MAX=${SPARK_CORES_MAX} \
-    --network smartmeter \
-    logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkMaxProcessor \
-      \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
-      \"Smartmeter MAX Streaming\" "
-  echo "-----------------------------------------------------------------"
-  echo "$cmd"
-  echo "-----------------------------------------------------------------"
-  eval "$cmd"
-}
-
 create_service_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
@@ -327,7 +306,7 @@ create_service_app_prediction() {
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e HDFS_URL=${HDFS_URL} \
-    -e CASSANDRA_URL=${CASSANDRA_URL} \
+    -e CASSANDRA_URL=${CASSANDRA_PREDICTION_URL} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
     -e SPARK_CORES_MAX=${APP_PREDICTION_SPARK_CORES_MAX} \
@@ -353,7 +332,7 @@ run_app_prediction() {
     -e NATS_URI=${NATS_CLUSTER_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e HDFS_URL=${HDFS_URL} \
-    -e CASSANDRA_URL=${CASSANDRA_URL} \
+    -e CASSANDRA_URL=${CASSANDRA_PREDICTION_URL} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
     -e SPARK_CORES_MAX=${APP_PREDICTION_SPARK_CORES_MAX} \
