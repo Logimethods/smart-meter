@@ -51,8 +51,10 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   val THRESHOLD = System.getenv("ALERT_THRESHOLD").toFloat
   println("ALERT_THRESHOLD = " + THRESHOLD)
   
-  val sqlContext= new org.apache.spark.sql.SQLContext(sc)
-  import sqlContext.implicits._
+  // @See https://spark.apache.org/docs/2.1.0/api/java/org/apache/spark/sql/SQLContext.implicits$.html
+//	val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+//	import sqlContext.implicits._
+	
   import com.datastax.spark.connector._
   
   // http://stackoverflow.com/questions/37513667/how-to-create-a-spark-dataset-from-an-rdd
@@ -67,6 +69,10 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   import org.apache.spark.ml.feature.VectorAssembler  
 
   implicit def bool2int(b:Boolean) = if (b) 1 else 0
+
+  // @See https://spark.apache.org/docs/2.1.0/api/java/org/apache/spark/sql/SQLContext.implicits$.html
+  val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+  import sqlContext.implicits._  
 
   val assembler = new VectorAssembler()
     .setInputCols(Array("hourSin", "hourCos", "dayOfWeek", "temperature"))
@@ -113,7 +119,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
       })*/
         
         
-  if (! logLevel.startsWith("DEBUG")) {
+  if (! logLevel.startsWith("TEST")) {
     val distributedForecasts =
       if (inputNatsStreaming) {
         NatsToSparkConnector
@@ -137,7 +143,31 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
 //      forecasts.print()
       forecasts.count().print()
     }
-
+    
+/*    val dataFrames = forecasts.map( 
+        { case (epoch: Long, temperature: Float) =>
+            val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+        		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+        		val values = List((hour, hourSin, hourCos, dayOfWeek, temperature)) 
+        		
+        		(epoch, temperature, values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature"))
+        })
+    
+    // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
+    import org.apache.spark.rdd.RDD 
+    val predictions = dataFrames.transform { (rdd) =>
+        val localModel = Oracle.getInstance(rdd.sparkContext)
+        if (localModel.value == null) {
+        	throw new RuntimeException("ERROR: The MultilayerPerceptronClassificationModel is not defined")
+        }
+        
+        rdd.map({case (epoch, temperature, dataFrame) =>    
+        		val entry = assembler.transform(dataFrame)
+        		val prediction = localModel.value.transform(entry).first.getDouble(6) > 0    
+        		(epoch, temperature, prediction)
+          })
+      }*/
+    
     // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
     import org.apache.spark.rdd.RDD 
     val predictions = forecasts.transform { (rdd: RDD[(Long, Float)]) =>
@@ -146,15 +176,23 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         	throw new RuntimeException("ERROR: The MultilayerPerceptronClassificationModel is not defined")
         }
         
-        rdd.map({case (epoch: Long, temperature: Float) =>     
-          val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-      		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
-      		val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
-      		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
-      		val entry = assembler.transform(dataFrame)
-      		val prediction = localModel.value.transform(entry).first.getDouble(6) > 0        
-  
-      		(epoch, temperature, prediction) })
+        val sqlContext = SQLContextSingleton.getInstance(rdd.sparkContext)
+        import sqlContext.implicits._
+
+        rdd.map({case (epoch: Long, temperature: Float) =>    
+ //          prediction(localModel.value: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) 
+            val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+        		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+        		val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
+        		
+ //       		SparkPredictionProcessorHelper.toDS()
+
+        		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+        		val entry = assembler.transform(dataFrame)
+        		val prediction = localModel.value.transform(entry).first.getDouble(6) > 0    
+        		(epoch, temperature, prediction)
+
+          })
       }
    
     if (logLevel.contains("PREDICTIONS")) {
@@ -196,6 +234,21 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     println("Test Set Accuracy = " + evaluator.evaluate(predictionAndLabels))
   }
   
+  def prediction(localModel: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) = {
+    val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+		val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
+		
+		import org.apache.spark.sql._
+		val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+		import sqlContext.implicits._  
+		
+		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+		val entry = assembler.transform(dataFrame)
+		val prediction = localModel.transform(entry).first.getDouble(6) > 0        
+    (epoch, temperature, prediction)
+  }
+
   def extractDateComponents(date: LocalDateTime) = {
     val hour = date.getHour
     val hourAngle = (hour.toFloat / 24) * 2 * Pi
@@ -231,7 +284,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
       val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
       
       (label, voltage, hour, hourSin, hourCos, dayOfWeek, temperature)})
-    
+            
     val dataframes = flatten.toDF("label", "voltage", "hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
   
     assembler.transform(dataframes)
@@ -261,4 +314,20 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     val timestamp = epoch * 1000
     s"""{"timestamp":$timestamp,"temperature":$temperature,"alert": $THRESHOLD}"""
   }
+  
+  /** Lazily instantiated singleton instance of SQLContext */
+  // @See https://stackoverflow.com/questions/38833585/spark-streaming-can-not-do-the-todf-function
+  object SQLContextSingleton {
+    import org.apache.spark.sql.SQLContext
+    
+    @transient private var instance: SQLContext = null
+    // Instantiate SQLContext on demand
+    def getInstance(sc: SparkContext): SQLContext = synchronized {
+      if (instance == null) {
+        instance = new SQLContext(sc)
+      }
+      instance
+    }
+  }
+
 }
