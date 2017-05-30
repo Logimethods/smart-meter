@@ -174,28 +174,47 @@ docker ${remote} service create \
   logimethods/smart-meter:cassandra${postfix}
 }
 
+create_service_hadoop() {
+  cmd="docker ${remote} service create \
+    --name ${HADOOP_NAME} \
+    --network smartmeter \
+    ${ON_MASTER_NODE} \
+    -p 50070:50070 \
+    sequenceiq/hadoop-docker:${hadoop_docker_version}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
+}
+
 create_service_spark-master() {
-docker ${remote} service create \
-  --name ${SPARK_MASTER_NAME} \
-  -e SERVICE_NAME=${SPARK_MASTER_NAME} \
-  --network smartmeter \
-  --replicas=${replicas} \
-  -p ${SPARK_UI_PORT}:8080 \
-  -p 8020 \
-  ${ON_MASTER_NODE} \
-  ${spark_image}:${spark_version}-hadoop-${hadoop_version}
+  cmd="docker ${remote} service create \
+    --name ${SPARK_MASTER_NAME} \
+    -e SERVICE_NAME=${SPARK_MASTER_NAME} \
+    --network smartmeter \
+    --replicas=${replicas} \
+    -p ${SPARK_UI_PORT}:8080 \
+    ${ON_MASTER_NODE} \
+    ${spark_image}:${spark_version}-hadoop-${hadoop_version}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 create_service_spark-slave() {
-  docker ${remote} service create \
+  cmd="docker ${remote} service create \
     --name ${SPARK_WORKER_NAME} \
     -e SERVICE_NAME=spark-slave \
     --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
     ${spark_image}:${spark_version}-hadoop-${hadoop_version} \
-      bin/spark-class org.apache.spark.deploy.worker.Worker spark://${SPARK_MASTER_NAME}:7077
-  #   --replicas=${replicas} \
+      bin/spark-class org.apache.spark.deploy.worker.Worker spark://${SPARK_MASTER_NAME}:7077"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 run_spark_autoscaling() {
@@ -307,6 +326,7 @@ create_service_app_prediction() {
     --name app_prediction \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    -e HDFS_URL=${HDFS_URL} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
@@ -332,6 +352,7 @@ run_app_prediction() {
     --name app_prediction \
     -e NATS_URI=${NATS_CLUSTER_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
+    -e HDFS_URL=${HDFS_URL} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
