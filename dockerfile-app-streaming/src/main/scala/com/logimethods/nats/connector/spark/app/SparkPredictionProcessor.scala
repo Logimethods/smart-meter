@@ -39,7 +39,12 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
+
+  val HDFS_URL = System.getenv("HDFS_URL")
+  println("HDFS_URL = " + HDFS_URL)
   
+  val PREDICTION_MODEL_PATH = HDFS_URL + "/smartmeter/voltage_prediction.model"
+
   val (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl, streamingDuration) = 
       setupStreaming(args)
 
@@ -48,7 +53,6 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   
   val sqlContext= new org.apache.spark.sql.SQLContext(sc)
   import sqlContext.implicits._
-
   import com.datastax.spark.connector._
   
   // http://stackoverflow.com/questions/37513667/how-to-create-a-spark-dataset-from-an-rdd
@@ -69,16 +73,18 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     .setOutputCol("features")
   
   // Initial training
-  val data = getData()
+  val data = getData(sc)
   var model = trainer.fit(data)
+  model.write.overwrite.save(PREDICTION_MODEL_PATH)
   println("New model of size " + data.count() + " trained")
   
   new Thread(new Runnable {
               def run() {
                  while( true ){
                    try {
-                     val data = getData()
+                     val data = getData(sc)
                      model = trainer.fit(data)
+                     model.write.overwrite.save(PREDICTION_MODEL_PATH)
                      println("New model of size " + data.count() + " trained")
                      Thread.sleep(streamingDuration)
                    } catch {
@@ -108,8 +114,6 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         
         
   if (! logLevel.startsWith("DEBUG")) {
-    println("Start Predictions")
-    
     val distributedForecasts =
       if (inputNatsStreaming) {
         NatsToSparkConnector
@@ -134,8 +138,25 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
       forecasts.count().print()
     }
 
-    val predictions = forecasts.map({case (epoch: Long, temperature: Float) => (epoch, temperature, predictionFunc(model, epoch,temperature)) })
-    
+    // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
+    import org.apache.spark.rdd.RDD 
+    val predictions = forecasts.transform { (rdd: RDD[(Long, Float)]) =>
+        val localModel = Oracle.getInstance(rdd.sparkContext)
+        if (localModel.value == null) {
+        	throw new RuntimeException("ERROR: The MultilayerPerceptronClassificationModel is not defined")
+        }
+        
+        rdd.map({case (epoch: Long, temperature: Float) =>     
+          val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+      		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+      		val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
+      		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+      		val entry = assembler.transform(dataFrame)
+      		val prediction = localModel.value.transform(entry).first.getDouble(6) > 0        
+  
+      		(epoch, temperature, prediction) })
+      }
+   
     if (logLevel.contains("PREDICTIONS")) {
       println("PREDICTIONS will be shown")
       predictions.print()
@@ -149,11 +170,13 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
                             .publishToNats(alerts) 
     
     // Start //
+    println("Start Predictions")
+    
     ssc.start();		   
     ssc.awaitTermination()
     
   } else {    
-    val data = getData()
+    val data = getData(sc)
     data.show()
     
     val splits = data.randomSplit(Array(0.6, 0.4), seed = 1234L)
@@ -189,15 +212,13 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
 
   def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
-// println("BUFF " + buffer)
         val epoch = buffer.getLong()
         val value = buffer.getFloat()
         
-// println("epoch : " + epoch + " value: "   + value) 
         (epoch, value)  
       }
   
-  def getData() = {
+  def getData(sc: SparkContext) = {
     val max_voltage = sc.cassandraTable("smartmeter", "max_voltage")
     val table = max_voltage.joinWithCassandraTable("smartmeter", "temperature")
 
@@ -216,26 +237,26 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     assembler.transform(dataframes)
   }
   
-  def predictionFunc(model: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) : Boolean = {
-          val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-
-//          if (logLevel.contains("TRACE")) {
-//              println(s"""Prediction for $temperature at $date based on $model""")
-//          }
-          
-          if (model == null) {
-            System.err.println("ERROR: The MultilayerPerceptronClassificationModel is NULL!!!")
-            return false
-          }
-          
-          val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
-          val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
-          val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
-          val entry = assembler.transform(dataFrame)
-                    
-          return model.transform(entry).first.getDouble(6) > 0    
-  }
+  // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
+  import org.apache.spark.broadcast.Broadcast
+  object Oracle {
   
+    @volatile private var instance: Broadcast[MultilayerPerceptronClassificationModel] = null
+  
+    def getInstance(sc: SparkContext): Broadcast[MultilayerPerceptronClassificationModel] = {
+      if (instance == null) {
+        synchronized {
+          if (instance == null) {
+            val oracle = MultilayerPerceptronClassificationModel.load(PREDICTION_MODEL_PATH)
+            println("MultilayerPerceptronClassificationModel loaded")
+            instance = sc.broadcast(oracle)
+          }
+        }
+      }
+      instance
+    }
+  }
+
   def predictionMessage(epoch: Long, temperature: Float) = {
     val timestamp = epoch * 1000
     s"""{"timestamp":$timestamp,"temperature":$temperature,"alert": $THRESHOLD}"""
