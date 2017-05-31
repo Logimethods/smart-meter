@@ -125,7 +125,8 @@ create_service_spark_master = ["create_service", "spark-master", 1]
 create_service_spark_slave = ["create_service", "spark-slave", 1]
 create_service_nats = ["create_service", "nats", 1]
 create_service_app_streaming = ["create_service", "app_streaming", 1]
-create_service_app_prediction = ["create_service", "app_prediction", 1]
+create_service_prediction_trainer = ["create_service", "prediction_trainer", 1]
+create_service_prediction_oracle = ["create_service", "prediction_oracle", 1]
 create_service_monitor = ["create_service", "monitor", 1]
 create_service_reporter = ["create_service", "reporter", 1]
 create_cassandra_tables = ["call", "cassandra_cql", "/cql/create-timeseries.cql"]
@@ -138,7 +139,8 @@ stop_service_spark_master = ["create_service", "spark-master", 0]
 stop_service_spark_slave = ["create_service", "spark-slave", 0]
 stop_service_nats = ["create_service", "nats", 0]
 stop_service_app_streaming = ["create_service", "app_streaming", 0]
-stop_service_app_prediction = ["create_service", "app_prediction", 0]
+stop_service_prediction_trainer = ["create_service", "prediction_trainer", 0]
+stop_service_prediction_oracle = ["create_service", "prediction_oracle", 0]
 stop_service_monitor = ["create_service", "monitor", 0]
 stop_service_reporter = ["create_service", "reporter", 0]
 stop_service_cassandra_inject = ["create_service", "cassandra-inject", 0]
@@ -167,7 +169,8 @@ all_steps = [
 	create_service_spark_slave,
 	create_service_nats,
 	create_service_app_streaming,
-	create_service_app_prediction,
+	create_service_prediction_trainer,
+    create_service_prediction_oracle,
 	create_service_monitor,
 	create_service_reporter,
 	create_cassandra_tables,
@@ -252,13 +255,14 @@ def run_inject_aws():
 		create_cassandra_tables,
 		create_service_cassandra_inject,
 		create_service_app_streaming,
-		create_service_app_prediction,
+		create_service_prediction_trainer,
 		["run", "telegraf", "max_voltage"],
 		["run", "telegraf", "temperature"],
 		["run", "telegraf", "prediction"],
 		["create_service_telegraf", "cassandra_write_count"],
 		["create_service_telegraf", "cassandra"],
 		["create_service", "prometheus_nats_exporter", 1],
+		create_service_prediction_oracle,
 		create_service_inject
 		])
 

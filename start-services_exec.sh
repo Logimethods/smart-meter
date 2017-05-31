@@ -299,30 +299,51 @@ create_service_app_streaming() {
   eval "$cmd"
 }
 
-create_service_app_prediction() {
+create_service_prediction_trainer() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
-    --name app_prediction \
+    --name prediction_trainer \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e HDFS_URL=${HDFS_URL} \
     -e CASSANDRA_URL=${CASSANDRA_PREDICTION_URL} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
-    -e SPARK_CORES_MAX=${APP_PREDICTION_SPARK_CORES_MAX} \
+    -e SPARK_CORES_MAX=${PREDICTION_TRAINER_SPARK_CORES_MAX} \
     -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
     --network smartmeter \
     ${ON_MASTER_NODE} \
-    logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionProcessor\" \
+    logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionTrainer\" \
       \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
-      \"Smartmeter PREDICTION Streaming\" "
+      \"Smartmeter PREDICTION TRAINER\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
   eval $cmd
+}
 
-#    --replicas=${replicas} \
-#    --constraint 'node.role == manager' \
+create_service_prediction_oracle() {
+#docker ${remote} pull logimethods/smart-meter:app-streaming
+  cmd="docker ${remote} service create \
+    --name prediction_oracle \
+    -e NATS_URI=${NATS_URI} \
+    -e SPARK_MASTER_URL=${SPARK_LOCAL_URL} \
+    -e HDFS_URL=${HDFS_URL} \
+    -e CASSANDRA_URL=${CASSANDRA_PREDICTION_URL} \
+    -e STREAMING_DURATION=${STREAMING_DURATION} \
+    -e LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL} \
+    -e SPARK_CORES_MAX=${PREDICTION_ORACLE_SPARK_CORES_MAX} \
+    -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
+    --network smartmeter \
+    --mode global \
+    ${ON_WORKER_NODE} \
+    logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionOracle\" \
+      \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
+      \"Smartmeter PREDICTION ORACLE\" "
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 run_app_prediction() {
