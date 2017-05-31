@@ -169,8 +169,9 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
       }*/
     
     // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
+    // @See https://community.hortonworks.com/articles/72941/writing-parquet-on-hdfs-using-spark-streaming.html
     import org.apache.spark.rdd.RDD 
-    val predictions = forecasts.transform { (rdd: RDD[(Long, Float)]) =>
+    val predictions = forecasts.foreachRDD { (rdd: RDD[(Long, Float)]) => // foreachRDD
         val localModel = Oracle.getInstance(rdd.sparkContext)
         if (localModel.value == null) {
         	throw new RuntimeException("ERROR: The MultilayerPerceptronClassificationModel is not defined")
@@ -179,23 +180,36 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         val sqlContext = SQLContextSingleton.getInstance(rdd.sparkContext)
         import sqlContext.implicits._
 
-        rdd.map({case (epoch: Long, temperature: Float) =>    
+        val lists = rdd.map({case (epoch: Long, temperature: Float) =>    
  //          prediction(localModel.value: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) 
             val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
         		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
-        		val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
-        		
+        		List((hour, hourSin, hourCos, dayOfWeek, temperature))
+        		})
+        
+        //val rows = 
+        for (row <- lists.collect()) {
+          val dataFrame = row.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+          val entry = assembler.transform(dataFrame)
+        	val prediction = localModel.value.transform(entry).first.getDouble(6) > 0
+        	
+        	println(row, prediction)
+        }
+        
+///        val dataFrames = lists.toDF()
+//        log.debug(dataFrames.collect())
+///        dataFrames.rdd
  //       		SparkPredictionProcessorHelper.toDS()
 
-        		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
-        		val entry = assembler.transform(dataFrame)
+//        		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+/*        		val entry = assembler.transform(dataFrames)
         		val prediction = localModel.value.transform(entry).first.getDouble(6) > 0    
-        		(epoch, temperature, prediction)
-
-          })
-      }
-   
-    if (logLevel.contains("PREDICTIONS")) {
+        		(epoch, temperature, prediction)*/
+          }
+    
+//   predictions.print()
+    
+/*    if (logLevel.contains("PREDICTIONS")) {
       println("PREDICTIONS will be shown")
       predictions.print()
     }  
@@ -205,7 +219,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     SparkToNatsConnectorPool.newPool()
                             .withProperties(properties)
                             .withSubjects(outputSubject)
-                            .publishToNats(alerts) 
+                            .publishToNats(alerts) */
     
     // Start //
     println("Start Predictions")
@@ -317,17 +331,17 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
   
   /** Lazily instantiated singleton instance of SQLContext */
   // @See https://stackoverflow.com/questions/38833585/spark-streaming-can-not-do-the-todf-function
-  object SQLContextSingleton {
-    import org.apache.spark.sql.SQLContext
-    
-    @transient private var instance: SQLContext = null
-    // Instantiate SQLContext on demand
-    def getInstance(sc: SparkContext): SQLContext = synchronized {
-      if (instance == null) {
-        instance = new SQLContext(sc)
-      }
-      instance
-    }
-  }
-
+  // @See https://community.hortonworks.com/articles/72941/writing-parquet-on-hdfs-using-spark-streaming.html
+import org.apache.spark.sql.SQLContext
+object SQLContextSingleton {
+ 
+        @transient  private var instance: SQLContext = _
+ 
+        def getInstance(sparkContext: SparkContext): SQLContext = {
+                if (instance == null) {
+                        instance = new SQLContext(sparkContext)
+                }
+                instance
+        }
+}
 }
