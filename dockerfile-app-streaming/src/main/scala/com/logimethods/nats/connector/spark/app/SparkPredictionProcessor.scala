@@ -168,7 +168,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
           })
       }*/
 
-    // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
+/*    // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
     // @See https://community.hortonworks.com/articles/72941/writing-parquet-on-hdfs-using-spark-streaming.html
     import org.apache.spark.rdd.RDD 
     val predictions = forecasts.transform { (rdd: RDD[(Long, Float)]) => // foreachRDD
@@ -202,12 +202,46 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
  //       		SparkPredictionProcessorHelper.toDS()
 
 //        		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
-/*        		val entry = assembler.transform(dataFrames)
+        		val entry = assembler.transform(dataFrames)
         		val prediction = localModel.value.transform(entry).first.getDouble(6) > 0    
-        		(epoch, temperature, prediction)*/
-          }
+        		(epoch, temperature, prediction)
+          }*/
     
-   predictions.print()
+    val values = forecasts.map({case (epoch: Long, temperature: Float) =>    
+ //          prediction(localModel.value: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) 
+            import sqlContext.implicits._
+            
+            val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+        		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
+        		
+        		(hour, hourSin, hourCos, dayOfWeek, temperature)
+     })  
+
+     // https://stackoverflow.com/questions/39412346/apache-spark-convert-a-dstream-to-a-data-frame
+  import org.apache.spark.sql._
+  var dataFrames:DataFrame = null
+
+  import org.apache.spark.rdd.RDD 
+  values.foreachRDD {
+    (rdd: RDD[(Int, Double, Double, Int, Float)]) => {
+        val sqlContext = SQLContextSingleton.getInstance(rdd.sparkContext)
+        import sqlContext.implicits._
+
+      if (dataFrames != null) {
+      dataFrames = dataFrames.unionAll(rdd.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")) // combine previous dataframe
+    } else {
+      dataFrames = rdd.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature") // create new dataframe
+      }
+    }
+    }
+    
+		val entry = assembler.transform(dataFrames)
+		val predictions = model.transform(entry)   
+		
+        		
+//     values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+    
+  predictions.collect().map(log.warn(_))
     
 /*    if (logLevel.contains("PREDICTIONS")) {
       println("PREDICTIONS will be shown")
