@@ -43,7 +43,7 @@ source "configuration-mode-${cluster_mode}-debug.properties"
 
 stop_all() {
   docker ${remote} service rm $(docker ${remote} service ls -q)
-  docker ${remote} stop $(docker ${remote} ps | grep -v aws | cut -d ' ' -f 1)
+  docker ${remote} stop $(docker ${remote} ps | grep -v -e aws -e grafana| cut -d ' ' -f 1)
 }
 
 create_network() {
