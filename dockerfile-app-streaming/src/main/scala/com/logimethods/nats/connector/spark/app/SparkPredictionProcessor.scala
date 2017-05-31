@@ -180,7 +180,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         val sqlContext = SQLContextSingleton.getInstance(rdd.sparkContext)
         import sqlContext.implicits._
 
-        val predictions = rdd.map({case (epoch: Long, temperature: Float) =>    
+        val predictions = rdd.collect({case (epoch: Long, temperature: Float) =>    
  //          prediction(localModel.value: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) 
             val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
         		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
