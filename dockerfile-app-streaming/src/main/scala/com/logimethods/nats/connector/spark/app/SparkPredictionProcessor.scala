@@ -177,11 +177,12 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         	throw new RuntimeException("ERROR: The MultilayerPerceptronClassificationModel is not defined")
         }
         
-        val sqlContext = SQLContextSingleton.getInstance(rdd.sparkContext)
-        import sqlContext.implicits._
 
         val predictions = rdd.collect({case (epoch: Long, temperature: Float) =>    
  //          prediction(localModel.value: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) 
+            val sqlContext = SQLContextSingleton.getInstance(rdd.sparkContext)
+            import sqlContext.implicits._
+            
             val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
         		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
         		val row = List((hour, hourSin, hourCos, dayOfWeek, temperature))
