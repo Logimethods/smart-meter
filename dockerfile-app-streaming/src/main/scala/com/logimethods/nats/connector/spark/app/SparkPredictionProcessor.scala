@@ -171,7 +171,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
     // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
     // @See https://community.hortonworks.com/articles/72941/writing-parquet-on-hdfs-using-spark-streaming.html
     import org.apache.spark.rdd.RDD 
-    val predictions = forecasts.foreachRDD { (rdd: RDD[(Long, Float)]) => // foreachRDD
+    val predictions = forecasts.transform { (rdd: RDD[(Long, Float)]) => // foreachRDD
         val localModel = Oracle.getInstance(rdd.sparkContext)
         if (localModel.value == null) {
         	throw new RuntimeException("ERROR: The MultilayerPerceptronClassificationModel is not defined")
@@ -180,22 +180,18 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         val sqlContext = SQLContextSingleton.getInstance(rdd.sparkContext)
         import sqlContext.implicits._
 
-        val lists = rdd.map({case (epoch: Long, temperature: Float) =>    
+        val predictions = rdd.collect().map({case (epoch: Long, temperature: Float) =>    
  //          prediction(localModel.value: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) 
             val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
         		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
-        		List((hour, hourSin, hourCos, dayOfWeek, temperature))
+        		val row = List((hour, hourSin, hourCos, dayOfWeek, temperature))
+            val dataFrame = row.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+            val entry = assembler.transform(dataFrame)
+          	val prediction = localModel.value.transform(entry).first.getDouble(6) > 0
+        		
         		})
         
-        //val rows = 
-        for (row <- lists.collect()) {
-          val dataFrame = row.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
-          val entry = assembler.transform(dataFrame)
-        	val prediction = localModel.value.transform(entry).first.getDouble(6) > 0
-        	
-        	println(row, prediction)
-        }
-        
+        rdd.sparkContext.parallelize(predictions)
 ///        val dataFrames = lists.toDF()
 //        log.debug(dataFrames.collect())
 ///        dataFrames.rdd
@@ -207,7 +203,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         		(epoch, temperature, prediction)*/
           }
     
-//   predictions.print()
+   predictions.print()
     
 /*    if (logLevel.contains("PREDICTIONS")) {
       println("PREDICTIONS will be shown")
