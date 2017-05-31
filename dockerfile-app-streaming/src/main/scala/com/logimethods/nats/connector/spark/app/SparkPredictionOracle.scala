@@ -8,6 +8,8 @@
 
 package com.logimethods.nats.connector.spark.app
 
+import java.time.Instant
+
 import java.util.Properties;
 import java.io.File
 import java.io.Serializable
@@ -40,16 +42,26 @@ object SparkPredictionOracle extends App with SparkPredictionProcessor {
   log.setLevel(Level.WARN)
 
   val (properties, targets, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
-  
+
+  val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
+  val refreshInterval = 4 * streamingDuration
+  println("STREAMING_DURATION = " + streamingDuration)
+
   // @See https://github.com/tyagihas/scala_nats
   import java.util.Properties
   import org.nats._
 
+  var deadline = Instant.now.plusMillis(refreshInterval)
+  
   val opts : Properties = new Properties
   opts.put("servers", natsUrl);
   val conn = Conn.connect(opts)
   conn.subscribe(inputSubject, 
       (msg:MsgB)  => {
+        if (Instant.now.isAfter(deadline)) {
+          deadline = Instant.now.plusMillis(refreshInterval)
+          Oracle.reset(sc)
+        }
         val buffer = ByteBuffer.wrap(msg.body);
         val epoch = buffer.getLong()
         val temperature = buffer.getFloat()
@@ -93,7 +105,8 @@ object SparkPredictionOracle extends App with SparkPredictionProcessor {
   // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
   import org.apache.spark.broadcast.Broadcast
   object Oracle {
-  
+    import java.lang.Runnable
+ 
     @volatile private var instance: Broadcast[MultilayerPerceptronClassificationModel] = null
   
     def getInstance(sc: SparkContext): Broadcast[MultilayerPerceptronClassificationModel] = {
@@ -101,12 +114,28 @@ object SparkPredictionOracle extends App with SparkPredictionProcessor {
         synchronized {
           if (instance == null) {
             val oracle = MultilayerPerceptronClassificationModel.load(PREDICTION_MODEL_PATH)
-            log.debug("MultilayerPerceptronClassificationModel loaded")
+            println("MultilayerPerceptronClassificationModel loaded: " + oracle.uid)
             instance = sc.broadcast(oracle)
           }
         }
       }
       instance
+    }
+    
+    def reset(sc: SparkContext) {
+      new Thread(new Runnable {
+        def run() {
+          synchronized {
+            try {
+              val oracle = MultilayerPerceptronClassificationModel.load(PREDICTION_MODEL_PATH)
+              println("MultilayerPerceptronClassificationModel loaded: " + oracle.uid)
+              instance = sc.broadcast(oracle)
+            } catch {
+              case e: Throwable => e.printStackTrace
+            }
+          }
+        }
+      })start()
     }
 }
 

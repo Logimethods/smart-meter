@@ -51,7 +51,7 @@ object SparkPredictionTrainer extends App with SparkPredictionProcessor {
                      val data = SparkPredictionProcessor.getData(sc, THRESHOLD)
                      val model = trainer.fit(data)
                      model.write.overwrite.save(PREDICTION_MODEL_PATH)
-                     println("New model of size " + data.count() + " trained")
+                     println("New model of size " + data.count() + " trained: " + model.uid)
                      Thread.sleep(streamingDuration)
 //                   } catch {
 //                     case e: Throwable => log.error(e)

@@ -57,7 +57,7 @@ trait SparkPredictionProcessor extends SparkProcessor {
   
 }
 
-object SparkPredictionProcessor /*extends SparkPredictionProcessor*/ {
+object SparkPredictionProcessor {
   // http://stackoverflow.com/questions/33844591/prepare-data-for-multilayerperceptronclassifier-in-scala
   import java.time.{LocalDateTime, ZoneOffset}
   import scala.math._
