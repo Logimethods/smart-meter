@@ -167,7 +167,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         		(epoch, temperature, prediction)
           })
       }*/
-    
+
     // @See https://spark.apache.org/docs/2.1.0/streaming-programming-guide.html#accumulators-broadcast-variables-and-checkpoints
     // @See https://community.hortonworks.com/articles/72941/writing-parquet-on-hdfs-using-spark-streaming.html
     import org.apache.spark.rdd.RDD 
@@ -180,7 +180,7 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         val sqlContext = SQLContextSingleton.getInstance(rdd.sparkContext)
         import sqlContext.implicits._
 
-        val predictions = rdd.collect().map({case (epoch: Long, temperature: Float) =>    
+        val predictions = rdd.map({case (epoch: Long, temperature: Float) =>    
  //          prediction(localModel.value: MultilayerPerceptronClassificationModel, epoch: Long, temperature: Float) 
             val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
         		val (hour, hourSin, hourCos, dayOfWeek) = extractDateComponents(date)
@@ -191,7 +191,9 @@ object SparkPredictionProcessor extends App with SparkStreamingProcessor {
         		
         		})
         
-        rdd.sparkContext.parallelize(predictions)
+//        rdd.sparkContext.parallelize(predictions)
+        
+        predictions
 ///        val dataFrames = lists.toDF()
 //        log.debug(dataFrames.collect())
 ///        dataFrames.rdd
