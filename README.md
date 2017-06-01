@@ -118,6 +118,8 @@ Test set accuracy = 0.9642857142857143
 
 ![grafana-predictions_screenshot.png](images/grafana-predictions_screenshot.png "Grafana Predictions Screenshot")
 
+The generated ML Models are stored in HDFS (on port `50070`): [Browsing HDFS](http://localhost:50070/explorer.html#/smartmeter/voltage_prediction.model/)
+
 ## Additional Metrics
 
 ### NATS Metrics
