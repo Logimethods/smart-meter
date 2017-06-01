@@ -150,7 +150,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": false,
+            "show": true,
             "total": false,
             "values": false
           },
@@ -168,6 +168,7 @@
           "steppedLine": false,
           "targets": [
             {
+              "alias": "max_voltage",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -207,6 +208,7 @@
               "tags": []
             },
             {
+              "alias": "prediction",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -417,7 +419,7 @@
           "links": [],
           "nullPointMode": "null",
           "percentage": false,
-          "pointradius": 3,
+          "pointradius": 1,
           "points": true,
           "renderer": "flot",
           "seriesOverrides": [],
@@ -842,5 +844,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage - swarm",
-  "version": 16
+  "version": 20
 }

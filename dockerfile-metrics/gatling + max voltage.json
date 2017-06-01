@@ -156,7 +156,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": false,
+            "show": true,
             "total": false,
             "values": false
           },
@@ -174,6 +174,7 @@
           "steppedLine": false,
           "targets": [
             {
+              "alias": "max_voltage",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -212,6 +213,7 @@
               "tags": []
             },
             {
+              "alias": "prediction",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -693,9 +695,9 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null",
           "percentage": false,
-          "pointradius": 5,
+          "pointradius": 1,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
@@ -703,6 +705,43 @@
           "stack": false,
           "steppedLine": false,
           "targets": [
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "none"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "hide": false,
+              "measurement": "temperature",
+              "policy": "default",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "temperature"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "last"
+                  }
+                ]
+              ],
+              "tags": []
+            },
             {
               "dsType": "influxdb",
               "groupBy": [
@@ -740,42 +779,6 @@
               ],
               "tags": [],
               "target": "prediction.temperature"
-            },
-            {
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "$interval"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
-                }
-              ],
-              "measurement": "temperature",
-              "policy": "default",
-              "refId": "B",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "temperature"
-                    ],
-                    "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "median"
-                  }
-                ]
-              ],
-              "tags": []
             }
           ],
           "thresholds": [],
@@ -1210,5 +1213,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 23
+  "version": 31
 }
