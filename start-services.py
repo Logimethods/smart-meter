@@ -220,8 +220,7 @@ def run_inject():
 		create_cassandra_tables,
 		create_service_cassandra_inject,
 		create_service_app_streaming,
-##		create_service_app_prediction,
-	##	["run", "app_prediction"],
+		create_service_prediction_trainer,
 		["run", "telegraf", "max_voltage"],
 		["run", "telegraf", "temperature"],
 		["run", "telegraf", "prediction"],
@@ -232,8 +231,9 @@ def run_inject():
 		["run", "prometheus_nats_exporter"],
 #		["run", "telegraf", "cassandra_count"],
 #		["wait", "service", "cassandra-inject"],
+		create_service_prediction_oracle,
 		create_service_inject,
-		["run", "app_prediction"]
+#		["run", "app_prediction"]
 #		["run", "inject", "2"],
 #		["logs", "service", "cassandra-inject-local"],
 		])

@@ -104,24 +104,29 @@ object SparkPredictionOracle extends App with SparkPredictionProcessor {
   
       
   def prediction(sc: SparkContext, epoch: Long, temperature: Float): Option[Boolean] = {
-		val localModel = Oracle.getInstance(sc).value
-		if (localModel == null) {
-		  log.warn("No Prediciton Model Available")
-		  return None
-		}
-		
-    val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
-		val (hour, hourSin, hourCos, dayOfWeek) = SparkPredictionProcessor.extractDateComponents(date)
-		val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
-		
-  // @See https://spark.apache.org/docs/2.1.0/api/java/org/apache/spark/sql/SQLContext.implicits$.html
-    val sqlContext = SQLContextSingleton.getInstance(sc)
-    import sqlContext.implicits._
-		
-		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
-		val entry = SparkPredictionProcessor.assembler.transform(dataFrame)
-		
-		Some(localModel.transform(entry).first.getDouble(6) > 0)      
+    try {
+  		val localModel = Oracle.getInstance(sc).value
+  		if (localModel == null) {
+  		  log.warn("No Prediciton Model Available")
+  		  return None
+  		}
+  		
+      val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+  		val (hour, hourSin, hourCos, dayOfWeek) = SparkPredictionProcessor.extractDateComponents(date)
+  		val values = List((hour, hourSin, hourCos, dayOfWeek, temperature))
+  		
+    // @See https://spark.apache.org/docs/2.1.0/api/java/org/apache/spark/sql/SQLContext.implicits$.html
+      val sqlContext = SQLContextSingleton.getInstance(sc)
+      import sqlContext.implicits._
+  		
+  		val dataFrame = values.toDF("hour", "hourSin", "hourCos", "dayOfWeek", "temperature")
+  		val entry = SparkPredictionProcessor.assembler.transform(dataFrame)
+  		
+  		Some(localModel.transform(entry).first.getDouble(6) > 0)
+    } catch {
+      case e: Throwable => if (log.isDebugEnabled()) e.printStackTrace
+                           return None
+    }
   }
 
   def predictionMessage(epoch: Long, temperature: Float) = {
@@ -158,7 +163,7 @@ object SparkPredictionOracle extends App with SparkPredictionProcessor {
               println("MultilayerPerceptronClassificationModel loaded: " + oracle.uid)
               instance = sc.broadcast(oracle)
             } catch {
-              case e: Throwable => e.printStackTrace
+              case e: Throwable => if (log.isDebugEnabled()) e.printStackTrace
             }
           }
         }
