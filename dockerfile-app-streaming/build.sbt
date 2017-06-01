@@ -59,7 +59,7 @@ libraryDependencies += "org.apache.spark" %% "spark-mllib" % sparkVersion.value
 libraryDependencies += "com.logimethods"  %% "nats-connector-spark-scala" % natsConnectorSparkVersion.value changing()
 libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion.value % "provided"
 libraryDependencies += "com.datastax.spark" %% "spark-cassandra-connector" % sparkCassandraConnectorVersion.value
-libraryDependencies += "com.github.tyagihas" % "scala_nats_2.11" % "0.3.0"
+// libraryDependencies += "com.github.tyagihas" % "scala_nats_2.11" % "0.3.0"
 
 // @see http://stackoverflow.com/questions/30446984/spark-sbt-assembly-deduplicate-different-file-contents-found-in-the-followi
 assemblyMergeStrategy in assembly := {

@@ -47,12 +47,12 @@ object SparkPredictionOracle extends App with SparkPredictionProcessor {
   val refreshInterval = 4 * streamingDuration
   println("STREAMING_DURATION = " + streamingDuration)
 
-  // @See https://github.com/tyagihas/scala_nats
   import java.util.Properties
-  import org.nats._
 
   var deadline = Instant.now.plusMillis(refreshInterval)
   
+/*  // @See https://github.com/tyagihas/scala_nats
+  import import io.nats.client._
   val opts : Properties = new Properties
   opts.put("servers", natsUrl);
   val conn = Conn.connect(opts)
@@ -74,8 +74,35 @@ object SparkPredictionOracle extends App with SparkPredictionProcessor {
             conn.publish(outputSubject, message)
           case _ =>
         }       
-      })
-    
+      })*/
+  
+  // @See https://github.com/nats-io/java-nats/blob/0.7.3/README.md
+  import io.nats.client._
+  
+  val connectionFactory = new ConnectionFactory(natsUrl)
+  val conn = connectionFactory.createConnection()
+  
+  conn.subscribe(inputSubject, "smartmeter_oracle", new MessageHandler {
+	    override def onMessage(msg: Message) {
+        if (Instant.now.isAfter(deadline)) {
+          deadline = Instant.now.plusMillis(refreshInterval)
+          Oracle.reset(sc)
+        }       
+        val buffer = ByteBuffer.wrap(msg.getData())
+        val epoch = buffer.getLong()
+        val temperature = buffer.getFloat()
+        
+//        val date = LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN)
+//        log.trace("Received a message on [" + msg.subject + "] : " + date + " / " + temperature)
+        prediction(sc, epoch: Long, temperature: Float) match {
+          case Some(true) =>
+            val message = predictionMessage(epoch, temperature)
+            conn.publish(outputSubject, message.getBytes)
+          case _ =>
+        }
+	    }})
+  
+      
   def prediction(sc: SparkContext, epoch: Long, temperature: Float): Option[Boolean] = {
 		val localModel = Oracle.getInstance(sc).value
 		if (localModel == null) {
