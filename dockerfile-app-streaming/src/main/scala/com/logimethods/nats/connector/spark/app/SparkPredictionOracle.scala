@@ -55,6 +55,7 @@ object SparkPredictionOracle extends App with SparkPredictionProcessor {
   import import io.nats.client._
   val opts : Properties = new Properties
   opts.put("servers", natsUrl);
+  opts.put("queue", "smartmeter_oracle");  
   val conn = Conn.connect(opts)
   conn.subscribe(inputSubject, 
       (msg:MsgB)  => {
