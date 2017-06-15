@@ -7,7 +7,7 @@ if [ ! -f "tmp_value.lock" ]
 then
   echo $(date) >> tmp_value.lock
 
-  values=$( /nodetool/dsc-cassandra-3.0.9/bin/nodetool -h ${DOCKER_TARGET_ID} -u cassandra -pw ${JMX_PASSWORD} cfstats ${TELEGRAF_CASSANDRA_TABLE} | grep "$TELEGRAF_CASSANDRA_GREP" | rev | cut -d ' ' -f 1 | rev )
+  values=$( /nodetool/dsc-cassandra-3.0.9/bin/nodetool -h ${DOCKER_TARGET_NAME} -u cassandra -pw ${JMX_PASSWORD} cfstats ${TELEGRAF_CASSANDRA_TABLE} | grep "$TELEGRAF_CASSANDRA_GREP" | rev | cut -d ' ' -f 1 | rev )
 
   total=0
   IFS=$'\n'

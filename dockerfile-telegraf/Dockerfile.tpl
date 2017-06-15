@@ -5,7 +5,7 @@ RUN echo '@edge http://nl.alpinelinux.org/alpine/edge/main' >> /etc/apk/reposito
   && echo '@community http://nl.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
   && apk update \
   && apk upgrade \
-  && apk add openjdk8-jre-base@community \
+  && apk add openjdk8-jre-base@community jq bash \
   && rm -rf /var/cache/apk/*
 
 # http://dba.stackexchange.com/questions/68332/how-can-i-get-nodetool-without-cassandra
@@ -18,6 +18,7 @@ RUN cd /nodetool && \
 
 VOLUME ["/etc/telegraf/"]
 
+COPY eureka_utils.sh /eureka_utils.sh
 COPY entrypoint.sh /entrypoint.sh
 
 COPY script/ /etc/telegraf/

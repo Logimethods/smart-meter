@@ -201,7 +201,7 @@ def run_inject():
 	run([
 		create_network,
 		["create_service", "visualizer", 1],
-		["create_service", "registry", 1],
+		["create_service", "eureka", 1],
 		run_metrics,
 ###		["create_volume", "cassandra"],
 #		rm_service_inject,
@@ -242,7 +242,7 @@ def run_inject_aws():
 	run([
 		create_network,
 		["create_service", "visualizer", 1],
-		["create_service", "registry", 1],
+		["create_service", "eureka", 1],
 		run_metrics,
 		["create_service", "hadoop", 1],
 		["create_volume", "cassandra"],

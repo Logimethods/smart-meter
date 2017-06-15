@@ -36,6 +36,7 @@ docker build -t logimethods/smart-meter:cassandra-local .
 popd
 
 pushd dockerfile-telegraf
+cp ../../docker-eureka/entrypoint/eureka_utils.sh .
 docker build -t logimethods/smart-meter:telegraf-local .
 popd
 

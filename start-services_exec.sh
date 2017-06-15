@@ -606,15 +606,15 @@ create_service_prometheus_nats_exporter() {
   eval "$cmd"
 }
 
-create_service_registry() {
+create_service_eureka() {
   cmd="docker ${remote} service create \
-    --name registry \
+    --name eureka \
     --network smartmeter \
     ${ON_MASTER_NODE} \
     --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
     -e FLASK_DEBUG=${FLASK_DEBUG} \
     -p ${FLASK_PORT}:5000 \
-    logimethods/service-registry${postfix}"
+    logimethods/eureka${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
