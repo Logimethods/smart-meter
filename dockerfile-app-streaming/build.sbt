@@ -9,7 +9,7 @@ import java.util.Properties
 val appProperties = settingKey[Properties]("The application properties")
 appProperties := {
   val prop = new Properties()
-  IO.load(prop, new File("../configuration.properties"))
+  IO.load(prop, new File("../properties/configuration.properties"))
   prop
 }
 
