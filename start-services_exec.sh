@@ -35,11 +35,11 @@ shift $shift_nb
 
 # source the properties:
 # https://coderanch.com/t/419731/read-properties-file-script
-source configuration.properties
-source "configuration-location-${location}.properties"
-source "configuration-location-${location}-debug.properties"
-source "configuration-mode-${cluster_mode}.properties"
-source "configuration-mode-${cluster_mode}-debug.properties"
+source properties/configuration.properties
+source "properties/configuration-location-${location}.properties"
+source "properties/configuration-location-${location}-debug.properties"
+source "properties/configuration-mode-${cluster_mode}.properties"
+source "properties/configuration-mode-${cluster_mode}-debug.properties"
 
 stop_all() {
   docker ${remote} service rm $(docker ${remote} service ls -q)
@@ -625,9 +625,9 @@ run_telegraf() {
    #if [ "$@" == "docker" ]
   #   then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
    #fi
-   source configuration-telegraf.properties
-   source configuration-telegraf-$@.properties
-   source configuration-telegraf-debug.properties
+   source properties/configuration-telegraf.properties
+   source properties/configuration-telegraf-$@.properties
+   source properties/configuration-telegraf-debug.properties
 
    DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
 
@@ -654,9 +654,9 @@ run_telegraf() {
 }
 
 create_service_telegraf() {
-  source configuration-telegraf.properties
-  source configuration-telegraf-$@.properties
-  source configuration-telegraf-debug.properties
+  source properties/configuration-telegraf.properties
+  source properties/configuration-telegraf-$@.properties
+  source properties/configuration-telegraf-debug.properties
 
   DOCKER_ACCES="--mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
 
