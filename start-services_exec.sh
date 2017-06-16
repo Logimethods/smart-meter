@@ -237,11 +237,14 @@ create_service_nats() {
       --name $NATS_NAME \
       --network smartmeter \
       ${ON_MASTER_NODE} \
+      ${EUREKA_WAITER_PARAMS} \
+      -e READY_WHEN="Server is ready"
       -e NATS_USERNAME=${NATS_USERNAME} \
       -e NATS_PASSWORD=${NATS_PASSWORD} \
       -p 4222:4222 \
       -p 8222:8222 \
-      logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222"
+      logimethods/smart-meter:nats-server${postfix} \
+      -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -252,9 +255,12 @@ create_service_nats() {
       --network smartmeter \
       --mode global \
       ${ON_WORKER_NODE} \
+      ${EUREKA_WAITER_PARAMS} \
+      -e READY_WHEN="Server is ready" \
       -e NATS_USERNAME=${NATS_USERNAME} \
       -e NATS_PASSWORD=${NATS_PASSWORD} \
-      logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222"
+      logimethods/smart-meter:nats-server${postfix} \
+      -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
