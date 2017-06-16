@@ -237,8 +237,8 @@ create_service_nats() {
       --name $NATS_NAME \
       --network smartmeter \
       ${ON_MASTER_NODE} \
-      ${EUREKA_WAITER_PARAMS} \
-      -e READY_WHEN="Server is ready"
+      ${EUREKA_WAITER_PARAMS_SERVICE} \
+      -e READY_WHEN=\"Server is ready\" \
       -e NATS_USERNAME=${NATS_USERNAME} \
       -e NATS_PASSWORD=${NATS_PASSWORD} \
       -p 4222:4222 \
@@ -255,8 +255,8 @@ create_service_nats() {
       --network smartmeter \
       --mode global \
       ${ON_WORKER_NODE} \
-      ${EUREKA_WAITER_PARAMS} \
-      -e READY_WHEN="Server is ready" \
+      ${EUREKA_WAITER_PARAMS_SERVICE} \
+      -e READY_WHEN=\"Server is ready\" \
       -e NATS_USERNAME=${NATS_USERNAME} \
       -e NATS_PASSWORD=${NATS_PASSWORD} \
       logimethods/smart-meter:nats-server${postfix} \
@@ -271,6 +271,7 @@ create_service_nats_single() {
   cmd="docker ${remote} service create \
     --name $NATS_NAME \
     --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SINGLE} \
     -e NATS_USERNAME=${NATS_USERNAME} \
     -e NATS_PASSWORD=${NATS_PASSWORD} \
     -p 4222:4222 \
@@ -429,6 +430,7 @@ create_service_cassandra-inject() {
     --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
+    -e WAIT_FOR=${NATS_NAME} \
     -e NATS_URI=${NATS_URI} \
     -e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
     -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
