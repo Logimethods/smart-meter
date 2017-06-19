@@ -1,3 +1,10 @@
+# https://docs.docker.com/engine/userguide/eng-image/multistage-build/#use-multi-stage-builds
+# https://github.com/Logimethods/docker-eureka
+FROM logimethods/eureka:entrypoint as entrypoint
+#FROM entrypoint_exp as entrypoint
+
+### MAIN FROM ###
+
 # https://hub.docker.com/_/cassandra/
 FROM cassandra:${cassandra_version}
 
@@ -20,5 +27,14 @@ COPY /cql /cql
 # https://support.datastax.com/hc/en-us/articles/204226179-Step-by-step-instructions-for-securing-JMX-authentication-for-nodetool-utility-OpsCenter-and-JConsole
 COPY ./jmxremote.password /etc/cassandra/jmxremote.password
 RUN chown cassandra:cassandra /etc/cassandra/jmxremote.password && \
-    chmod 400 /etc/cassandra/jmxremote.password&& \
+    chmod 400 /etc/cassandra/jmxremote.password && \
     echo "cassandra readwrite" >> /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/management/jmxremote.access
+
+### EUREKA ###
+
+COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
+COPY merged_entrypoint.sh /merged_entrypoint.sh
+RUN chmod +x /merged_entrypoint.sh
+ENTRYPOINT ["/merged_entrypoint.sh"]
+
+ENV READY_WHEN="Created default superuser role"

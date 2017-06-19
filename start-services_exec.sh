@@ -118,12 +118,16 @@ create_service_cassandra_single() {
   # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
   # https://github.com/Yannael/kafka-sparkstreaming-cassandra-swarm/blob/master/service-management/start-cassandra-services.sh
 
-  docker ${remote} service create \
+  cmd="docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
-    logimethods/smart-meter:cassandra${postfix}
+    logimethods/smart-meter:cassandra${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 create_service_cassandra() {
@@ -430,7 +434,7 @@ create_service_cassandra-inject() {
     --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
-    -e WAIT_FOR=${NATS_NAME} \
+    -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_URI=${NATS_URI} \
     -e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
     -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
