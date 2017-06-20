@@ -89,7 +89,8 @@ kill_cluster_cassandra() {
 docker-compose ${remote} -f docker-cassandra-compose.yml down
 }
 
-call_cassandra_cql() {
+# Deprecated
+__call_cassandra_cql() {
   until docker ${remote} exec -it $(docker ${remote} ps | grep "${CASSANDRA_MAIN_NAME}" | rev | cut -d' ' -f1 | rev) cqlsh -e \
       "CREATE KEYSPACE IF NOT EXISTS $CASSANDRA_KEYSPACE_NAME WITH REPLICATION = $CASSANDRA_KEYSPACE_REPLICATION"; do
     echo "Try again to create keyspace"; sleep 4;
@@ -105,6 +106,7 @@ run_cassandra() {
     ${EUREKA_WAITER_PARAMS_RUN} \
     -p 8778:8778 \
     -e LOCAL_JMX=no \
+    -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
     -v cassandra-volume-1:/var/lib/cassandra \
     logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
@@ -125,6 +127,7 @@ create_service_cassandra_single() {
     ${EUREKA_WAITER_PARAMS_SERVICE} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
+    -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
     logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -144,6 +147,7 @@ create_service_cassandra() {
     ${EUREKA_WAITER_PARAMS_SERVICE} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
+    -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
     logimethods/smart-meter:cassandra${postfix}
 
   #Need to sleep a bit so IP can be retrieved below

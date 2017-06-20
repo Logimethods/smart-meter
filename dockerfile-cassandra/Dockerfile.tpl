@@ -33,6 +33,7 @@ RUN chown cassandra:cassandra /etc/cassandra/jmxremote.password && \
 ### EUREKA ###
 
 COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
+COPY entrypoint_finalize.sh /entrypoint_finalize.sh
 COPY merged_entrypoint.sh /merged_entrypoint.sh
 RUN chmod +x /merged_entrypoint.sh
 ENTRYPOINT ["/merged_entrypoint.sh"]
