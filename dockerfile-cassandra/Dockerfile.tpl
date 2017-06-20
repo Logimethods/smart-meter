@@ -1,7 +1,7 @@
 # https://docs.docker.com/engine/userguide/eng-image/multistage-build/#use-multi-stage-builds
 # https://github.com/Logimethods/docker-eureka
-FROM logimethods/eureka:entrypoint as entrypoint
-#FROM entrypoint_exp as entrypoint
+#FROM logimethods/eureka:entrypoint as entrypoint
+FROM entrypoint_exp as entrypoint
 
 ### MAIN FROM ###
 
@@ -38,3 +38,6 @@ RUN chmod +x /merged_entrypoint.sh
 ENTRYPOINT ["/merged_entrypoint.sh"]
 
 ENV READY_WHEN="Created default superuser role"
+
+## !!! Looks like the multi-stage build forgot the CMD !!!
+CMD ["cassandra", "-f"]

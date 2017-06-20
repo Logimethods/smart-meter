@@ -102,6 +102,7 @@ run_cassandra() {
   cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_RUN} \
     -p 8778:8778 \
     -e LOCAL_JMX=no \
     -v cassandra-volume-1:/var/lib/cassandra \
@@ -121,6 +122,7 @@ create_service_cassandra_single() {
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
     logimethods/smart-meter:cassandra${postfix}"
@@ -139,6 +141,7 @@ create_service_cassandra() {
   docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
     logimethods/smart-meter:cassandra${postfix}
@@ -155,6 +158,7 @@ create_service_cassandra() {
   docker ${remote} service create \
     --name ${CASSANDRA_NODE_NAME} \
     --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     --mode global \
     ${ON_WORKER_NODE} \
     -e LOCAL_JMX=no \
@@ -169,6 +173,7 @@ create_full_service_cassandra() {
 docker ${remote} service create \
   --name ${CASSANDRA_MAIN_NAME} \
   --network smartmeter \
+  ${EUREKA_WAITER_PARAMS_SERVICE} \
   --mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
   ${ON_MASTER_NODE} \
   -e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
@@ -275,7 +280,7 @@ create_service_nats_single() {
   cmd="docker ${remote} service create \
     --name $NATS_NAME \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SINGLE} \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e NATS_USERNAME=${NATS_USERNAME} \
     -e NATS_PASSWORD=${NATS_PASSWORD} \
     -p 4222:4222 \

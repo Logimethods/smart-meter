@@ -3,8 +3,8 @@ FROM nats as nats
 
 ### MAIN FROM ###
 
-FROM logimethods/eureka:entrypoint
-#FROM entrypoint_exp
+#FROM logimethods/eureka:entrypoint
+FROM entrypoint_exp
 
 # http://nats.io/documentation/server/gnatsd-config/
 COPY --from=nats gnatsd /gnatsd
@@ -15,3 +15,5 @@ EXPOSE 4222 8222 6222
 
 ENTRYPOINT ["/entrypoint.sh", "/gnatsd"]
 CMD ["-c", "gnatsd.conf"]
+
+ENV READY_WHEN="Server is ready"
