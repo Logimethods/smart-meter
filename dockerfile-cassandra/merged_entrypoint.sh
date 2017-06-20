@@ -3,28 +3,8 @@ set -e
 
 #### EUREKA ###
 
-source /eureka_utils.sh
-
 if [ $(whoami) = 'root' ]; then
-  # Interval between checks if the process is still alive.
-  declare -i interval=CHECK_DEPENDENCIES_INTERVAL
-  # Delay between posting the SIGTERM signal and destroying the process by SIGKILL.
-  declare -i delay=CHECK_KILL_DELAY
-
-  #### Continuous Checks ####
-
-  if [ -n "${FAILED_WHEN}" ]; then
-    declare READINESS=true
-  else
-    declare READINESS="null"
-  fi
-
-  if [ -n "${READY_WHEN}" ]; then
-    declare ready=false
-    desable_ping
-  else
-    declare ready=$READINESS
-  fi
+  source /eureka_utils.sh
 
   cmdpid=$BASHPID;
   setup_local_containers ;
