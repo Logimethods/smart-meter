@@ -576,7 +576,7 @@ run_metrics_grafana() {
 
 create_service_influxdb() {
   cmd="docker ${remote} service create \
-    --name influxdb \
+    --name ${INFLUXDB_NAME} \
     --network smartmeter \
     ${ON_MASTER_NODE} \
     -e INFLUXDB_ADMIN_ENABLED=true \
@@ -660,6 +660,7 @@ run_telegraf() {
      -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
      -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
      -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+     -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
      ${DOCKER_ACCES} \
      --log-driver=json-file \
      logimethods/smart-meter:telegraf${postfix}\
@@ -696,6 +697,7 @@ create_service_telegraf() {
     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+    -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
     ${DOCKER_ACCES} \
     --mode global \
     logimethods/smart-meter:telegraf${postfix}\

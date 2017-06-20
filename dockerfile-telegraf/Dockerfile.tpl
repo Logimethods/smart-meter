@@ -1,3 +1,10 @@
+# https://docs.docker.com/engine/userguide/eng-image/multistage-build/#use-multi-stage-builds
+# https://github.com/Logimethods/docker-eureka
+#FROM logimethods/eureka:entrypoint as entrypoint
+FROM entrypoint_exp as entrypoint
+
+### MAIN FROM ###
+
 FROM telegraf:${telegraf_version}
 
 # https://github.com/iron-io/dockers/blob/master/java/java-1.8/Dockerfile
@@ -18,8 +25,10 @@ RUN cd /nodetool && \
 
 VOLUME ["/etc/telegraf/"]
 
-COPY eureka_utils.sh /eureka_utils.sh
-COPY entrypoint.sh /entrypoint.sh
+COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
+COPY --from=entrypoint entrypoint.sh /entrypoint.sh
+COPY entrypoint_insert.sh /entrypoint_insert.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 COPY script/ /etc/telegraf/
 RUN chmod +x /etc/telegraf/*.sh
