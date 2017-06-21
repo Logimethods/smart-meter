@@ -299,6 +299,7 @@ create_service_nats_single() {
 create_service_app_streaming() {
   cmd="docker ${remote} service create \
     --name app_streaming \
+    -e WAIT_FOR=\"${NATS_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
@@ -323,6 +324,7 @@ create_service_prediction_trainer() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name prediction_trainer \
+    -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e HDFS_URL=${HDFS_URL} \
@@ -346,6 +348,7 @@ create_service_prediction_oracle() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name prediction_oracle \
+    -e WAIT_FOR=\"${NATS_NAME},${HADOOP_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_LOCAL_URL} \
     -e HDFS_URL=${HDFS_URL} \

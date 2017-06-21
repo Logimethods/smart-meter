@@ -1,2 +1,5 @@
 
-#POST
+COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
+COPY --from=entrypoint entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
