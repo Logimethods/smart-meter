@@ -238,6 +238,30 @@ def run_inject():
 #		["logs", "service", "cassandra-inject-local"],
 		])
 
+
+def run_inject_eureka():
+	run([
+		create_network,
+		["create_service", "eureka", 1],
+		["create_service", "visualizer", 1],
+		run_metrics,
+		["create_service", "hadoop", 1],
+		create_service_cassandra_inject,
+		["create_service", "cassandra_single", 1],
+		["create_service", "nats_single", 1],
+		create_service_app_streaming,
+		create_service_prediction_trainer,
+		["run", "telegraf", "max_voltage"],
+		["run", "telegraf", "temperature"],
+		["run", "telegraf", "prediction"],
+		["run", "telegraf", "docker"],
+		["run", "telegraf", "cassandra_write_count"],
+		["create_service_telegraf", "cassandra"],
+		["run", "prometheus_nats_exporter"],
+		create_service_prediction_oracle,
+		create_service_inject,
+		])
+
 def run_inject_aws():
 	run([
 		create_network,

@@ -33,7 +33,6 @@ build:
           pushd target/docker
           mv Dockerfile Dockerfile_middle
           cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
-          docker build -t logimethods/smart-meter:app-streaming-local .
           popd
           popd
     - script:
@@ -53,6 +52,10 @@ build:
           sbt clean assembly dockerFileTask
           rm -Rf ./docker
           mv target/docker .
+          pushd target/docker
+          mv Dockerfile Dockerfile_middle
+          cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
+          popd
           popd
     - script:
         name: build MONITOR dockerfile

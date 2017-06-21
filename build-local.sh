@@ -3,9 +3,15 @@
 . set_properties_to_dockerfile_templates.sh
 
 pushd dockerfile-inject
-sbt update
-sbt test docker
-sbt eclipse
+#sbt update
+#sbt test docker
+#sbt eclipse
+sbt clean assembly dockerFileTask
+pushd target/docker
+mv Dockerfile Dockerfile_middle
+cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
+docker build -t logimethods/smart-meter:inject-local .
+popd
 popd
 
 pushd dockerfile-app-streaming

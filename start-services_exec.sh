@@ -159,6 +159,7 @@ create_service_cassandra() {
   export CASSANDRA_SEED="$(docker ${remote} ps |grep ${CASSANDRA_MAIN_NAME}|cut -d ' ' -f 1)"
   echo "CASSANDRA_SEED: $CASSANDRA_SEED"
 
+  ## TODO Check EUREKA
   docker ${remote} service create \
     --name ${CASSANDRA_NODE_NAME} \
     --network smartmeter \
@@ -188,6 +189,7 @@ docker ${remote} service create \
 }
 
 create_service_hadoop() {
+  # READY_WHEN="\'starting nodemanager\""
   cmd="docker ${remote} service create \
     --name ${HADOOP_NAME} \
     --network smartmeter \
@@ -299,7 +301,7 @@ create_service_nats_single() {
 create_service_app_streaming() {
   cmd="docker ${remote} service create \
     --name app_streaming \
-    -e WAIT_FOR=\"${NATS_NAME}\" \
+    -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
@@ -369,7 +371,7 @@ create_service_prediction_oracle() {
   eval $cmd
 }
 
-run_app_prediction() {
+__run_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} run --rm -d \
     --name app_prediction \
@@ -468,6 +470,8 @@ echo "GATLING_DURATION: ${GATLING_DURATION}"
 #docker ${remote} pull logimethods/smart-meter:inject
 cmd="docker ${remote} service create \
   --name inject \
+  --network smartmeter \
+  -e WAIT_FOR=\"${NATS_NAME}\" \
   -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
   -e NATS_URI=${NATS_URI} \
   -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
@@ -482,8 +486,7 @@ cmd="docker ${remote} service create \
   -e TASK_SLOT={{.Task.Slot}} \
   -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
   -e PREDICTION_LENGTH=${PREDICTION_LENGTH} \
-  -e TIME_ROOT=$(date +%s)
-  --network smartmeter \
+  -e TIME_ROOT=$(date +%s) \
   ${ON_WORKER_NODE} \
   --replicas=${replicas} \
   logimethods/smart-meter:inject${postfix} \
@@ -501,6 +504,9 @@ run_inject() {
 
   #docker ${remote} pull logimethods/smart-meter:inject
   cmd="docker ${remote} run \
+    --name inject \
+    --network smartmeter \
+    -e WAIT_FOR=\"${NATS_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
     -e NATS_URI=${NATS_CLUSTER_URI} \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
@@ -509,7 +515,6 @@ run_inject() {
     -e TASK_SLOT=1 \
     -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
     -e PREDICTION_LENGTH=${PREDICTION_LENGTH} \
-    --network smartmeter \
     logimethods/smart-meter:inject${postfix} \
     --no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
   echo "-----------------------------------------------------------------"
@@ -518,6 +523,7 @@ run_inject() {
   eval $cmd
 }
 
+## TODO EUREKA
 run_metrics() {
   # https://bronhaim.wordpress.com/2016/07/24/setup-toturial-for-collecting-metrics-with-statsd-and-grafana-containers/
   run_metrics_graphite
@@ -601,6 +607,7 @@ update_service_scale() {
   docker ${remote} service scale SERVICE=REPLICAS
 }
 
+## TODO EUREKA
 run_prometheus_nats_exporter() {
   cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
         --network smartmeter \
@@ -615,6 +622,7 @@ run_prometheus_nats_exporter() {
   eval "$cmd"
 }
 
+## TODO EUREKA
 create_service_prometheus_nats_exporter() {
   cmd="docker ${remote} service create \
         --network smartmeter \
@@ -657,7 +665,8 @@ run_telegraf() {
 
    cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
-     --name telegraf_$@\
+     --name telegraf_$@ \
+     -e SETUP_LOCAL_CONTAINERS=true \
      -e CASSANDRA_URL=${TELEGRAF_CASSANDRA_URL} \
      -e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
      -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
@@ -687,7 +696,8 @@ create_service_telegraf() {
 
   cmd="docker ${remote} service create \
     --network smartmeter \
-    --name telegraf_$@\
+    --name telegraf_$@ \
+    -e SETUP_LOCAL_CONTAINERS=true \
     -e CASSANDRA_URL="${TELEGRAF_CASSANDRA_URL}" \
     -e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
     -e NODE_ID={{.Node.ID}} \

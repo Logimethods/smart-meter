@@ -85,7 +85,7 @@ imageNames in docker := Seq(
   ImageName(s"${organization.value}/${rootName}:${tag}")
 )
 
-// Define a Dockerfile
+// Define a Dockerfile @Deprecated
 dockerfile in docker := {
   val jarFile: File = sbt.Keys.`package`.in(Compile, packageBin).value
   val classpath = (managedClasspath in Compile).value
@@ -116,7 +116,7 @@ dockerfile in docker := {
     // On launch run Scala with the classpath and the main class
     // @see https://mail-archives.apache.org/mod_mbox/spark-dev/201312.mbox/%3CCAPh_B=ass2NcrN41t7KTSoF1SFGce=N57YMVyukX4hPcO5YN2Q@mail.gmail.com%3E
     // @see http://apache-spark-user-list.1001560.n3.nabble.com/spark-1-6-Issue-td25893.html
-    entryPoint("java", "-Xms128m", "-Xmx512m", "-cp", classpathString, "-Dlog4j.configuration=file:/usr/local/spark/conf/log4j.properties" /*, mainclass*/)
+    entryPoint("/entrypoint.sh", "java", "-Xms128m", "-Xmx512m", "-cp", classpathString, "-Dlog4j.configuration=file:/usr/local/spark/conf/log4j.properties" /*, mainclass*/)
   }
 }
 
@@ -153,13 +153,13 @@ dockerFileTask := {
     copy(classpath.files, "/app/")
     // Add the JAR file
     copy(jarFile, jarTarget)
-    
+
     volume("/spark/storage")
 
     // On launch run Scala with the classpath and the main class
     // @see https://mail-archives.apache.org/mod_mbox/spark-dev/201312.mbox/%3CCAPh_B=ass2NcrN41t7KTSoF1SFGce=N57YMVyukX4hPcO5YN2Q@mail.gmail.com%3E
     // @see http://apache-spark-user-list.1001560.n3.nabble.com/spark-1-6-Issue-td25893.html
-    entryPoint("java", "-Xms128m", "-Xmx512m", "-cp", classpathString, "-Dlog4j.configuration=file:/usr/local/spark/conf/log4j.properties" /*, mainclass*/)
+    entryPoint("/entrypoint.sh", "java", "-Xms128m", "-Xmx512m", "-cp", classpathString, "-Dlog4j.configuration=file:/usr/local/spark/conf/log4j.properties" /*, mainclass*/)
   }
 
   val stagedDockerfile =  sbtdocker.staging.DefaultDockerfileProcessor(dockerFile, dockerDir)
