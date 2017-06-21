@@ -9,9 +9,15 @@ sbt eclipse
 popd
 
 pushd dockerfile-app-streaming
-sbt update
-sbt test docker
-sbt eclipse
+#sbt update
+#sbt test docker
+#sbt eclipse
+sbt clean assembly dockerFileTask
+pushd target/docker
+mv Dockerfile Dockerfile_middle
+cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
+docker build -t logimethods/smart-meter:app-streaming-local .
+popd
 popd
 
 pushd dockerfile-app-batch
