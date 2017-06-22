@@ -262,7 +262,7 @@ def run_inject_eureka():
 		create_service_inject,
 		])
 
-def run_inject_aws():
+def run_inject_cluster():
 	run([
 		create_network,
 		["create_service", "visualizer", 1],
@@ -276,7 +276,7 @@ def run_inject_aws():
 		create_service_cassandra,
 		create_service_nats,
 #		["wait", "service", "nats"],
-		create_cassandra_tables,
+#		create_cassandra_tables,
 		create_service_cassandra_inject,
 		create_service_app_streaming,
 		create_service_prediction_trainer,

@@ -48,7 +48,7 @@ Images will be postfixed by -local
 > ssh -NL localhost:2374:/var/run/docker.sock docker@xxxxx.amazonaws.com &
 > python3 -i ./start-services.py "remote" "cluster"
 > Remote Docker Client
->>> run_inject_aws()
+>>> run_inject_cluster()
 ...
 >>> stop_all()
 ...
