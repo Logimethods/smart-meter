@@ -712,6 +712,7 @@ run_telegraf() {
      -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
      -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
      -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
+     ${TELEGRAF_ENVIRONMENT_VARIABLES} \
      ${DOCKER_ACCES} \
      --log-driver=json-file \
      logimethods/smart-meter:telegraf${postfix}\
@@ -750,6 +751,7 @@ create_service_telegraf() {
     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
     -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
+    ${TELEGRAF_ENVIRONMENT_VARIABLES} \
     ${DOCKER_ACCES} \
     --mode global \
     logimethods/smart-meter:telegraf${postfix}\
