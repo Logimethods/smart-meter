@@ -55,13 +55,17 @@ create_network() {
 
 # https://github.com/dockersamples/docker-swarm-visualizer
 create_service_visualizer() {
-  docker ${remote} service create \
+  cmd="docker ${remote} service create \
     --name visualizer \
     --network smartmeter \
     ${ON_MASTER_NODE} \
     -p 8080:8080/tcp \
     --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
-    dockersamples/visualizer
+    dockersamples/visualizer"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 ### Cassandra ###
@@ -76,7 +80,11 @@ create_volume_cassandra() {
     cassandra_size=$CASSANDRA_DEFAULT_VOLUME_SIZE
   fi
 
-  docker ${remote} volume create --name cassandra-volume-1
+  cmd="docker ${remote} volume create --name cassandra-volume-1"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 #  docker ${remote} volume create --name cassandra-volume-2 --opt o=size=$cassandra_size
 #  docker ${remote} volume create --name cassandra-volume-3 --opt o=size=$cassandra_size
 }
@@ -141,14 +149,18 @@ create_service_cassandra() {
   # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
   # https://github.com/Yannael/kafka-sparkstreaming-cassandra-swarm/blob/master/service-management/start-cassandra-services.sh
 
-  docker ${remote} service create \
+  cmd="docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
-    -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
-    logimethods/smart-meter:cassandra${postfix}
+    -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE} \
+    logimethods/smart-meter:cassandra${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 
   #Need to sleep a bit so IP can be retrieved below
   while [[ -z $(docker ${remote} service ls |grep ${CASSANDRA_MAIN_NAME}| grep 1/1) ]]; do
@@ -160,7 +172,7 @@ create_service_cassandra() {
   echo "CASSANDRA_SEED: $CASSANDRA_SEED"
 
   ## TODO Check EUREKA
-  docker ${remote} service create \
+  cmd="docker ${remote} service create \
     --name ${CASSANDRA_NODE_NAME} \
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
@@ -168,24 +180,32 @@ create_service_cassandra() {
     ${ON_WORKER_NODE} \
     -e LOCAL_JMX=no \
     --env CASSANDRA_SEEDS=$CASSANDRA_SEED \
-    logimethods/smart-meter:cassandra${postfix}
+    logimethods/smart-meter:cassandra${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
-create_full_service_cassandra() {
-# https://hub.docker.com/_/cassandra/
-# http://serverfault.com/questions/806649/docker-swarm-and-volumes
-# https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
-docker ${remote} service create \
-  --name ${CASSANDRA_MAIN_NAME} \
-  --network smartmeter \
-  ${EUREKA_WAITER_PARAMS_SERVICE} \
-  --mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
-  ${ON_MASTER_NODE} \
-  -e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
-  -e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
-  -p 9042:9042 \
-  -p 9160:9160 \
-  logimethods/smart-meter:cassandra${postfix}
+__create_full_service_cassandra() {
+  # https://hub.docker.com/_/cassandra/
+  # http://serverfault.com/questions/806649/docker-swarm-and-volumes
+  # https://clusterhq.com/2016/03/09/fun-with-swarm-part1/
+  cmd="docker ${remote} service create \
+    --name ${CASSANDRA_MAIN_NAME} \
+    --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
+    --mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
+    ${ON_MASTER_NODE} \
+    -e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
+    -e CASSANDRA_CLUSTER_NAME="Smartmeter Cluster" \
+    -p 9042:9042 \
+    -p 9160:9160 \
+    logimethods/smart-meter:cassandra${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 create_service_hadoop() {
@@ -410,36 +430,48 @@ run_app-batch() {
 }
 
 create_service_app-batch() {
-#docker ${remote} pull logimethods/smart-meter:app-batch
-docker ${remote} service create \
-  --name app-batch \
-  -e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
-  -e LOG_LEVEL=INFO \
-  -e CASSANDRA_URL=${CASSANDRA_URL} \
-  --network smartmeter \
-  --replicas=${replicas} \
-  logimethods/smart-meter:app-batch${postfix}
+  #docker ${remote} pull logimethods/smart-meter:app-batch
+  cmd="docker ${remote} service create \
+    --name app-batch \
+    -e SPARK_MASTER_URL=${SPARK_MASTER_URL_BATCH} \
+    -e LOG_LEVEL=INFO \
+    -e CASSANDRA_URL=${CASSANDRA_URL} \
+    --network smartmeter \
+    --replicas=${replicas} \
+    logimethods/smart-meter:app-batch${postfix}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 create_service_monitor() {
-#docker ${remote} pull logimethods/smart-meter:monitor
-docker ${remote} service create \
-  --name monitor \
-  -e NATS_URI=${NATS_URI} \
-  --network smartmeter \
-  ${ON_MASTER_NODE} \
-  logimethods/smart-meter:monitor${postfix} \
-    "smartmeter.voltage.extract.>"
+  #docker ${remote} pull logimethods/smart-meter:monitor
+  cmd="docker ${remote} service create \
+    --name monitor \
+    -e NATS_URI=${NATS_URI} \
+    --network smartmeter \
+    ${ON_MASTER_NODE} \
+    logimethods/smart-meter:monitor${postfix} \
+      \"smartmeter.voltage.extract.>\""
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 create_service_reporter() {
-#docker ${remote} pull logimethods/nats-reporter
-docker ${remote} service create \
-  --name reporter \
-  --network smartmeter \
-  ${ON_MASTER_NODE} \
-  -p 8888:8080 \
-  logimethods/nats-reporter
+  #docker ${remote} pull logimethods/nats-reporter
+  cmd="docker ${remote} service create \
+    --name reporter \
+    --network smartmeter \
+    ${ON_MASTER_NODE} \
+    -p 8888:8080 \
+    logimethods/nats-reporter"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 create_service_cassandra-inject() {
@@ -463,38 +495,37 @@ create_service_cassandra-inject() {
 }
 
 create_service_inject() {
+  echo "GATLING_USERS_PER_SEC: ${GATLING_USERS_PER_SEC}"
+  echo "GATLING_DURATION: ${GATLING_DURATION}"
 
-echo "GATLING_USERS_PER_SEC: ${GATLING_USERS_PER_SEC}"
-echo "GATLING_DURATION: ${GATLING_DURATION}"
-
-#docker ${remote} pull logimethods/smart-meter:inject
-cmd="docker ${remote} service create \
-  --name inject \
-  --network smartmeter \
-  -e WAIT_FOR=\"${NATS_NAME}\" \
-  -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
-  -e NATS_URI=${NATS_URI} \
-  -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
-  -e GATLING_DURATION=${GATLING_DURATION} \
-  -e STREAMING_DURATION=${STREAMING_DURATION} \
-  -e NODE_ID={{.Node.ID}} \
-  -e SERVICE_ID={{.Service.ID}} \
-  -e SERVICE_NAME={{.Service.Name}} \
-  -e SERVICE_LABELS={{.Service.Labels}} \
-  -e TASK_ID={{.Task.ID}} \
-  -e TASK_NAME={{.Task.Name}} \
-  -e TASK_SLOT={{.Task.Slot}} \
-  -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
-  -e PREDICTION_LENGTH=${PREDICTION_LENGTH} \
-  -e TIME_ROOT=$(date +%s) \
-  ${ON_WORKER_NODE} \
-  --replicas=${replicas} \
-  logimethods/smart-meter:inject${postfix} \
-    --no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
-echo "-----------------------------------------------------------------"
-echo "$cmd"
-echo "-----------------------------------------------------------------"
-eval $cmd
+  #docker ${remote} pull logimethods/smart-meter:inject
+  cmd="docker ${remote} service create \
+    --name inject \
+    --network smartmeter \
+    -e WAIT_FOR=\"${NATS_NAME}\" \
+    -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
+    -e NATS_URI=${NATS_URI} \
+    -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
+    -e GATLING_DURATION=${GATLING_DURATION} \
+    -e STREAMING_DURATION=${STREAMING_DURATION} \
+    -e NODE_ID={{.Node.ID}} \
+    -e SERVICE_ID={{.Service.ID}} \
+    -e SERVICE_NAME={{.Service.Name}} \
+    -e SERVICE_LABELS={{.Service.Labels}} \
+    -e TASK_ID={{.Task.ID}} \
+    -e TASK_NAME={{.Task.Name}} \
+    -e TASK_SLOT={{.Task.Slot}} \
+    -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
+    -e PREDICTION_LENGTH=${PREDICTION_LENGTH} \
+    -e TIME_ROOT=$(date +%s) \
+    ${ON_WORKER_NODE} \
+    --replicas=${replicas} \
+    logimethods/smart-meter:inject${postfix} \
+      --no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 run_inject() {
@@ -569,7 +600,11 @@ create_volume_grafana() {
   ## https://github.com/grafana/grafana-docker#grafana-container-with-persistent-storage-recommended
   #docker ${remote} run -d -v /var/lib/grafana --name grafana-storage --network smartmeter busybox:latest
 
-  docker ${remote} volume create --name grafana-volume
+  cmd="docker ${remote} volume create --name grafana-volume"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
 }
 
 run_metrics_grafana() {
