@@ -586,7 +586,7 @@ run_metrics_graphite() {
 run_metrics_prometheus() {
   cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY} \
         --network smartmeter \
-        --name prometheus \
+        --name ${PROMETHEUS_NAME} \
         -p 9090:9090 \
         logimethods/smart-meter:prometheus${postfix} \
         -storage.local.path=/data -config.file=/etc/prometheus/prometheus.yml -log.level debug"
