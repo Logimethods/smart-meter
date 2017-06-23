@@ -11,6 +11,12 @@ if [ $(whoami) = 'root' ]; then
   initial_check $cmdpid ;
   (infinite_setup_check $cmdpid) &
   infinite_monitor $cmdpid
+
+  if [[ $CASSANDRA_SEEDS = \$* ]]; then # If CASSANDRA_SEEDS starts with a $
+    CASSANDRA_SEEDS=$(eval echo "$CASSANDRA_SEEDS")    
+  fi
+
+  echo "CASSANDRA_SEEDS: ${CASSANDRA_SEEDS}"
 fi
 
 ### CASSANDRA ###

@@ -132,7 +132,7 @@ create_service_cassandra_single() {
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
+    ${EUREKA_WAITER_PARAMS_RUN} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
     -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
@@ -163,23 +163,24 @@ create_service_cassandra() {
   eval $cmd
 
   #Need to sleep a bit so IP can be retrieved below
-  while [[ -z $(docker ${remote} service ls |grep ${CASSANDRA_MAIN_NAME}| grep 1/1) ]]; do
-    echo Waiting for Cassandra seed service to start...
-    sleep 2
-    done;
+#  while [[ -z $(docker ${remote} service ls |grep ${CASSANDRA_MAIN_NAME}| grep 1/1) ]]; do
+#    echo Waiting for Cassandra seed service to start...
+#    sleep 2
+#    done;
 
-  export CASSANDRA_SEED="$(docker ${remote} ps |grep ${CASSANDRA_MAIN_NAME}|cut -d ' ' -f 1)"
-  echo "CASSANDRA_SEED: $CASSANDRA_SEED"
+#  export CASSANDRA_SEED="$(docker ${remote} ps |grep ${CASSANDRA_MAIN_NAME}|cut -d ' ' -f 1)"
+#  echo "CASSANDRA_SEED: $CASSANDRA_SEED"
 
-  ## TODO Check EUREKA
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_NODE_NAME} \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
+    -e READY_WHEN="" \
+    -e WAIT_FOR=${CASSANDRA_MAIN_NAME} \
     --mode global \
     ${ON_WORKER_NODE} \
     -e LOCAL_JMX=no \
-    --env CASSANDRA_SEEDS=$CASSANDRA_SEED \
+    -e SETUP_LOCAL_CONTAINERS=true \
+    --env CASSANDRA_SEEDS=\\\${${CASSANDRA_MAIN_NAME}_local} \
     logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"

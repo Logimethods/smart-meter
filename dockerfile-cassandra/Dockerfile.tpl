@@ -32,6 +32,8 @@ RUN chown cassandra:cassandra /etc/cassandra/jmxremote.password && \
 
 ### EUREKA ###
 
+RUN apt-get update && apt-get install -y --no-install-recommends jq curl && rm -rf /var/lib/apt/lists/*
+
 COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
 COPY entrypoint_finalize.sh /entrypoint_finalize.sh
 COPY merged_entrypoint.sh /merged_entrypoint.sh
