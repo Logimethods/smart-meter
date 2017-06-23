@@ -675,7 +675,7 @@ create_service_prometheus_nats_exporter() {
 
 create_service_eureka() {
   cmd="docker ${remote} service create \
-    --name eureka \
+    --name ${EUREKA_NAME} \
     --network smartmeter \
     ${ON_MASTER_NODE} \
     --mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
@@ -702,10 +702,7 @@ run_telegraf() {
      --network smartmeter \
      --name telegraf_$@ \
      -e SETUP_LOCAL_CONTAINERS=true \
-     -e CASSANDRA_URL=${TELEGRAF_CASSANDRA_URL} \
-     -e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
-     -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
-     -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
+     -e EUREKA_URL=${EUREKA_NAME}
      -e JMX_PASSWORD=$JMX_PASSWORD \
      -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
      -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
@@ -722,6 +719,10 @@ run_telegraf() {
     echo "-----------------------------------------------------------------"
     eval $cmd
 }
+#-e CASSANDRA_URL=${TELEGRAF_CASSANDRA_URL} \
+#-e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
+#-e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
+#-e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
 
 create_service_telegraf() {
   source properties/configuration-telegraf.properties
@@ -734,8 +735,7 @@ create_service_telegraf() {
     --network smartmeter \
     --name telegraf_$@ \
     -e SETUP_LOCAL_CONTAINERS=true \
-    -e CASSANDRA_URL="${TELEGRAF_CASSANDRA_URL}" \
-    -e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
+    -e EUREKA_URL=${EUREKA_NAME}
     -e NODE_ID={{.Node.ID}} \
     -e SERVICE_ID={{.Service.ID}} \
     -e SERVICE_NAME={{.Service.Name}} \
@@ -743,8 +743,6 @@ create_service_telegraf() {
     -e TASK_ID={{.Task.ID}} \
     -e TASK_NAME={{.Task.Name}} \
     -e TASK_SLOT={{.Task.Slot}} \
-    -e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
-    -e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
     -e JMX_PASSWORD=$JMX_PASSWORD \
     -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
