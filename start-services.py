@@ -283,11 +283,40 @@ def run_inject_cluster():
 		["run", "telegraf", "max_voltage"],
 		["run", "telegraf", "temperature"],
 		["run", "telegraf", "prediction"],
+		["run", "telegraf", "docker"],
 		["create_service_telegraf", "cassandra_write_count"],
 		["create_service_telegraf", "cassandra"],
 		["create_service", "prometheus_nats_exporter", 1],
 		create_service_prediction_oracle,
 		create_service_inject
+		])
+
+def run_inject_cluster_test():
+	run([
+		create_network,
+		["create_service", "visualizer", 1],
+		["create_service", "eureka", 1],
+	#	run_metrics,
+	#	["create_service", "hadoop", 1],
+		["create_volume", "cassandra"],
+	#	create_service_spark_master,
+#		["wait", "service", "spark-master"],
+	#	create_service_spark_slave,
+		create_service_cassandra,
+		create_service_nats,
+#		["wait", "service", "nats"],
+#		create_cassandra_tables,
+		create_service_cassandra_inject,
+	#	create_service_app_streaming,
+	#	create_service_prediction_trainer,
+	#	["run", "telegraf", "max_voltage"],
+	#	["run", "telegraf", "temperature"],
+	#	["run", "telegraf", "prediction"],
+	#	["create_service_telegraf", "cassandra_write_count"],
+	#	["create_service_telegraf", "cassandra"],
+	#	["create_service", "prometheus_nats_exporter", 1],
+	#	create_service_prediction_oracle,
+	#	create_service_inject
 		])
 
 def monitor_cassandra():
