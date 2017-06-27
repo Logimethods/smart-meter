@@ -174,6 +174,7 @@ create_service_cassandra() {
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_NODE_NAME} \
     --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e READY_WHEN="" \
     -e WAIT_FOR=${CASSANDRA_MAIN_NAME} \
     --mode global \
@@ -753,6 +754,44 @@ create_service_telegraf() {
     ${TELEGRAF_ENVIRONMENT_VARIABLES} \
     ${DOCKER_ACCES} \
     --mode global \
+    logimethods/smart-meter:telegraf${postfix}\
+      telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/$@.conf"
+  #     --log-driver=json-file \
+  # ${CASSANDRA_MAIN_NAME}
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
+}
+
+create_service_telegraf_on_master() {
+  source properties/configuration-telegraf.properties
+  source properties/configuration-telegraf-$@.properties
+  source properties/configuration-telegraf-debug.properties
+
+  DOCKER_ACCES="--mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+
+  cmd="docker ${remote} service create \
+    --network smartmeter \
+    --name telegraf_$@ \
+    -e SETUP_LOCAL_CONTAINERS=true \
+    -e EUREKA_URL=${EUREKA_NAME}
+    -e NODE_ID={{.Node.ID}} \
+    -e SERVICE_ID={{.Service.ID}} \
+    -e SERVICE_NAME={{.Service.Name}} \
+    -e SERVICE_LABELS={{.Service.Labels}} \
+    -e TASK_ID={{.Task.ID}} \
+    -e TASK_NAME={{.Task.Name}} \
+    -e TASK_SLOT={{.Task.Slot}} \
+    -e JMX_PASSWORD=$JMX_PASSWORD \
+    -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
+    -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
+    -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
+    -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+    -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
+    ${TELEGRAF_ENVIRONMENT_VARIABLES} \
+    ${DOCKER_ACCES} \
+    ${ON_MASTER_NODE} \
     logimethods/smart-meter:telegraf${postfix}\
       telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/$@.conf"
   #     --log-driver=json-file \
