@@ -132,7 +132,7 @@ create_service_cassandra_single() {
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_RUN} \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
     -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
