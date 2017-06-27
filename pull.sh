@@ -8,4 +8,4 @@ docker pull logimethods/smart-meter:nats-server
 docker pull logimethods/smart-meter:app-batch
 docker pull logimethods/smart-meter:app-streaming
 docker pull logimethods/prometheus-nats-exporter
-docker pull logimethods/service-registry
+docker pull logimethods/eureka
