@@ -2,20 +2,49 @@
 
 source build.sh
 
-build_dockerfile_inject "local"
+extension="-local"
 
-build_dockerfile_app_streaming "local"
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_inject $extension"
+build_dockerfile_inject "$extension"
 
-build_dockerfile_app_batch "local"
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_app_streaming $extension"
+build_dockerfile_app_streaming "$extension"
 
-build_dockerfile_prometheus "local"
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_app_batch $extension"
+build_dockerfile_app_batch "$extension"
 
-build_dockerfile_monitor "local"
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_prometheus $extension"
+build_dockerfile_prometheus "$extension"
 
-build_dockerfile_cassandra "local"
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_monitor $extension"
+build_dockerfile_monitor "$extension"
 
-build_dockerfile_telegraf "local"
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_cassandra $extension"
+build_dockerfile_cassandra "$extension"
 
-build_dockerfile_cassandra_inject "local"
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_telegraf $extension"
+build_dockerfile_telegraf "$extension"
 
-build_dockerfile_nats_server "local"
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_cassandra_inject $extension"
+build_dockerfile_cassandra_inject "$extension"
+
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_nats_server $extension"
+build_dockerfile_nats_server "$extension"
