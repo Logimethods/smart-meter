@@ -1,0 +1,137 @@
+version: "3"
+
+### create_network,
+#### docker ${remote} network create --driver overlay --attachable smartmeter
+networks:
+  default:
+    external:
+      name: smartmeter
+
+services:
+  ### ["create_service", "visualizer", 1],
+  visualizer:
+    image: dockersamples/visualizer
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "8080:8080/tcp"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  ### ["create_service", "eureka", 1],
+  eureka:
+    image: logimethods/eureka${postfix}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "${FLASK_PORT}:5000"
+    environment:
+      - FLASK_DEBUG=${FLASK_DEBUG}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  ### run_metrics,
+  #### run_metrics_graphite
+  graphite:
+    image: hopsoft/graphite-statsd:${graphite_statsd_tag}
+    ports:
+      - "81:80"
+  #### run_metrics_prometheus
+  prometheus:
+    image: logimethods/smart-meter:prometheus${postfix}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "9090:9090"
+    command: -storage.local.path=/data -config.file=/etc/prometheus/prometheus.yml
+  #### create_service_influxdb
+  influxdb:
+    image: influxdb
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+      - "2003:2003"
+  #### run_metrics_grafana
+  grafana:
+    image: grafana/grafana:${grafana_tag}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "${METRICS_GRAFANA_WEB_PORT}:3000"
+    environment:
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+    volumes:
+      - "grafana-volume:/var/lib/grafana"
+
+  ### ["create_service", "hadoop", 1],
+  hadoop:
+    image: sequenceiq/hadoop-docker:${hadoop_docker_version}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "50070:50070"
+
+  ### ["create_volume", "cassandra"],
+  cassandra_cluster_main:
+    image: logimethods/smart-meter:cassandra${postfix}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - LOCAL_JMX=no
+      - CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
+    volumes:
+      - "/proc:/writable-proc"
+
+  cassandra_cluster_node:
+    image: logimethods/smart-meter:cassandra${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+    environment:
+      - LOCAL_JMX=no
+      - READY_WHEN=""
+      - WAIT_FOR=${CASSANDRA_MAIN_NAME}
+      - SETUP_LOCAL_CONTAINERS=true
+      - CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
+    volumes:
+      - "/proc:/writable-proc"
+
+### create_service_spark_master,
+### create_service_spark_slave,
+### create_service_cassandra,
+### create_service_nats,
+### create_service_cassandra_inject,
+### create_service_app_streaming,
+### create_service_prediction_trainer,
+### ["create_service_telegraf_on_master", "max_voltage"],
+### ["create_service_telegraf_on_master", "temperature"],
+### ["create_service_telegraf_on_master", "prediction"],
+### ["create_service_telegraf_on_master", "docker"],
+### ["create_service_telegraf", "cassandra_write_count"],
+### ["create_service_telegraf", "cassandra"],
+### ["create_service", "prometheus_nats_exporter", 1],
+### create_service_prediction_oracle,
+### create_service_inject
+
+volumes:
+  grafana-volume:
+    external: true

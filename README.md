@@ -59,6 +59,12 @@ Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage - sw
 
 ![gatling-max-voltage-swarm_screenshot.png](images/gatling-max-voltage-swarm_screenshot.png "Gatling-max-voltage-swarm Screenshot")
 
+### Docker Compose
+
+```
+./docker-up.sh
+```
+
 ## Architectures
 The *Injection* demo architecture:
 ![SmartMeter-Inject.png](images/SmartMeter-Inject.png "SmartMeter Injection Architecture")
