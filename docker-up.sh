@@ -8,5 +8,6 @@ set -a
 postfix="$2"
 . ./properties/configuration.properties
 . ./properties/configuration-mode-cluster.properties
+. ./properties/configuration-telegraf.properties
 set +a
 docker $1 stack deploy -c docker-compose.yml "${STACK_NAME}"

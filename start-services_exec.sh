@@ -775,7 +775,7 @@ create_service_telegraf_on_master() {
     --network smartmeter \
     --name telegraf_$@ \
     -e SETUP_LOCAL_CONTAINERS=true \
-    -e EUREKA_URL=${EUREKA_NAME}
+    -e EUREKA_URL=${EUREKA_NAME} \
     -e NODE_ID={{.Node.ID}} \
     -e SERVICE_ID={{.Service.ID}} \
     -e SERVICE_NAME={{.Service.Name}} \
