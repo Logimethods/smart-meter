@@ -396,6 +396,14 @@ services:
   # TODO
 
   ### ["create_service", "prometheus_nats_exporter", 1],
+  prometheus_nats_exporter:
+    image: ${prometheus_nats_exporter_image}:${prometheus_nats_exporter_tag}${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    command: ${PROMETHEUS_NATS_EXPORTER_FLAGS} ${PROMETHEUS_NATS_EXPORTER_DEBUG} ${PROMETHEUS_NATS_EXPORTER_URLS}
 
   ### create_service_prediction_oracle,
   prediction_oracle:
