@@ -36,7 +36,7 @@ services:
 
   ### run_metrics,
   #### run_metrics_graphite
-  graphite:
+  metrics:
     image: hopsoft/graphite-statsd:${graphite_statsd_tag}
     ports:
       - "81:80"
@@ -130,21 +130,21 @@ services:
     volumes:
       - "/proc:/writable-proc"
 
-  cassandra_cluster_node:
-    image: logimethods/smart-meter:cassandra${postfix}
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role != manager
-    environment:
-      - LOCAL_JMX=no
-      - READY_WHEN=""
-      - WAIT_FOR=${CASSANDRA_MAIN_NAME}
-      - SETUP_LOCAL_CONTAINERS=true
-      - CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
-    volumes:
-      - "/proc:/writable-proc"
+#  cassandra_cluster_node:
+#    image: logimethods/smart-meter:cassandra${postfix}
+#    deploy:
+#      mode: global
+#      placement:
+#        constraints:
+#          - node.role != manager
+#    environment:
+#      - LOCAL_JMX=no
+#      - READY_WHEN=""
+#      - WAIT_FOR=${CASSANDRA_MAIN_NAME}
+#      - SETUP_LOCAL_CONTAINERS=true
+#      - CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
+#    volumes:
+#      - "/proc:/writable-proc"
 
   ### create_service_nats,
   nats:
@@ -278,10 +278,123 @@ services:
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/max_voltage.conf
 
   ### ["create_service_telegraf_on_master", "temperature"],
+  telegraf_temperature:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - WAIT_FOR=${NATS_NAME}
+      - NATS_URI=${NATS_URI}
+    volumes:
+      - "/proc:/writable-proc"
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/temperature.conf
+
   ### ["create_service_telegraf_on_master", "prediction"],
+  telegraf_prediction:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - WAIT_FOR=${NATS_NAME},${INFLUXDB_NAME}
+      - NATS_URI=${NATS_URI}
+    volumes:
+      - "/proc:/writable-proc"
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/prediction.conf
+
   ### ["create_service_telegraf_on_master", "docker"],
+  telegraf_docker:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/docker.conf
+
   ### ["create_service_telegraf", "cassandra_write_count"],
+  telegraf_cassandra_write_count:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      mode: global
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - TELEGRAF_WAIT_FOR=${CASSANDRA_URL},${INFLUXDB_NAME}
+      - CASSANDRA_LOCAL_URL=${CASSANDRA_LOCAL_URL}
+      - TELEGRAF_CASSANDRA_TABLE='smartmeter.raw_data'
+      - TELEGRAF_CASSANDRA_GREP='Write Count'
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_write_count.conf
+
   ### ["create_service_telegraf", "cassandra"],
+  # TODO
+
   ### ["create_service", "prometheus_nats_exporter", 1],
   ### create_service_prediction_oracle,
 
