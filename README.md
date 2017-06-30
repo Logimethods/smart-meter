@@ -62,7 +62,8 @@ Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage - sw
 ### Docker Compose
 
 ```
-./docker-up.sh
+./docker-[local | remote]-up.sh
+./docker-[local | remote]-down.sh
 ```
 
 ## Architectures
