@@ -181,14 +181,28 @@ services:
       - READY_WHEN=\"Server is ready\"
       - NATS_USERNAME=${NATS_USERNAME}
       - NATS_PASSWORD=${NATS_PASSWORD}
-    ports:
-      - "4222:4222"
-      - "8222:8222"
     volumes:
       - "/proc:/writable-proc"
     command: -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
 
-### create_service_cassandra_inject,
+  ### create_service_cassandra_inject,
+  cassandra_inject:
+    image: logimethods/smart-meter:cassandra-inject${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+    environment:
+      - WAIT_FOR=${NATS_NAME},${CASSANDRA_URL}
+      - NATS_URI=${NATS_URI}
+      - NATS_SUBJECT=smartmeter.voltage.raw.data.>
+      - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
+      - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
+      - CASSANDRA_URL=${CASSANDRA_URL}
+    volumes:
+      - "/proc:/writable-proc"
+
 ### create_service_app_streaming,
 ### create_service_prediction_trainer,
 ### ["create_service_telegraf_on_master", "max_voltage"],
