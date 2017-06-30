@@ -130,21 +130,21 @@ services:
     volumes:
       - "/proc:/writable-proc"
 
-#  cassandra_cluster_node:
-#    image: logimethods/smart-meter:cassandra${postfix}
-#    deploy:
-#      mode: global
-#      placement:
-#        constraints:
-#          - node.role != manager
-#    environment:
-#      - LOCAL_JMX=no
-#      - READY_WHEN=""
-#      - WAIT_FOR=${CASSANDRA_MAIN_NAME}
-#      - SETUP_LOCAL_CONTAINERS=true
-#      - CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
-#    volumes:
-#      - "/proc:/writable-proc"
+  cassandra_cluster_node:
+    image: logimethods/smart-meter:cassandra${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+    environment:
+      - LOCAL_JMX=no
+      - READY_WHEN=\"is now UP\"
+      # - WAIT_FOR=${CASSANDRA_MAIN_NAME}
+      - SETUP_LOCAL_CONTAINERS=true
+      - CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
+    volumes:
+      - "/proc:/writable-proc"
 
   ### create_service_nats,
   nats:
@@ -396,7 +396,28 @@ services:
   # TODO
 
   ### ["create_service", "prometheus_nats_exporter", 1],
+
   ### create_service_prediction_oracle,
+  prediction_oracle:
+    image: logimethods/smart-meter:app-streaming${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+    environment:
+      - WAIT_FOR=${NATS_NAME},${HADOOP_NAME}
+      - NATS_URI=${NATS_URI}
+      - SPARK_MASTER_URL=${SPARK_LOCAL_URL}
+      - HDFS_URL=${HDFS_URL}
+      - CASSANDRA_URL=${CASSANDRA_PREDICTION_URL}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
+      - SPARK_CORES_MAX=${PREDICTION_ORACLE_SPARK_CORES_MAX}
+      - ALERT_THRESHOLD=${ALERT_THRESHOLD}
+    volumes:
+      - "/proc:/writable-proc"
+    command: com.logimethods.nats.connector.spark.app.SparkPredictionOracle "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION ORACLE"
 
   ### create_service_inject
   inject:
