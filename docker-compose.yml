@@ -116,7 +116,36 @@ services:
       - "/proc:/writable-proc"
 
 ### create_service_spark_master,
-### create_service_spark_slave,
+  spark-master:
+    image: ${spark_image}:${spark_version}-hadoop-${hadoop_version}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+    environment:
+      - SERVICE_NAME=${SPARK_MASTER_NAME}
+    ports:
+      - "${SPARK_UI_PORT}:8080"
+
+### create_service_spark_worker,
+  spark-worker:
+    image: ${spark_image}:${spark_version}-hadoop-${hadoop_version}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+    environment:
+      - SERVICE_NAME=${SPARK_WORKER_NAME}
+#    command: ping smartmeter_${SPARK_MASTER_NAME}
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://${SPARK_MASTER_NAME}:7077
+
 ### create_service_cassandra,
 ### create_service_nats,
 ### create_service_cassandra_inject,

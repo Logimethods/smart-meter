@@ -8,4 +8,4 @@ set -a
 postfix="$2"
 . ./properties/configuration.properties
 set +a
-docker $1 stack deploy -c docker-compose-spark.yml "${STACK_NAME}"
+docker $1 stack deploy -c docker-compose.yml "${STACK_NAME}"
