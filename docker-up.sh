@@ -7,5 +7,6 @@ echo "postfix: $2"
 set -a
 postfix="$2"
 . ./properties/configuration.properties
+. ./properties/configuration-mode-cluster.properties
 set +a
 docker $1 stack deploy -c docker-compose.yml "${STACK_NAME}"

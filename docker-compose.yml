@@ -203,17 +203,38 @@ services:
     volumes:
       - "/proc:/writable-proc"
 
-### create_service_app_streaming,
-### create_service_prediction_trainer,
-### ["create_service_telegraf_on_master", "max_voltage"],
-### ["create_service_telegraf_on_master", "temperature"],
-### ["create_service_telegraf_on_master", "prediction"],
-### ["create_service_telegraf_on_master", "docker"],
-### ["create_service_telegraf", "cassandra_write_count"],
-### ["create_service_telegraf", "cassandra"],
-### ["create_service", "prometheus_nats_exporter", 1],
-### create_service_prediction_oracle,
-### create_service_inject
+  ### create_service_app_streaming,
+  # TODO: Check
+  app_streaming:
+    image: logimethods/smart-meter:app-streaming${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - WAIT_FOR=${NATS_NAME},${CASSANDRA_URL}
+      - NATS_URI=${NATS_URI}
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - CASSANDRA_URL=${CASSANDRA_URL}
+      - LOG_LEVEL=${APP_STREAMING_LOG_LEVEL}
+      - TARGETS=${APP_STREAMING_TARGETS}
+      - SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX}
+    volumes:
+      - "/proc:/writable-proc"
+    command: com.logimethods.nats.connector.spark.app.SparkMaxProcessor "smartmeter.voltage.raw" "smartmeter.voltage.extract.max" "Smartmeter MAX Streaming"
+
+  ### create_service_prediction_trainer,
+  ### ["create_service_telegraf_on_master", "max_voltage"],
+  ### ["create_service_telegraf_on_master", "temperature"],
+  ### ["create_service_telegraf_on_master", "prediction"],
+  ### ["create_service_telegraf_on_master", "docker"],
+  ### ["create_service_telegraf", "cassandra_write_count"],
+  ### ["create_service_telegraf", "cassandra"],
+  ### ["create_service", "prometheus_nats_exporter", 1],
+  ### create_service_prediction_oracle,
+  ### create_service_inject
 
 volumes:
   grafana-volume:
