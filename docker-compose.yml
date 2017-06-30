@@ -226,6 +226,27 @@ services:
     command: com.logimethods.nats.connector.spark.app.SparkMaxProcessor "smartmeter.voltage.raw" "smartmeter.voltage.extract.max" "Smartmeter MAX Streaming"
 
   ### create_service_prediction_trainer,
+  prediction_trainer:
+    image: logimethods/smart-meter:app-streaming${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - WAIT_FOR=${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}
+      - NATS_URI=${NATS_URI}
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
+      - HDFS_URL=${HDFS_URL}
+      - CASSANDRA_URL=${CASSANDRA_PREDICTION_URL}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
+      - SPARK_CORES_MAX=${PREDICTION_TRAINER_SPARK_CORES_MAX}
+      - ALERT_THRESHOLD=${ALERT_THRESHOLD}
+    volumes:
+      - "/proc:/writable-proc"
+    command: com.logimethods.nats.connector.spark.app.SparkPredictionTrainer "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION TRAINER"
+
   ### ["create_service_telegraf_on_master", "max_voltage"],
   ### ["create_service_telegraf_on_master", "temperature"],
   ### ["create_service_telegraf_on_master", "prediction"],
