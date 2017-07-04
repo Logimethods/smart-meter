@@ -350,7 +350,7 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "execcassandra_write_count",
+              "measurement": "exec_cassandra_count",
               "policy": "default",
               "refId": "G",
               "resultFormat": "time_series",
@@ -358,7 +358,7 @@
                 [
                   {
                     "params": [
-                      "value"
+                      "*"
                     ],
                     "type": "field"
                   },
@@ -620,6 +620,7 @@
                   "type": "fill"
                 }
               ],
+              "hide": true,
               "measurement": "execcassandra_write_count",
               "policy": "default",
               "refId": "C",
@@ -629,6 +630,42 @@
                   {
                     "params": [
                       "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "distinct"
+                  }
+                ]
+              ],
+              "tags": []
+            },
+            {
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "exec_cassandra_count",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "*"
                     ],
                     "type": "field"
                   },
@@ -1410,5 +1447,5 @@
   },
   "timezone": "browser",
   "title": "smartmeter - containers",
-  "version": 37
+  "version": 38
 }

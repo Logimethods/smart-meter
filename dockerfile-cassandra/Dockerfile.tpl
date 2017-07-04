@@ -32,7 +32,9 @@ RUN chown cassandra:cassandra /etc/cassandra/jmxremote.password && \
 
 ### EUREKA ###
 
-RUN apt-get update && apt-get install -y --no-install-recommends jq curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends jq curl netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 6161
 
 COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
 COPY entrypoint_finalize.sh /entrypoint_finalize.sh
@@ -42,5 +44,5 @@ ENTRYPOINT ["/merged_entrypoint.sh"]
 
 ENV READY_WHEN="Created default superuser role"
 
-## !!! Looks like the multi-stage build forgot the CMD !!!
+## !!! ENTRYPOINT provides amnesia about CMD !!!
 CMD ["cassandra", "-f"]

@@ -113,8 +113,10 @@ run_cassandra() {
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_RUN} \
     -p 8778:8778 \
+    -p ${CASSANDRA_COUNT_PORT}:6161 \
     -e LOCAL_JMX=no \
-    -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
+    -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE} \
+    -e CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
     logimethods/smart-meter:cassandra${postfix}"
 ##    -v cassandra-volume-1:/var/lib/cassandra \
   echo "-----------------------------------------------------------------"
@@ -136,6 +138,7 @@ create_service_cassandra_single() {
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
     -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
+    -e CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
     logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -156,6 +159,7 @@ create_service_cassandra() {
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
     -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE} \
+    -e CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
     logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"

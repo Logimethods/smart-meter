@@ -127,6 +127,9 @@ services:
     environment:
       - LOCAL_JMX=no
       - CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
+      - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
+    ports:
+      - "${CASSANDRA_COUNT_PORT}:6161"
     volumes:
       - "/proc:/writable-proc"
 
