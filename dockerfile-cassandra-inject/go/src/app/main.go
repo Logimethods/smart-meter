@@ -25,7 +25,7 @@ const query = "INSERT INTO raw_data (" +
 // http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCounters.html
 const increment = "UPDATE raw_data_count SET count = count + 1 WHERE slot = ?"
 
-func insertIntoCassandra(session *gocql.Session, m *nats.Msg, task_slot int16, log_level string) {
+func insertIntoCassandra(session *gocql.Session, m *nats.Msg, task_slot string, log_level string) {
 	/*** Point ***/
 
 	// https://www.dotnetperls.com/split-go
@@ -114,12 +114,8 @@ func main() {
 	fmt.Println("LOG LEVEL: ", log_level)
 
   // TASK_SLOT
-  s, err := strconv.ParseInt(os.Getenv("TASK_SLOT"), 10, 16)
-  if err != nil {
-    log.Print(err)
-  }
-  task_slot := int16(s)
-	fmt.Println("TASK SLOT: ", task_slot)
+  task_slot := os.Getenv("TASK_SLOT")
+  fmt.Println("TASK SLOT: ", task_slot)
 
 	// connect to the cluster
 	cluster := gocql.NewCluster(cassandra_url)

@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS raw_data (
 
 // http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCounters.html
 CREATE TABLE IF NOT EXISTS raw_data_count (
-      slot smallint PRIMARY KEY,
+      slot ascii PRIMARY KEY,
       count counter
 );
 

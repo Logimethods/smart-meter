@@ -601,7 +601,7 @@
           "renderer": "flot",
           "seriesOverrides": [],
           "span": 6,
-          "stack": false,
+          "stack": true,
           "steppedLine": true,
           "targets": [
             {
@@ -1447,5 +1447,5 @@
   },
   "timezone": "browser",
   "title": "smartmeter - containers",
-  "version": 38
+  "version": 2
 }
