@@ -323,6 +323,7 @@ create_service_nats_single() {
 create_service_app_streaming() {
   cmd="docker ${remote} service create \
     --name app_streaming \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
@@ -348,6 +349,7 @@ create_service_prediction_trainer() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name prediction_trainer \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
@@ -372,6 +374,7 @@ create_service_prediction_oracle() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name prediction_oracle \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e WAIT_FOR=\"${NATS_NAME},${HADOOP_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_LOCAL_URL} \
@@ -482,10 +485,12 @@ create_service_cassandra-inject() {
     --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_URI=${NATS_URI} \
     -e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
     -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
+    -e TASK_SLOT={{.Task.Slot}} \
     -e CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
     logimethods/smart-meter:cassandra-inject${postfix}"
@@ -504,6 +509,7 @@ create_service_inject() {
   cmd="docker ${remote} service create \
     --name inject \
     --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e WAIT_FOR=\"${NATS_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
     -e NATS_URI=${NATS_URI} \
@@ -539,6 +545,7 @@ run_inject() {
   cmd="docker ${remote} run \
     --name inject \
     --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e WAIT_FOR=\"${NATS_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
     -e NATS_URI=${NATS_CLUSTER_URI} \
@@ -703,6 +710,7 @@ run_telegraf() {
    cmd="docker ${remote} run -d ${DOCKER_RESTART_POLICY}\
      --network smartmeter \
      --name telegraf_$@ \
+     ${EUREKA_WAITER_PARAMS_SERVICE} \
      -e SETUP_LOCAL_CONTAINERS=true \
      -e EUREKA_URL=${EUREKA_NAME}
      -e JMX_PASSWORD=$JMX_PASSWORD \
@@ -736,6 +744,7 @@ create_service_telegraf() {
   cmd="docker ${remote} service create \
     --network smartmeter \
     --name telegraf_$@ \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e SETUP_LOCAL_CONTAINERS=true \
     -e EUREKA_URL=${EUREKA_NAME}
     -e NODE_ID={{.Node.ID}} \
@@ -774,6 +783,7 @@ create_service_telegraf_on_master() {
   cmd="docker ${remote} service create \
     --network smartmeter \
     --name telegraf_$@ \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e SETUP_LOCAL_CONTAINERS=true \
     -e EUREKA_URL=${EUREKA_NAME} \
     -e NODE_ID={{.Node.ID}} \
