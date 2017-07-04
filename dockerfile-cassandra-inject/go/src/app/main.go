@@ -21,8 +21,11 @@ const query = "INSERT INTO raw_data (" +
 			  "line, transformer, usagePoint, year, month, day, hour, minute, day_of_week, voltage, demand, " +
 			  "val3, val4, val5, val6, val7, val8, val9, val10, val11, val12) " +
 			  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-			  
-func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) {
+
+// http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCounters.html
+const increment = "UPDATE raw_data_count SET count = count + 1 WHERE slot = ?"
+
+func insertIntoCassandra(session *gocql.Session, m *nats.Msg, task_slot int16, log_level string) {
 	/*** Point ***/
 
 	// https://www.dotnetperls.com/split-go
@@ -58,9 +61,9 @@ func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) 
 	demandFloatBytes := m.Data[12:16]
 	// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
 	demand := math.Float32frombits(binary.BigEndian.Uint32(demandFloatBytes))
-	
+
 	/*** Remaining Values ***/
-	
+
 	var values [10]float32
 	for i := 0; i < 10; i++ {
 		values[i] = math.Float32frombits(binary.BigEndian.Uint32(m.Data[(16+4*i):(20+4*i)]))
@@ -73,15 +76,20 @@ func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) 
 		fmt.Println(s)
 	}
 
-    /** insert the Data into Cassandra **/
+  /** insert the Data into Cassandra **/
 
-    if err := session.Query(query,
-        int8(line), int32(transformer), int32(usagePoint), int16(year), int8(month), int8(day),
-	    int8(hour), int8(minute), int8(day_of_week), voltage, demand,
-	    values[0], values[1], values[2], values[3], values[4], 
-	    values[5], values[6], values[7], values[8], values[9]).Exec(); err != nil {
+  if err := session.Query(query,
+      int8(line), int32(transformer), int32(usagePoint), int16(year), int8(month), int8(day),
+      int8(hour), int8(minute), int8(day_of_week), voltage, demand,
+      values[0], values[1], values[2], values[3], values[4],
+      values[5], values[6], values[7], values[8], values[9]).Exec(); err != nil {
+      log.Print(err)
+  } else {
+    if err := session.Query(increment, task_slot).Exec(); err != nil {
         log.Print(err)
     }
+  }
+
 }
 
 func main() {
@@ -98,13 +106,20 @@ func main() {
 	fmt.Println("NATS Subject: ", nats_subject)
 
 	// CASSANDRA
-
 	cassandra_url := os.Getenv("CASSANDRA_URL")
 	fmt.Println("Cassandra URL: ", cassandra_url)
 
 	// LOG LEVEL
 	log_level := os.Getenv("LOG_LEVEL")
 	fmt.Println("LOG LEVEL: ", log_level)
+
+  // TASK_SLOT
+  s, err := strconv.ParseInt(os.Getenv("TASK_SLOT"), 10, 16)
+  if err != nil {
+    log.Print(err)
+  }
+  task_slot := int16(s)
+	fmt.Println("TASK SLOT: ", task_slot)
 
 	// connect to the cluster
 	cluster := gocql.NewCluster(cassandra_url)
@@ -127,7 +142,7 @@ func main() {
 
 	// Simple Async Subscriber
 	nc.QueueSubscribe(nats_subject, "cassandra_inject", func(m *nats.Msg) {
-		go insertIntoCassandra(session, m, log_level)
+		go insertIntoCassandra(session, m, task_slot, log_level)
 	})
 
 	fmt.Println("Ready to store NATS messages into CASSANDRA")

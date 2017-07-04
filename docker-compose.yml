@@ -198,6 +198,7 @@ services:
       - NATS_URI=${NATS_URI}
       - NATS_SUBJECT=smartmeter.voltage.raw.data.>
       - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
+      - TASK_SLOT={{.Task.Slot}}
       - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
       - CASSANDRA_URL=${CASSANDRA_URL}
     volumes:

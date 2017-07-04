@@ -32,6 +32,12 @@ CREATE TABLE IF NOT EXISTS raw_data (
       PRIMARY KEY ((line, transformer, usagePoint), year, month, day, hour, minute)
 ) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC, minute DESC);
 
+// http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCounters.html
+CREATE TABLE IF NOT EXISTS raw_data_count (
+      slot smallint PRIMARY KEY,
+      count counter
+);
+
 CREATE TABLE IF NOT EXISTS voltage_alerts (
       line tinyint,    // 8-bit signed int
       transformer int, // 32-bit signed int
