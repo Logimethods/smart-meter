@@ -115,8 +115,8 @@ run_cassandra() {
     -p 8778:8778 \
     -e LOCAL_JMX=no \
     -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
-    -v cassandra-volume-1:/var/lib/cassandra \
     logimethods/smart-meter:cassandra${postfix}"
+##    -v cassandra-volume-1:/var/lib/cassandra \
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
