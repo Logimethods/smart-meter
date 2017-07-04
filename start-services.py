@@ -73,6 +73,9 @@ def create_service(name, replicas, postfix):
 def create_service_telegraf(name, postfix):
 	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["create_service_telegraf", name])
 
+def create_service_telegraf_on_master(name, postfix):
+	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["create_service_telegraf_on_master", name])
+
 def rm_service(name, postfix):
 	# subprocess.run(["docker", "service", "rm", name])
 	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["rm_service", name])
@@ -95,6 +98,8 @@ def run(steps):
 			rm_service(step[1], postfix)
 		elif step[0] == "create_service_telegraf" :
 			create_service_telegraf(step[1], postfix)
+		elif step[0] == "create_service_telegraf_on_master" :
+			create_service_telegraf_on_master(step[1], postfix)
 		else:
 			call(step[0], step[1], step[2:])
 
@@ -241,8 +246,8 @@ def run_inject_cluster():
 		["create_service_telegraf_on_master", "temperature"],
 		["create_service_telegraf_on_master", "prediction"],
 		["create_service_telegraf_on_master", "docker"],
-		["create_service_telegraf", "cassandra_write_count"],
-		["create_service_telegraf", "cassandra"],
+		["create_service_telegraf_on_master", "cassandra_count"],
+	#	["create_service_telegraf", "cassandra"],
 		["create_service", "prometheus_nats_exporter", 1],
 		create_service_prediction_oracle,
 		create_service_inject
