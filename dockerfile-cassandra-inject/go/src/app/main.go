@@ -25,64 +25,85 @@ const query = "INSERT INTO raw_data (" +
 // http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCounters.html
 const increment = "UPDATE raw_data_count SET count = count + 1 WHERE slot = ?"
 
-func main() {
-	fmt.Println("Welcome to the NATS to Cassandra Bridge")
+var Session *gocql.Session
+var Cluster *gocql.ClusterConfig
 
-	fmt.Println("The time is", time.Now())
+func main() {
+	log.Print("Welcome to the NATS to Cassandra Bridge")
+
+	log.Print("The time is", time.Now())
 
 	nats_uri := os.Getenv("NATS_URI")
 	nc, _ := nats.Connect(nats_uri)
 
-	fmt.Println("Subscribed to NATS: ", nats_uri)
+	log.Print("Subscribed to NATS: ", nats_uri)
 
 	nats_subject := os.Getenv("NATS_SUBJECT")
-	fmt.Println("NATS Subject: ", nats_subject)
+	log.Print("NATS Subject: ", nats_subject)
 
 	// CASSANDRA
 	cassandra_url := os.Getenv("CASSANDRA_URL")
-	fmt.Println("Cassandra URL: ", cassandra_url)
+	log.Print("Cassandra URL: ", cassandra_url)
 
 	// LOG LEVEL
 	log_level := os.Getenv("LOG_LEVEL")
-	fmt.Println("LOG LEVEL: ", log_level)
+	log.Print("LOG LEVEL: ", log_level)
 
   // TASK_SLOT
   task_slot := os.Getenv("TASK_SLOT")
-  fmt.Println("TASK SLOT: ", task_slot)
+  log.Print("TASK SLOT: ", task_slot)
 
-	// connect to the cluster
-	cluster := gocql.NewCluster(cassandra_url)
-	cluster.Keyspace = "smartmeter"
+	// connect to the Cluster
+	Cluster = gocql.NewCluster(cassandra_url)
+	Cluster.Keyspace = "smartmeter"
 
 	cluster_consistency := os.Getenv("CASSANDRA_INJECT_CONSISTENCY")
-	cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
-	fmt.Println("CONSISTENCY: ", cluster.Consistency)
+	Cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
+	log.Print("CONSISTENCY: ", Cluster.Consistency)
 
-	session, _ := cluster.CreateSession()
-	defer session.Close()
+  cluster_timeout := os.Getenv("CASSANDRA_TIMEOUT")
+  if (cluster_timeout != "") {
+    timeout, err := strconv.Atoi(cluster_timeout)
+    if (err == nil) {
+      Cluster.Timeout = time.Duration(timeout) * time.Millisecond
+      log.Print("(Provided) CASSANDRA_TIMEOUT: ", Cluster.Timeout)
+    } else {
+      log.Panicf("Unable to parse CASSANDRA_TIMEOUT (%s) into int64", cluster_timeout)
+    }
+  } else {
+    log.Print("(Default) CASSANDRA_TIMEOUT: ", Cluster.Timeout)
+  }
 
-	fmt.Println("Connected to Cassandra")
+	createSession()
+  defer Session.Close()
 
-    // insert a message into Cassandra
-//    if err := session.Query(`INSERT INTO messages (subject, message) VALUES (?, ?)`,
-//        "subject1", "First message").Exec(); err != nil {
-//        log.Print(err)
-//    }
+	log.Print("Connected to Cassandra")
 
 	// Simple Async Subscriber
 	nc.QueueSubscribe(nats_subject, "cassandra_inject", func(m *nats.Msg) {
-		go insertIntoCassandra(session, m, task_slot, log_level)
+		go insertIntoCassandra(m, task_slot, log_level)
 	})
 
-	fmt.Println("Ready to store NATS messages into CASSANDRA")
+	log.Print("Ready to store NATS messages into CASSANDRA")
 
+  // To keep the App alive
 	for {
 		time.Sleep(30 * time.Second)
-		// fmt.Println(time.Now())
+		// log.Print(time.Now())
+	}
+
+}
+
+func createSession() {
+  log.Print("Cluster.CreateSession()")
+  var err error
+  Session, err = Cluster.CreateSession()
+  if (err != nil) {
+		log.Fatalf("Could not connect to Cassandra Cluster %s", err)
 	}
 }
 
-func insertIntoCassandra(session *gocql.Session, m *nats.Msg, task_slot string, log_level string) {
+func insertIntoCassandra(m *nats.Msg, task_slot string, log_level string) {
 	/*** Point ***/
 
 	// https://www.dotnetperls.com/split-go
@@ -130,20 +151,24 @@ func insertIntoCassandra(session *gocql.Session, m *nats.Msg, task_slot string, 
 
 	if (log_level == "TRACE") {
 		s := fmt.Sprintf("- v: %d", voltage)
-		fmt.Println(s)
+		log.Print(s)
 	}
+
+  if (Session == nil || Session.Closed()) {
+    createSession()
+  }
 
   /** insert the Data into Cassandra **/
 
-  if err := session.Query(query,
+  if err := Session.Query(query,
       int8(line), int32(transformer), int32(usagePoint), int16(year), int8(month), int8(day),
       int8(hour), int8(minute), int8(day_of_week), voltage, demand,
       values[0], values[1], values[2], values[3], values[4],
       values[5], values[6], values[7], values[8], values[9]).Exec(); err != nil {
-      log.Print(err)
+      log.Panic(err)
   } else {
-    if err := session.Query(increment, task_slot).Exec(); err != nil {
-        log.Print(err)
+    if err := Session.Query(increment, task_slot).Exec(); err != nil {
+        log.Panic(err)
     }
   }
 }

@@ -6,7 +6,7 @@ FROM entrypoint_exp as entrypoint
 ### MAIN FROM ###
 
 # https://hub.docker.com/_/golang/
-FROM golang:1.7-alpine
+FROM golang:1.9-alpine
 
 RUN apk --no-cache add bash jq
 COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
