@@ -143,9 +143,11 @@ services:
     environment:
       - LOCAL_JMX=no
       - READY_WHEN=\"is now UP\"
-      # - WAIT_FOR=${CASSANDRA_MAIN_NAME}
+      - WAIT_FOR=${CASSANDRA_MAIN_NAME}
       - SETUP_LOCAL_CONTAINERS=true
       - CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
+#      - DEBUG=true
+      - CHECK_DEPENDENCIES_INTERVAL=20
     volumes:
       - "/proc:/writable-proc"
 
@@ -196,14 +198,20 @@ services:
       placement:
         constraints:
           - node.role != manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+#        max_attempts: 5
+#        window: 120s
     environment:
-      - WAIT_FOR=${NATS_NAME},${CASSANDRA_URL}
+      - WAIT_FOR=${NATS_NAME},${CASSANDRA_MAIN_NAME}
       - NATS_URI=${NATS_URI}
       - NATS_SUBJECT=smartmeter.voltage.raw.data.>
       - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
       - TASK_SLOT={{.Task.Slot}}
       - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
-      - CASSANDRA_URL=${CASSANDRA_URL}
+      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
+      - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
     volumes:
       - "/proc:/writable-proc"
 
@@ -369,13 +377,16 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/docker.conf
 
-  ### ["create_service_telegraf", "cassandra_write_count"],
-  telegraf_cassandra_write_count:
+  ### ["create_service_telegraf", "cassandra_count"],
+  telegraf_cassandra_count:
     image: logimethods/smart-meter:telegraf${postfix}
     deploy:
-      mode: global
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
     environment:
-      - SETUP_LOCAL_CONTAINERS=true
+      # - SETUP_LOCAL_CONTAINERS=true
       - EUREKA_URL=${EUREKA_NAME}
       - NODE_ID={{.Node.ID}}
       - SERVICE_ID={{.Service.ID}}
@@ -390,11 +401,12 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - TELEGRAF_WAIT_FOR=${CASSANDRA_URL},${INFLUXDB_NAME}
-      - CASSANDRA_LOCAL_URL=${CASSANDRA_LOCAL_URL}
-      - TELEGRAF_CASSANDRA_TABLE='smartmeter.raw_data'
-      - TELEGRAF_CASSANDRA_GREP='Write Count'
-    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_write_count.conf
+      - TELEGRAF_WAIT_FOR=${CASSANDRA_MAIN_NAME},${INFLUXDB_NAME}
+      - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
+      - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
 
   ### ["create_service_telegraf", "cassandra"],
   # TODO

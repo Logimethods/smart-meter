@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  ### ["create_service_telegraf", "cassandra_write_count"],
+  telegraf_cassandra_write_count:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      mode: global
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - TELEGRAF_WAIT_FOR=${CASSANDRA_URL},${INFLUXDB_NAME}
+      - CASSANDRA_LOCAL_URL=${CASSANDRA_LOCAL_URL}
+      - TELEGRAF_CASSANDRA_TABLE='smartmeter.raw_data'
+      - TELEGRAF_CASSANDRA_GREP='Write Count'
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_write_count.conf
