@@ -125,7 +125,7 @@ services:
         constraints:
           - node.role == manager
     environment:
-      - LOCAL_JMX=no
+#      - LOCAL_JMX=no
       - CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
       - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
     ports:
@@ -141,13 +141,15 @@ services:
         constraints:
           - node.role != manager
     environment:
-      - LOCAL_JMX=no
+#      - LOCAL_JMX=no
       - READY_WHEN=\"is now UP\"
-      - WAIT_FOR=${CASSANDRA_MAIN_NAME}
+#      - FAILED_WHEN=\"CASSANDRA_SEEDS:\\n\"
+      - WAIT_FOR=${EUREKA_NAME},${CASSANDRA_MAIN_NAME}
       - SETUP_LOCAL_CONTAINERS=true
-      - CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
+      - PROVIDED_CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
 #      - DEBUG=true
       - CHECK_DEPENDENCIES_INTERVAL=20
+      - DESABLE_PING_ALLOWED=false
     volumes:
       - "/proc:/writable-proc"
 
@@ -212,6 +214,7 @@ services:
       - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
       - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
+      - DESABLE_PING_ALLOWED=false
     volumes:
       - "/proc:/writable-proc"
 
@@ -225,11 +228,11 @@ services:
         constraints:
           - node.role == manager
     environment:
-      - WAIT_FOR=${NATS_NAME},${CASSANDRA_URL}
+      - WAIT_FOR=${NATS_NAME},${CASSANDRA_MAIN_NAME}
       - NATS_URI=${NATS_URI}
       - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
       - STREAMING_DURATION=${STREAMING_DURATION}
-      - CASSANDRA_URL=${CASSANDRA_URL}
+      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
       - LOG_LEVEL=${APP_STREAMING_LOG_LEVEL}
       - TARGETS=${APP_STREAMING_TARGETS}
       - SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX}
@@ -373,6 +376,7 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
+      - DESABLE_PING_ALLOWED=false
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/docker.conf
@@ -405,7 +409,7 @@ services:
       - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
 
   ### ["create_service_telegraf", "cassandra"],
