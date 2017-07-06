@@ -6,17 +6,26 @@ set -e
 if [ $(whoami) = 'root' ]; then
   source /eureka_utils.sh
 
+  include /entrypoint_insert.sh
+
   cmdpid=$BASHPID;
   setup_local_containers ;
   initial_check $cmdpid ;
   (infinite_setup_check $cmdpid) &
   infinite_monitor $cmdpid
+  
+  include /entrypoint_prepare.sh ;
 
-  if [[ $CASSANDRA_SEEDS = \$* ]]; then # If CASSANDRA_SEEDS starts with a $
-    CASSANDRA_SEEDS=$(eval echo "$CASSANDRA_SEEDS")    
+  setup_local_containers ; # To make sure that the local URL are all set
+
+  if [[ $PROVIDED_CASSANDRA_SEEDS = \$* ]]; then # If CASSANDRA_SEEDS starts with a $
+    CASSANDRA_SEEDS=$(eval echo "$PROVIDED_CASSANDRA_SEEDS")
+  else
+    CASSANDRA_SEEDS="${PROVIDED_CASSANDRA_SEEDS}"
   fi
 
-  echo "CASSANDRA_SEEDS: ${CASSANDRA_SEEDS}"
+  echo "PROVIDED_CASSANDRA_SEEDS:: ${PROVIDED_CASSANDRA_SEEDS}"
+  echo "CASSANDRA_SEEDS:: ${CASSANDRA_SEEDS}"
 fi
 
 ### CASSANDRA ###
