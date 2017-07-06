@@ -185,7 +185,7 @@ create_service_cassandra() {
     ${ON_WORKER_NODE} \
     -e LOCAL_JMX=no \
     -e SETUP_LOCAL_CONTAINERS=true \
-    --env CASSANDRA_SEEDS=\\\${${CASSANDRA_MAIN_NAME}_local} \
+    -e PROVIDED_CASSANDRA_SEEDS=\\\${${CASSANDRA_MAIN_NAME}_local} \
     logimethods/smart-meter:cassandra${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
