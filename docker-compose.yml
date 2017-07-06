@@ -142,13 +142,39 @@ services:
           - node.role != manager
     environment:
 #      - LOCAL_JMX=no
-      - READY_WHEN=\"is now UP\"
+      - READY_WHEN=""
 #      - FAILED_WHEN=\"CASSANDRA_SEEDS:\\n\"
       - WAIT_FOR=${EUREKA_NAME},${CASSANDRA_MAIN_NAME}
       - SETUP_LOCAL_CONTAINERS=true
       - PROVIDED_CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
 #      - DEBUG=true
-      - CHECK_DEPENDENCIES_INTERVAL=20
+#      - CHECK_DEPENDENCIES_INTERVAL=20
+      - DESABLE_PING_ALLOWED=false
+    volumes:
+      - "/proc:/writable-proc"
+
+  ### create_service_cassandra_inject,
+  cassandra_inject:
+    image: logimethods/smart-meter:cassandra-inject${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+#        max_attempts: 5
+#        window: 120s
+    environment:
+      - WAIT_FOR=${NATS_NAME},${CASSANDRA_NODE_NAME}
+      - NATS_URI=${NATS_URI}
+      - NATS_SUBJECT=smartmeter.voltage.raw.data.>
+      - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
+      - TASK_SLOT={{.Task.Slot}}
+      - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
+      - CASSANDRA_URL=${CASSANDRA_NODE_NAME}
+      - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
       - DESABLE_PING_ALLOWED=false
     volumes:
       - "/proc:/writable-proc"
@@ -191,32 +217,6 @@ services:
     volumes:
       - "/proc:/writable-proc"
     command: -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
-
-  ### create_service_cassandra_inject,
-  cassandra_inject:
-    image: logimethods/smart-meter:cassandra-inject${postfix}
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role != manager
-      restart_policy:
-        condition: on-failure
-        delay: 10s
-#        max_attempts: 5
-#        window: 120s
-    environment:
-      - WAIT_FOR=${NATS_NAME},${CASSANDRA_MAIN_NAME}
-      - NATS_URI=${NATS_URI}
-      - NATS_SUBJECT=smartmeter.voltage.raw.data.>
-      - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
-      - TASK_SLOT={{.Task.Slot}}
-      - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
-      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
-      - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
-      - DESABLE_PING_ALLOWED=false
-    volumes:
-      - "/proc:/writable-proc"
 
   ### create_service_app_streaming,
   # TODO: Check
