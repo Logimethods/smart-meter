@@ -9,12 +9,14 @@ if [ $(whoami) = 'root' ]; then
   include /entrypoint_insert.sh
 
   cmdpid=$BASHPID;
+  setup_availability
+  desable_ping &
   setup_local_containers ;
   initial_check $cmdpid ;
   (infinite_setup_check $cmdpid) &
   infinite_monitor $cmdpid
-
   include /entrypoint_prepare.sh ;
+  enable_ping &
 
   setup_local_containers ; # To make sure that the local URL are all set
 
