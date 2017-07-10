@@ -130,8 +130,6 @@ services:
       - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
     ports:
       - "${CASSANDRA_COUNT_PORT}:6161"
-    volumes:
-      - "/proc:/writable-proc"
 
   cassandra_cluster_node:
     image: logimethods/smart-meter:cassandra${postfix}
@@ -144,14 +142,12 @@ services:
 #      - LOCAL_JMX=no
       - READY_WHEN=""
 #      - FAILED_WHEN=\"CASSANDRA_SEEDS:\\n\"
-      - WAIT_FOR=${EUREKA_NAME},${CASSANDRA_MAIN_NAME}
+      - DEPENDS_ON=${EUREKA_NAME},${CASSANDRA_MAIN_NAME}
       - SETUP_LOCAL_CONTAINERS=true
       - PROVIDED_CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
 #      - DEBUG=true
 #      - CHECK_DEPENDENCIES_INTERVAL=20
-      - DESABLE_PING_ALLOWED=false
-    volumes:
-      - "/proc:/writable-proc"
+      - PING_ALLOWED=false
 
   ### create_service_cassandra_inject,
   cassandra_inject:
@@ -167,7 +163,7 @@ services:
 #        max_attempts: 5
 #        window: 120s
     environment:
-      - WAIT_FOR=${NATS_NAME},${CASSANDRA_NODE_NAME}
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_NODE_NAME}
       - NATS_URI=${NATS_URI}
       - NATS_SUBJECT=smartmeter.voltage.raw.data.>
       - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
@@ -175,9 +171,7 @@ services:
       - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
       - CASSANDRA_URL=${CASSANDRA_NODE_NAME}
       - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
-      - DESABLE_PING_ALLOWED=false
-    volumes:
-      - "/proc:/writable-proc"
+      - PING_ALLOWED=false
 
   ### create_service_nats,
   nats:
@@ -196,8 +190,6 @@ services:
     ports:
       - "4222:4222"
       - "8222:8222"
-    volumes:
-      - "/proc:/writable-proc"
     command: -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
 
   nats_cluster:
@@ -214,8 +206,6 @@ services:
       - READY_WHEN=\"Server is ready\"
       - NATS_USERNAME=${NATS_USERNAME}
       - NATS_PASSWORD=${NATS_PASSWORD}
-    volumes:
-      - "/proc:/writable-proc"
     command: -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
 
   ### create_service_app_streaming,
@@ -228,7 +218,7 @@ services:
         constraints:
           - node.role == manager
     environment:
-      - WAIT_FOR=${NATS_NAME},${CASSANDRA_MAIN_NAME}
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
       - NATS_URI=${NATS_URI}
       - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
       - STREAMING_DURATION=${STREAMING_DURATION}
@@ -236,8 +226,6 @@ services:
       - LOG_LEVEL=${APP_STREAMING_LOG_LEVEL}
       - TARGETS=${APP_STREAMING_TARGETS}
       - SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX}
-    volumes:
-      - "/proc:/writable-proc"
     command: com.logimethods.nats.connector.spark.app.SparkMaxProcessor "smartmeter.voltage.raw" "smartmeter.voltage.extract.max" "Smartmeter MAX Streaming"
 
   ### create_service_prediction_trainer,
@@ -249,7 +237,7 @@ services:
         constraints:
           - node.role == manager
     environment:
-      - WAIT_FOR=${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}
       - NATS_URI=${NATS_URI}
       - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
       - HDFS_URL=${HDFS_URL}
@@ -258,8 +246,6 @@ services:
       - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
       - SPARK_CORES_MAX=${PREDICTION_TRAINER_SPARK_CORES_MAX}
       - ALERT_THRESHOLD=${ALERT_THRESHOLD}
-    volumes:
-      - "/proc:/writable-proc"
     command: com.logimethods.nats.connector.spark.app.SparkPredictionTrainer "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION TRAINER"
 
   ### ["create_service_telegraf_on_master", "max_voltage"],
@@ -286,10 +272,8 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - WAIT_FOR=${NATS_NAME},${INFLUXDB_NAME}
+      - DEPENDS_ON=${NATS_NAME},${INFLUXDB_NAME}
       - NATS_URI=${NATS_URI}
-    volumes:
-      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/max_voltage.conf
 
   ### ["create_service_telegraf_on_master", "temperature"],
@@ -316,10 +300,8 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - WAIT_FOR=${NATS_NAME}
+      - DEPENDS_ON=${NATS_NAME}
       - NATS_URI=${NATS_URI}
-    volumes:
-      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/temperature.conf
 
   ### ["create_service_telegraf_on_master", "prediction"],
@@ -346,10 +328,8 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - WAIT_FOR=${NATS_NAME},${INFLUXDB_NAME}
+      - DEPENDS_ON=${NATS_NAME},${INFLUXDB_NAME}
       - NATS_URI=${NATS_URI}
-    volumes:
-      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/prediction.conf
 
   ### ["create_service_telegraf_on_master", "docker"],
@@ -376,7 +356,7 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - DESABLE_PING_ALLOWED=false
+      - PING_ALLOWED=false
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/docker.conf
@@ -405,11 +385,9 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - TELEGRAF_WAIT_FOR=${CASSANDRA_MAIN_NAME},${INFLUXDB_NAME}
+      - TELEGRAF_DEPENDS_ON=${CASSANDRA_MAIN_NAME},${INFLUXDB_NAME}
       - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
-    volumes:
-      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
 
   ### ["create_service_telegraf", "cassandra"],
@@ -434,7 +412,7 @@ services:
         constraints:
           - node.role != manager
     environment:
-      - WAIT_FOR=${NATS_NAME},${HADOOP_NAME}
+      - DEPENDS_ON=${NATS_NAME},${HADOOP_NAME}
       - NATS_URI=${NATS_URI}
       - SPARK_MASTER_URL=${SPARK_LOCAL_URL}
       - HDFS_URL=${HDFS_URL}
@@ -443,8 +421,6 @@ services:
       - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
       - SPARK_CORES_MAX=${PREDICTION_ORACLE_SPARK_CORES_MAX}
       - ALERT_THRESHOLD=${ALERT_THRESHOLD}
-    volumes:
-      - "/proc:/writable-proc"
     command: com.logimethods.nats.connector.spark.app.SparkPredictionOracle "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION ORACLE"
 
   ### create_service_inject
@@ -456,7 +432,7 @@ services:
         constraints:
           - node.role != manager
     environment:
-      - WAIT_FOR=${NATS_NAME}
+      - DEPENDS_ON=${NATS_NAME}
       - GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw
       - NATS_URI=${NATS_URI}
       - GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC}

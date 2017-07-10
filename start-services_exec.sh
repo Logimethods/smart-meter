@@ -180,7 +180,7 @@ create_service_cassandra() {
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e READY_WHEN="" \
-    -e WAIT_FOR=${CASSANDRA_MAIN_NAME} \
+    -e DEPENDS_ON=${CASSANDRA_MAIN_NAME} \
     --mode global \
     ${ON_WORKER_NODE} \
     -e LOCAL_JMX=no \
@@ -328,7 +328,7 @@ create_service_app_streaming() {
   cmd="docker ${remote} service create \
     --name app_streaming \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
-    -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL}\" \
+    -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
@@ -354,7 +354,7 @@ create_service_prediction_trainer() {
   cmd="docker ${remote} service create \
     --name prediction_trainer \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
-    -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}\" \
+    -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e HDFS_URL=${HDFS_URL} \
@@ -379,7 +379,7 @@ create_service_prediction_oracle() {
   cmd="docker ${remote} service create \
     --name prediction_oracle \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
-    -e WAIT_FOR=\"${NATS_NAME},${HADOOP_NAME}\" \
+    -e DEPENDS_ON=\"${NATS_NAME},${HADOOP_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_LOCAL_URL} \
     -e HDFS_URL=${HDFS_URL} \
@@ -490,7 +490,7 @@ create_service_cassandra-inject() {
     --mode global \
     ${ON_WORKER_NODE} \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
-    -e WAIT_FOR=\"${NATS_NAME},${CASSANDRA_URL}\" \
+    -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_URI=${NATS_URI} \
     -e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
     -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
@@ -514,7 +514,7 @@ create_service_inject() {
     --name inject \
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
-    -e WAIT_FOR=\"${NATS_NAME}\" \
+    -e DEPENDS_ON=\"${NATS_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
     -e NATS_URI=${NATS_URI} \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
@@ -550,7 +550,7 @@ run_inject() {
     --name inject \
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
-    -e WAIT_FOR=\"${NATS_NAME}\" \
+    -e DEPENDS_ON=\"${NATS_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
     -e NATS_URI=${NATS_CLUSTER_URI} \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
@@ -722,7 +722,7 @@ run_telegraf() {
      -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
      -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
      -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
-     -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
+     -e DEPENDS_ON=$TELEGRAF_DEPENDS_ON \
      ${TELEGRAF_ENVIRONMENT_VARIABLES} \
      ${DOCKER_ACCES} \
      --log-driver=json-file \
@@ -763,7 +763,7 @@ create_service_telegraf() {
     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
-    -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
+    -e DEPENDS_ON=$TELEGRAF_DEPENDS_ON \
     ${TELEGRAF_ENVIRONMENT_VARIABLES} \
     ${DOCKER_ACCES} \
     --mode global \
@@ -802,7 +802,7 @@ create_service_telegraf_on_master() {
     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
-    -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
+    -e DEPENDS_ON=$TELEGRAF_DEPENDS_ON \
     ${TELEGRAF_ENVIRONMENT_VARIABLES} \
     ${DOCKER_ACCES} \
     ${ON_MASTER_NODE} \
