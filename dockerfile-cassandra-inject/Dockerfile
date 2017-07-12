@@ -8,7 +8,8 @@ FROM entrypoint_exp as entrypoint
 # https://hub.docker.com/_/golang/
 FROM golang:1.9-alpine
 
-RUN apk --no-cache add bash jq
+RUN apk --no-cache add \
+  bash jq netcat-openbsd
 COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
 COPY --from=entrypoint entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

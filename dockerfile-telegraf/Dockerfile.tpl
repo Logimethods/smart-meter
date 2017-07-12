@@ -12,7 +12,7 @@ RUN echo '@edge http://nl.alpinelinux.org/alpine/edge/main' >> /etc/apk/reposito
   && echo '@community http://nl.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
   && apk update \
   && apk upgrade \
-  && apk add openjdk8-jre-base@community jq bash curl \
+  && apk add openjdk8-jre-base@community jq bash curl netcat-openbsd \
   && rm -rf /var/cache/apk/*
 
 # http://dba.stackexchange.com/questions/68332/how-can-i-get-nodetool-without-cassandra

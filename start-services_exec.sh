@@ -134,7 +134,6 @@ create_service_cassandra_single() {
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
     -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
@@ -155,7 +154,6 @@ create_service_cassandra() {
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     ${ON_MASTER_NODE} \
     -e LOCAL_JMX=no \
     -e CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE} \
@@ -178,7 +176,6 @@ create_service_cassandra() {
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_NODE_NAME} \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e READY_WHEN="" \
     -e DEPENDS_ON=${CASSANDRA_MAIN_NAME} \
     --mode global \
@@ -200,7 +197,6 @@ __create_full_service_cassandra() {
   cmd="docker ${remote} service create \
     --name ${CASSANDRA_MAIN_NAME} \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     --mount type=volume,source=cassandra-volume-1,destination=/var/lib/cassandra \
     ${ON_MASTER_NODE} \
     -e CASSANDRA_BROADCAST_ADDRESS="cassandra" \
@@ -327,7 +323,6 @@ create_service_nats_single() {
 create_service_app_streaming() {
   cmd="docker ${remote} service create \
     --name app_streaming \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
@@ -353,7 +348,6 @@ create_service_prediction_trainer() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name prediction_trainer \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
@@ -378,7 +372,6 @@ create_service_prediction_oracle() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name prediction_oracle \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e DEPENDS_ON=\"${NATS_NAME},${HADOOP_NAME}\" \
     -e NATS_URI=${NATS_URI} \
     -e SPARK_MASTER_URL=${SPARK_LOCAL_URL} \
@@ -489,13 +482,13 @@ create_service_cassandra-inject() {
     --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_URI=${NATS_URI} \
     -e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
     -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
     -e TASK_SLOT={{.Task.Slot}} \
     -e CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY} \
+    -e DEBUG=aXvailability \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
     logimethods/smart-meter:cassandra-inject${postfix}"
   echo "-----------------------------------------------------------------"
@@ -513,7 +506,6 @@ create_service_inject() {
   cmd="docker ${remote} service create \
     --name inject \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e DEPENDS_ON=\"${NATS_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
     -e NATS_URI=${NATS_URI} \
@@ -549,7 +541,6 @@ run_inject() {
   cmd="docker ${remote} run \
     --name inject \
     --network smartmeter \
-    ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e DEPENDS_ON=\"${NATS_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
     -e NATS_URI=${NATS_CLUSTER_URI} \
@@ -722,6 +713,7 @@ run_telegraf() {
      -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
      -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
      -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+     -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
      -e DEPENDS_ON=$TELEGRAF_DEPENDS_ON \
      ${TELEGRAF_ENVIRONMENT_VARIABLES} \
      ${DOCKER_ACCES} \
@@ -763,6 +755,7 @@ create_service_telegraf() {
     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+    -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
     -e DEPENDS_ON=$TELEGRAF_DEPENDS_ON \
     ${TELEGRAF_ENVIRONMENT_VARIABLES} \
     ${DOCKER_ACCES} \
@@ -802,6 +795,7 @@ create_service_telegraf_on_master() {
     -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
     -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
     -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+    -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
     -e DEPENDS_ON=$TELEGRAF_DEPENDS_ON \
     ${TELEGRAF_ENVIRONMENT_VARIABLES} \
     ${DOCKER_ACCES} \

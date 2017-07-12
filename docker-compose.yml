@@ -272,7 +272,8 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - DEPENDS_ON=${NATS_NAME},${INFLUXDB_NAME}
+      - DEPENDS_ON=${NATS_NAME}
+      - WAIT_FOR=${INFLUXDB_NAME}
       - NATS_URI=${NATS_URI}
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/max_voltage.conf
 
@@ -328,7 +329,8 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - DEPENDS_ON=${NATS_NAME},${INFLUXDB_NAME}
+      - DEPENDS_ON=${NATS_NAME}
+      - WAIT_FOR=${INFLUXDB_NAME}
       - NATS_URI=${NATS_URI}
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/prediction.conf
 
@@ -385,7 +387,8 @@ services:
       - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
       - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
       # Specific
-      - TELEGRAF_DEPENDS_ON=${CASSANDRA_MAIN_NAME},${INFLUXDB_NAME}
+      - TELEGRAF_DEPENDS_ON=${CASSANDRA_MAIN_NAME}
+      - WAIT_FOR=${INFLUXDB_NAME}
       - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
