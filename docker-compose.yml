@@ -163,13 +163,13 @@ services:
 #        max_attempts: 5
 #        window: 120s
     environment:
-      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_NODE_NAME}
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
       - NATS_URI=${NATS_URI}
       - NATS_SUBJECT=smartmeter.voltage.raw.data.>
       - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
       - TASK_SLOT={{.Task.Slot}}
       - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
-      - CASSANDRA_URL=${CASSANDRA_NODE_NAME}
+      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
       - PING_ALLOWED=false
 
@@ -190,6 +190,8 @@ services:
     ports:
       - "4222:4222"
       - "8222:8222"
+    volumes:
+      - "/proc:/writable-proc"
     command: -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
 
   nats_cluster:
@@ -206,6 +208,8 @@ services:
       - READY_WHEN=\"Server is ready\"
       - NATS_USERNAME=${NATS_USERNAME}
       - NATS_PASSWORD=${NATS_PASSWORD}
+    volumes:
+      - "/proc:/writable-proc"
     command: -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
 
   ### create_service_app_streaming,
@@ -275,6 +279,8 @@ services:
       - DEPENDS_ON=${NATS_NAME}
       - WAIT_FOR=${INFLUXDB_NAME}
       - NATS_URI=${NATS_URI}
+    volumes:
+      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/max_voltage.conf
 
   ### ["create_service_telegraf_on_master", "temperature"],
@@ -332,6 +338,8 @@ services:
       - DEPENDS_ON=${NATS_NAME}
       - WAIT_FOR=${INFLUXDB_NAME}
       - NATS_URI=${NATS_URI}
+    volumes:
+      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/prediction.conf
 
   ### ["create_service_telegraf_on_master", "docker"],
@@ -391,6 +399,8 @@ services:
       - WAIT_FOR=${INFLUXDB_NAME}
       - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
+    volumes:
+      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
 
   ### ["create_service_telegraf", "cassandra"],
