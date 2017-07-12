@@ -1,5 +1,5 @@
 # https://github.com/nats-io/nats-docker/blob/master/Dockerfile
-FROM nats as nats
+FROM nats:1.0.0 as nats
 
 ### MAIN FROM ###
 
