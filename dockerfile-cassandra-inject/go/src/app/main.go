@@ -1,3 +1,25 @@
+// MIT License
+//
+// Copyright (c) 2016-2017 Logimethods
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 package main
 
 import (
@@ -21,8 +43,89 @@ const query = "INSERT INTO raw_data (" +
 			  "line, transformer, usagePoint, year, month, day, hour, minute, day_of_week, voltage, demand, " +
 			  "val3, val4, val5, val6, val7, val8, val9, val10, val11, val12) " +
 			  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-			  
-func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) {
+
+// http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCounters.html
+const increment = "UPDATE raw_data_count SET count = count + 1 WHERE slot = ?"
+
+var Session *gocql.Session
+var Cluster *gocql.ClusterConfig
+
+func main() {
+	log.Print("Welcome to the NATS to Cassandra Bridge")
+
+	log.Print("The time is", time.Now())
+
+	nats_uri := os.Getenv("NATS_URI")
+	nc, _ := nats.Connect(nats_uri)
+
+	log.Print("Subscribed to NATS: ", nats_uri)
+
+	nats_subject := os.Getenv("NATS_SUBJECT")
+	log.Print("NATS Subject: ", nats_subject)
+
+	// CASSANDRA
+	cassandra_url := os.Getenv("CASSANDRA_URL")
+	log.Print("Cassandra URL: ", cassandra_url)
+
+	// LOG LEVEL
+	log_level := os.Getenv("LOG_LEVEL")
+	log.Print("LOG LEVEL: ", log_level)
+
+  // TASK_SLOT
+  task_slot := os.Getenv("TASK_SLOT")
+  log.Print("TASK SLOT: ", task_slot)
+
+	// connect to the Cluster
+	Cluster = gocql.NewCluster(cassandra_url)
+	Cluster.Keyspace = "smartmeter"
+
+	cluster_consistency := os.Getenv("CASSANDRA_INJECT_CONSISTENCY")
+	Cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
+	log.Print("CONSISTENCY: ", Cluster.Consistency)
+
+  cluster_timeout := os.Getenv("CASSANDRA_TIMEOUT")
+  if (cluster_timeout != "") {
+    timeout, err := strconv.Atoi(cluster_timeout)
+    if (err == nil) {
+      Cluster.Timeout = time.Duration(timeout) * time.Millisecond
+      log.Print("(Provided) CASSANDRA_TIMEOUT: ", Cluster.Timeout)
+    } else {
+      log.Panicf("Unable to parse CASSANDRA_TIMEOUT (%s) into int64", cluster_timeout)
+    }
+  } else {
+    log.Print("(Default) CASSANDRA_TIMEOUT: ", Cluster.Timeout)
+  }
+
+	createSession()
+  defer Session.Close()
+
+	log.Print("Connected to Cassandra")
+
+	// Simple Async Subscriber
+	nc.QueueSubscribe(nats_subject, "cassandra_inject", func(m *nats.Msg) {
+		go insertIntoCassandra(m, task_slot, log_level)
+	})
+
+	log.Print("Ready to store NATS messages into CASSANDRA")
+
+  // To keep the App alive
+	for {
+		time.Sleep(30 * time.Second)
+		// log.Print(time.Now())
+	}
+
+}
+
+func createSession() {
+  log.Print("Cluster.CreateSession()")
+  var err error
+  Session, err = Cluster.CreateSession()
+  if (err != nil) {
+		log.Fatalf("Could not connect to Cassandra Cluster %s", err)
+	}
+}
+
+func insertIntoCassandra(m *nats.Msg, task_slot string, log_level string) {
 	/*** Point ***/
 
 	// https://www.dotnetperls.com/split-go
@@ -58,9 +161,9 @@ func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) 
 	demandFloatBytes := m.Data[12:16]
 	// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
 	demand := math.Float32frombits(binary.BigEndian.Uint32(demandFloatBytes))
-	
+
 	/*** Remaining Values ***/
-	
+
 	var values [10]float32
 	for i := 0; i < 10; i++ {
 		values[i] = math.Float32frombits(binary.BigEndian.Uint32(m.Data[(16+4*i):(20+4*i)]))
@@ -70,70 +173,24 @@ func insertIntoCassandra(session *gocql.Session, m *nats.Msg, log_level string) 
 
 	if (log_level == "TRACE") {
 		s := fmt.Sprintf("- v: %d", voltage)
-		fmt.Println(s)
+		log.Print(s)
 	}
 
-    /** insert the Data into Cassandra **/
+  if (Session == nil || Session.Closed()) {
+    createSession()
+  }
 
-    if err := session.Query(query,
-        int8(line), int32(transformer), int32(usagePoint), int16(year), int8(month), int8(day),
-	    int8(hour), int8(minute), int8(day_of_week), voltage, demand,
-	    values[0], values[1], values[2], values[3], values[4], 
-	    values[5], values[6], values[7], values[8], values[9]).Exec(); err != nil {
-        log.Print(err)
+  /** insert the Data into Cassandra **/
+
+  if err := Session.Query(query,
+      int8(line), int32(transformer), int32(usagePoint), int16(year), int8(month), int8(day),
+      int8(hour), int8(minute), int8(day_of_week), voltage, demand,
+      values[0], values[1], values[2], values[3], values[4],
+      values[5], values[6], values[7], values[8], values[9]).Exec(); err != nil {
+      log.Panic(err)
+  } else {
+    if err := Session.Query(increment, task_slot).Exec(); err != nil {
+        log.Panic(err)
     }
-}
-
-func main() {
-	fmt.Println("Welcome to the NATS to Cassandra Bridge")
-
-	fmt.Println("The time is", time.Now())
-
-	nats_uri := os.Getenv("NATS_URI")
-	nc, _ := nats.Connect(nats_uri)
-
-	fmt.Println("Subscribed to NATS: ", nats_uri)
-
-	nats_subject := os.Getenv("NATS_SUBJECT")
-	fmt.Println("NATS Subject: ", nats_subject)
-
-	// CASSANDRA
-
-	cassandra_url := os.Getenv("CASSANDRA_URL")
-	fmt.Println("Cassandra URL: ", cassandra_url)
-
-	// LOG LEVEL
-	log_level := os.Getenv("LOG_LEVEL")
-	fmt.Println("LOG LEVEL: ", log_level)
-
-	// connect to the cluster
-	cluster := gocql.NewCluster(cassandra_url)
-	cluster.Keyspace = "smartmeter"
-
-	cluster_consistency := os.Getenv("CASSANDRA_INJECT_CONSISTENCY")
-	cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
-	fmt.Println("CONSISTENCY: ", cluster.Consistency)
-
-	session, _ := cluster.CreateSession()
-	defer session.Close()
-
-	fmt.Println("Connected to Cassandra")
-
-    // insert a message into Cassandra
-//    if err := session.Query(`INSERT INTO messages (subject, message) VALUES (?, ?)`,
-//        "subject1", "First message").Exec(); err != nil {
-//        log.Print(err)
-//    }
-
-	// Simple Async Subscriber
-	nc.QueueSubscribe(nats_subject, "cassandra_inject", func(m *nats.Msg) {
-		go insertIntoCassandra(session, m, log_level)
-	})
-
-	fmt.Println("Ready to store NATS messages into CASSANDRA")
-
-	for {
-		time.Sleep(30 * time.Second)
-		// fmt.Println(time.Now())
-	}
+  }
 }

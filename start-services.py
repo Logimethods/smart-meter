@@ -73,6 +73,9 @@ def create_service(name, replicas, postfix):
 def create_service_telegraf(name, postfix):
 	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["create_service_telegraf", name])
 
+def create_service_telegraf_on_master(name, postfix):
+	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["create_service_telegraf_on_master", name])
+
 def rm_service(name, postfix):
 	# subprocess.run(["docker", "service", "rm", name])
 	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["rm_service", name])
@@ -95,6 +98,8 @@ def run(steps):
 			rm_service(step[1], postfix)
 		elif step[0] == "create_service_telegraf" :
 			create_service_telegraf(step[1], postfix)
+		elif step[0] == "create_service_telegraf_on_master" :
+			create_service_telegraf_on_master(step[1], postfix)
 		else:
 			call(step[0], step[1], step[2:])
 
@@ -200,45 +205,29 @@ def run_setup_cassandra():
 def run_inject():
 	run([
 		create_network,
-		["create_service", "visualizer", 1],
 		["create_service", "eureka", 1],
+		["create_service", "visualizer", 1],
 		run_metrics,
-###		["create_volume", "cassandra"],
-#		rm_service_inject,
-#		["run_service", "telegraf_docker"],
-###		create_service_spark_master,
-###		["wait", "service", "spark-master"],
-###		create_service_spark_slave,
-###		["run", "spark_autoscaling"],
-#		rm_service_cassandra_inject,
-#		["build", "inject"],
 		["create_service", "hadoop", 1],
-		["create_service", "cassandra_single", 1],
-		["create_service", "nats_single", 1],
-#		["wait", "service", "cassandra"],
-		["wait", "service", "nats"],
-		create_cassandra_tables,
 		create_service_cassandra_inject,
+#		["create_service", "cassandra_single", 1],
+		["run", "cassandra"],
+		["create_service", "nats_single", 1],
 		create_service_app_streaming,
 		create_service_prediction_trainer,
 		["run", "telegraf", "max_voltage"],
 		["run", "telegraf", "temperature"],
 		["run", "telegraf", "prediction"],
-##		["run", "telegraf", "cassandra"],
 		["run", "telegraf", "docker"],
-		["run", "telegraf", "cassandra_write_count"],
-		["create_service_telegraf", "cassandra"],
+		["run", "telegraf", "cassandra_count"],
+#		["run", "telegraf", "cassandra_write_count"],
+#		["create_service_telegraf", "cassandra"],
 		["run", "prometheus_nats_exporter"],
-#		["run", "telegraf", "cassandra_count"],
-#		["wait", "service", "cassandra-inject"],
 		create_service_prediction_oracle,
 		create_service_inject,
-#		["run", "app_prediction"]
-#		["run", "inject", "2"],
-#		["logs", "service", "cassandra-inject-local"],
 		])
 
-def run_inject_aws():
+def run_inject_cluster():
 	run([
 		create_network,
 		["create_service", "visualizer", 1],
@@ -247,20 +236,18 @@ def run_inject_aws():
 		["create_service", "hadoop", 1],
 		["create_volume", "cassandra"],
 		create_service_spark_master,
-		["wait", "service", "spark-master"],
 		create_service_spark_slave,
 		create_service_cassandra,
 		create_service_nats,
-		["wait", "service", "nats"],
-		create_cassandra_tables,
 		create_service_cassandra_inject,
 		create_service_app_streaming,
 		create_service_prediction_trainer,
-		["run", "telegraf", "max_voltage"],
-		["run", "telegraf", "temperature"],
-		["run", "telegraf", "prediction"],
-		["create_service_telegraf", "cassandra_write_count"],
-		["create_service_telegraf", "cassandra"],
+		["create_service_telegraf_on_master", "max_voltage"],
+		["create_service_telegraf_on_master", "temperature"],
+		["create_service_telegraf_on_master", "prediction"],
+		["create_service_telegraf_on_master", "docker"],
+		["create_service_telegraf_on_master", "cassandra_count"],
+	#	["create_service_telegraf", "cassandra"],
 		["create_service", "prometheus_nats_exporter", 1],
 		create_service_prediction_oracle,
 		create_service_inject

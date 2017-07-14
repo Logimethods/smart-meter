@@ -1,0 +1,468 @@
+version: "3"
+
+### create_network,
+#### docker ${remote} network create --driver overlay --attachable smartmeter
+networks:
+  default:
+    external:
+      name: smartmeter
+
+services:
+  ### ["create_service", "visualizer", 1],
+  visualizer:
+    image: dockersamples/visualizer
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "8080:8080/tcp"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  ### ["create_service", "eureka", 1],
+  eureka:
+    image: logimethods/eureka${postfix}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "${FLASK_PORT}:5000"
+    environment:
+      - FLASK_DEBUG=${FLASK_DEBUG}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  ### run_metrics,
+  #### run_metrics_graphite
+  metrics:
+    image: hopsoft/graphite-statsd:${graphite_statsd_tag}
+    ports:
+      - "81:80"
+  #### run_metrics_prometheus
+  prometheus:
+    image: logimethods/smart-meter:prometheus${postfix}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "9090:9090"
+    command: -storage.local.path=/data -config.file=/etc/prometheus/prometheus.yml
+  #### create_service_influxdb
+  influxdb:
+    image: influxdb
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+      - "2003:2003"
+  #### run_metrics_grafana
+  grafana:
+    image: grafana/grafana:${grafana_tag}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "${METRICS_GRAFANA_WEB_PORT}:3000"
+    environment:
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+    volumes:
+      - "grafana-volume:/var/lib/grafana"
+
+  ### ["create_service", "hadoop", 1],
+  hadoop:
+    image: sequenceiq/hadoop-docker:${hadoop_docker_version}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "50070:50070"
+
+  ### create_service_spark_master,
+  spark-master:
+    image: ${spark_image}:${spark_version}-hadoop-${hadoop_version}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+    environment:
+      - SERVICE_NAME=${SPARK_MASTER_NAME}
+    ports:
+      - "${SPARK_UI_PORT}:8080"
+
+  ### create_service_spark_worker,
+  spark-worker:
+    image: ${spark_image}:${spark_version}-hadoop-${hadoop_version}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+    environment:
+      - SERVICE_NAME=${SPARK_WORKER_NAME}
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://${SPARK_MASTER_NAME}:7077
+
+  ### TODO: ["create_volume", "cassandra"],
+  ### create_service_cassandra,
+  cassandra_cluster_main:
+    image: logimethods/smart-meter:cassandra${postfix}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+#      - LOCAL_JMX=no
+      - CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
+      - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
+    ports:
+      - "${CASSANDRA_COUNT_PORT}:6161"
+
+  cassandra_cluster_node:
+    image: logimethods/smart-meter:cassandra${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+    environment:
+#      - LOCAL_JMX=no
+      - READY_WHEN=""
+#      - FAILED_WHEN=\"CASSANDRA_SEEDS:\\n\"
+      - DEPENDS_ON=${EUREKA_NAME},${CASSANDRA_MAIN_NAME}
+      - SETUP_LOCAL_CONTAINERS=true
+      - PROVIDED_CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
+#      - DEBUG=true
+#      - CHECK_DEPENDENCIES_INTERVAL=20
+      - PING_ALLOWED=false
+
+  ### create_service_cassandra_inject,
+  cassandra_inject:
+    image: logimethods/smart-meter:cassandra-inject${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+#        max_attempts: 5
+#        window: 120s
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
+      - NATS_URI=${NATS_URI}
+      - NATS_SUBJECT=smartmeter.voltage.raw.data.>
+      - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
+      - TASK_SLOT={{.Task.Slot}}
+      - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
+      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
+      - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
+      - PING_ALLOWED=false
+
+  ### create_service_nats,
+  nats:
+    image: logimethods/smart-meter:nats-server${postfix}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+#      update_config:
+#        parallelism: 1
+#        delay: 10s
+    environment:
+      - READY_WHEN=\"Server is ready\"
+      - NATS_USERNAME=${NATS_USERNAME}
+      - NATS_PASSWORD=${NATS_PASSWORD}
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - "/proc:/writable-proc"
+    command: -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
+
+  nats_cluster:
+    image: logimethods/smart-meter:nats-server${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+#      update_config:
+#        parallelism: 1
+#        delay: 10s
+    environment:
+      - READY_WHEN=\"Server is ready\"
+      - NATS_USERNAME=${NATS_USERNAME}
+      - NATS_PASSWORD=${NATS_PASSWORD}
+    volumes:
+      - "/proc:/writable-proc"
+    command: -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
+
+  ### create_service_app_streaming,
+  # TODO: Check
+  app_streaming:
+    image: logimethods/smart-meter:app-streaming${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
+      - NATS_URI=${NATS_URI}
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
+      - LOG_LEVEL=${APP_STREAMING_LOG_LEVEL}
+      - TARGETS=${APP_STREAMING_TARGETS}
+      - SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX}
+    command: com.logimethods.nats.connector.spark.app.SparkMaxProcessor "smartmeter.voltage.raw" "smartmeter.voltage.extract.max" "Smartmeter MAX Streaming"
+
+  ### create_service_prediction_trainer,
+  prediction_trainer:
+    image: logimethods/smart-meter:app-streaming${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}
+      - NATS_URI=${NATS_URI}
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
+      - HDFS_URL=${HDFS_URL}
+      - CASSANDRA_URL=${CASSANDRA_PREDICTION_URL}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
+      - SPARK_CORES_MAX=${PREDICTION_TRAINER_SPARK_CORES_MAX}
+      - ALERT_THRESHOLD=${ALERT_THRESHOLD}
+    command: com.logimethods.nats.connector.spark.app.SparkPredictionTrainer "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION TRAINER"
+
+  ### ["create_service_telegraf_on_master", "max_voltage"],
+  telegraf_max_voltage:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - DEPENDS_ON=${NATS_NAME}
+      - WAIT_FOR=${INFLUXDB_NAME}
+      - NATS_URI=${NATS_URI}
+    volumes:
+      - "/proc:/writable-proc"
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/max_voltage.conf
+
+  ### ["create_service_telegraf_on_master", "temperature"],
+  telegraf_temperature:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - DEPENDS_ON=${NATS_NAME}
+      - NATS_URI=${NATS_URI}
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/temperature.conf
+
+  ### ["create_service_telegraf_on_master", "prediction"],
+  telegraf_prediction:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - DEPENDS_ON=${NATS_NAME}
+      - WAIT_FOR=${INFLUXDB_NAME}
+      - NATS_URI=${NATS_URI}
+    volumes:
+      - "/proc:/writable-proc"
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/prediction.conf
+
+  ### ["create_service_telegraf_on_master", "docker"],
+  telegraf_docker:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - PING_ALLOWED=false
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/docker.conf
+
+  ### ["create_service_telegraf", "cassandra_count"],
+  telegraf_cassandra_count:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      # - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - TELEGRAF_DEPENDS_ON=${CASSANDRA_MAIN_NAME}
+      - WAIT_FOR=${INFLUXDB_NAME}
+      - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
+      - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
+    volumes:
+      - "/proc:/writable-proc"
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
+
+  ### ["create_service_telegraf", "cassandra"],
+  # TODO
+
+  ### ["create_service", "prometheus_nats_exporter", 1],
+  prometheus_nats_exporter:
+    image: ${prometheus_nats_exporter_image}:${prometheus_nats_exporter_tag}${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    command: ${PROMETHEUS_NATS_EXPORTER_FLAGS} ${PROMETHEUS_NATS_EXPORTER_DEBUG} ${PROMETHEUS_NATS_EXPORTER_URLS}
+
+  ### create_service_prediction_oracle,
+  prediction_oracle:
+    image: logimethods/smart-meter:app-streaming${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${HADOOP_NAME}
+      - NATS_URI=${NATS_URI}
+      - SPARK_MASTER_URL=${SPARK_LOCAL_URL}
+      - HDFS_URL=${HDFS_URL}
+      - CASSANDRA_URL=${CASSANDRA_PREDICTION_URL}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
+      - SPARK_CORES_MAX=${PREDICTION_ORACLE_SPARK_CORES_MAX}
+      - ALERT_THRESHOLD=${ALERT_THRESHOLD}
+    command: com.logimethods.nats.connector.spark.app.SparkPredictionOracle "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION ORACLE"
+
+  ### create_service_inject
+  inject:
+    image: logimethods/smart-meter:inject${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role != manager
+    environment:
+      - DEPENDS_ON=${NATS_NAME}
+      - GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw
+      - NATS_URI=${NATS_URI}
+      - GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC}
+      - GATLING_DURATION=${GATLING_DURATION}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - RANDOMNESS=${VOLTAGE_RANDOMNESS}
+      - PREDICTION_LENGTH=${PREDICTION_LENGTH}
+      - TIME_ROOT=${TIME_ROOT}
+    command: --no-reports -s com.logimethods.smartmeter.inject.NatsInjection
+
+volumes:
+  grafana-volume:
+    external: true

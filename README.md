@@ -48,7 +48,7 @@ Images will be postfixed by -local
 > ssh -NL localhost:2374:/var/run/docker.sock docker@xxxxx.amazonaws.com &
 > python3 -i ./start-services.py "remote" "cluster"
 > Remote Docker Client
->>> run_inject_aws()
+>>> run_inject_cluster()
 ...
 >>> stop_all()
 ...
@@ -58,6 +58,13 @@ Images will be postfixed by -local
 Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage - swarm.json](dockerfile-metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
 
 ![gatling-max-voltage-swarm_screenshot.png](images/gatling-max-voltage-swarm_screenshot.png "Gatling-max-voltage-swarm Screenshot")
+
+### Docker Compose
+
+```
+./docker-[local | remote]-up.sh
+./docker-[local | remote]-down.sh
+```
 
 ## Architectures
 The *Injection* demo architecture:
