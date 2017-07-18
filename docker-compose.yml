@@ -279,8 +279,6 @@ services:
       - DEPENDS_ON=${NATS_NAME}
       - WAIT_FOR=${INFLUXDB_NAME}
       - NATS_URI=${NATS_URI}
-    volumes:
-      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/max_voltage.conf
 
   ### ["create_service_telegraf_on_master", "temperature"],
@@ -338,8 +336,6 @@ services:
       - DEPENDS_ON=${NATS_NAME}
       - WAIT_FOR=${INFLUXDB_NAME}
       - NATS_URI=${NATS_URI}
-    volumes:
-      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/prediction.conf
 
   ### ["create_service_telegraf_on_master", "docker"],
@@ -399,8 +395,6 @@ services:
       - WAIT_FOR=${INFLUXDB_NAME}
       - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
-    volumes:
-      - "/proc:/writable-proc"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
 
   ### ["create_service_telegraf", "cassandra"],
