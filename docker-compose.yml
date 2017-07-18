@@ -156,7 +156,7 @@ services:
       mode: global
       placement:
         constraints:
-          - node.role != manager
+          - node.role != ${MASTER_NODE}
       restart_policy:
         condition: on-failure
         delay: 10s
@@ -423,7 +423,7 @@ services:
       mode: global
       placement:
         constraints:
-          - node.role != manager
+          - node.role != ${MASTER_NODE}
     environment:
       - DEPENDS_ON=${NATS_NAME},${HADOOP_NAME}
       - NATS_URI=${NATS_URI}
@@ -443,7 +443,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.role != manager
+          - node.role != ${MASTER_NODE}
     environment:
       - DEPENDS_ON=${NATS_NAME}
       - GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw

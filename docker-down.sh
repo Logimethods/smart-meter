@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # https://github.com/docker/compose/issues/3435#issuecomment-232353235
 
-echo "remote: $1"
+set -a
+location="$1"
 
-. ./properties/configuration.properties
+echo "location: $location"
 
-docker $1 stack rm "${STACK_NAME}"
+source properties/configuration.properties
+source "properties/configuration-location-${location}.properties"
+source "properties/configuration-location-${location}-debug.properties"
+set +a
+docker ${remote} stack rm "${STACK_NAME}"
