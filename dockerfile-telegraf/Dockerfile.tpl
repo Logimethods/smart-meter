@@ -29,13 +29,11 @@ FROM entrypoint_exp as entrypoint
 
 FROM telegraf:${telegraf_version}
 
-# https://github.com/iron-io/dockers/blob/master/java/java-1.8/Dockerfile
-RUN echo '@edge http://nl.alpinelinux.org/alpine/edge/main' >> /etc/apk/repositories \
-  && echo '@community http://nl.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
-  && apk update \
-  && apk upgrade \
-  && apk add openjdk8-jre-base@community jq bash curl netcat-openbsd \
-  && rm -rf /var/cache/apk/*
+# RUN apk --no-cache add openjdk8-jre-base jq bash curl netcat-openbsd>1.130
+
+RUN apt-get update \
+ && apt-get install -y \
+    default-jre jq bash curl netcat-openbsd
 
 # http://dba.stackexchange.com/questions/68332/how-can-i-get-nodetool-without-cassandra
 COPY tar/ /nodetool/

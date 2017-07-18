@@ -18,4 +18,4 @@ source "properties/configuration-mode-${cluster_mode}-debug.properties"
 source "properties/configuration-telegraf.properties"
 source "properties/configuration-telegraf-debug.properties"
 set +a
-docker ${remote} stack deploy -c docker-compose-test.yml "${STACK_NAME}"
+docker ${remote} stack deploy -c docker-compose.yml "${STACK_NAME}"
