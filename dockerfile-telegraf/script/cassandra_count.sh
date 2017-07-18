@@ -1,6 +1,6 @@
 #!/bin/bash
 
-counts=$(curl --silent "$CASSANDRA_MAIN_URL:$CASSANDRA_COUNT_PORT" | tail +3 | head -n -2)
+counts=$(curl --silent "$CASSANDRA_MAIN_URL:$CASSANDRA_COUNT_PORT" | head -n -2 | tail -n1)
 json="{"
 while IFS="|" read slot count; do
   clean_slot="$(echo -e "${slot}" | tr -d '[:space:]')"
