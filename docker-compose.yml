@@ -439,7 +439,7 @@ services:
         constraints:
           - node.role != ${MASTER_NODE}
     environment:
-      - DEPENDS_ON=${NATS_NAME}
+      - DEPENDS_ON=${NATS_NAME},${METRICS_GRAPHITE_NAME}
       - GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw
       - NATS_URI=${NATS_URI}
       - GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC}
