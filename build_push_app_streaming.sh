@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 docker -H localhost:2374 service rm prediction_oracle prediction_trainer
 pushd dockerfile-app-streaming
 sbt test docker
