@@ -269,6 +269,13 @@ run_spark_autoscaling() {
 
 ### Create Service ###
 
+create_secrets_nats() {
+  docker secret create nats_username_secret ./devsecrets/nats_username_secret
+  docker secret create nats_password_secret ./devsecrets/nats_password_secret
+  docker secret create nats_cluster_username_secret ./devsecrets/nats_cluster_username_secret
+  docker secret create nats_cluster_password_secret ./devsecrets/nats_cluster_password_secret
+}
+
 create_service_nats() {
   cmd="docker ${remote} service create \
       --name $NATS_NAME \
@@ -276,12 +283,18 @@ create_service_nats() {
       ${ON_MASTER_NODE} \
       ${EUREKA_WAITER_PARAMS_SERVICE} \
       -e READY_WHEN=\"Server is ready\" \
-      -e NATS_USERNAME=${NATS_USERNAME} \
-      -e NATS_PASSWORD=${NATS_PASSWORD} \
+      -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+      -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
+      -e NATS_CLUSTER_USERNAME_FILE=/run/secrets/nats_cluster_username_secret \
+      -e NATS_CLUSTER_PASSWORD_FILE=/run/secrets/nats_cluster_password_secret \
       -p 4222:4222 \
       -p 8222:8222 \
+      --secret nats_username_secret \
+      --secret nats_password_secret \
+      --secret nats_cluster_username_secret \
+      --secret nats_cluster_password_secret \
       logimethods/smart-meter:nats-server${postfix} \
-      -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222"
+        /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -294,10 +307,16 @@ create_service_nats() {
       ${ON_WORKER_NODE} \
       ${EUREKA_WAITER_PARAMS_SERVICE} \
       -e READY_WHEN=\"Server is ready\" \
-      -e NATS_USERNAME=${NATS_USERNAME} \
-      -e NATS_PASSWORD=${NATS_PASSWORD} \
+      -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+      -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
+      -e NATS_CLUSTER_USERNAME_FILE=/run/secrets/nats_cluster_username_secret \
+      -e NATS_CLUSTER_PASSWORD_FILE=/run/secrets/nats_cluster_password_secret \
+      --secret nats_username_secret \
+      --secret nats_password_secret \
+      --secret nats_cluster_username_secret \
+      --secret nats_cluster_password_secret \
       logimethods/smart-meter:nats-server${postfix} \
-      -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222"
+        /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -309,11 +328,38 @@ create_service_nats_single() {
     --name $NATS_NAME \
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
-    -e NATS_USERNAME=${NATS_USERNAME} \
-    -e NATS_PASSWORD=${NATS_PASSWORD} \
+    -e DEBUG=true \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
+    -e NATS_CLUSTER_USERNAME_FILE=/run/secrets/nats_cluster_username_secret \
+    -e NATS_CLUSTER_PASSWORD_FILE=/run/secrets/nats_cluster_password_secret \
     -p 4222:4222 \
     -p 8222:8222 \
-    logimethods/smart-meter:nats-server${postfix} -m 8222 ${NATS_DEBUG}"
+    --secret nats_username_secret \
+    --secret nats_password_secret \
+    --secret nats_cluster_username_secret \
+    --secret nats_cluster_password_secret \
+    logimethods/smart-meter:nats-server${postfix} \
+      /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG}"
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval "$cmd"
+}
+
+create_service_nats_client() {
+  cmd="docker ${remote} service create \
+    --name $NATS_CLIENT_NAME \
+    --network smartmeter \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
+    -e WAIT_FOR=\"${NATS_NAME}\"
+    -e DEBUG=true \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
+    -e NATS_SUBJECT=${NATS_CLIENT_SUBJECT} \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
+    logimethods/smart-meter:nats-client${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -324,7 +370,8 @@ create_service_app_streaming() {
   cmd="docker ${remote} service create \
     --name app_streaming \
     -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL}\" \
-    -e NATS_URI=${NATS_URI} \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
@@ -334,6 +381,8 @@ create_service_app_streaming() {
     --replicas=1 \
     ${ON_MASTER_NODE} \
     --network smartmeter \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
     logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkMaxProcessor\" \
       \"smartmeter.voltage.raw\" \"smartmeter.voltage.extract.max\" \
       \"Smartmeter MAX Streaming\""
@@ -348,8 +397,10 @@ create_service_prediction_trainer() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name prediction_trainer \
-    -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL},${HADOOP_NAME}\" \
-    -e NATS_URI=${NATS_URI} \
+    -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL}\" \
+    -e WAIT_FOR=\"${HADOOP_NAME}\" \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e HDFS_URL=${HDFS_URL} \
     -e CASSANDRA_URL=${CASSANDRA_PREDICTION_URL} \
@@ -359,6 +410,8 @@ create_service_prediction_trainer() {
     -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
     --network smartmeter \
     ${ON_MASTER_NODE} \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
     logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionTrainer\" \
       \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
       \"Smartmeter PREDICTION TRAINER\" "
@@ -372,8 +425,10 @@ create_service_prediction_oracle() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} service create \
     --name prediction_oracle \
-    -e DEPENDS_ON=\"${NATS_NAME},${HADOOP_NAME}\" \
-    -e NATS_URI=${NATS_URI} \
+    -e DEPENDS_ON=\"${NATS_NAME}\" \
+    -e WAIT_FOR=\"${HADOOP_NAME}\" \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e SPARK_MASTER_URL=${SPARK_LOCAL_URL} \
     -e HDFS_URL=${HDFS_URL} \
     -e CASSANDRA_URL=${CASSANDRA_PREDICTION_URL} \
@@ -384,6 +439,8 @@ create_service_prediction_oracle() {
     --network smartmeter \
     --mode global \
     ${ON_WORKER_NODE} \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
     logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionOracle\" \
       \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
       \"Smartmeter PREDICTION ORACLE\" "
@@ -397,7 +454,8 @@ __run_app_prediction() {
 #docker ${remote} pull logimethods/smart-meter:app-streaming
   cmd="docker ${remote} run --rm -d \
     --name app_prediction \
-    -e NATS_URI=${NATS_CLUSTER_URI} \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING} \
     -e HDFS_URL=${HDFS_URL} \
     -e CASSANDRA_URL=${CASSANDRA_PREDICTION_URL} \
@@ -407,6 +465,8 @@ __run_app_prediction() {
     -e ALERT_THRESHOLD=${ALERT_THRESHOLD} \
     ${ON_MASTER_NODE} \
     --network smartmeter \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
     logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
       \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
       \"Smartmeter PREDICTION Streaming\" "
@@ -451,9 +511,12 @@ create_service_monitor() {
   #docker ${remote} pull logimethods/smart-meter:monitor
   cmd="docker ${remote} service create \
     --name monitor \
-    -e NATS_URI=${NATS_URI} \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     --network smartmeter \
     ${ON_MASTER_NODE} \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
     logimethods/smart-meter:monitor${postfix} \
       \"smartmeter.voltage.extract.>\""
   echo "-----------------------------------------------------------------"
@@ -483,13 +546,15 @@ create_service_cassandra-inject() {
     --mode global \
     ${ON_WORKER_NODE} \
     -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL}\" \
-    -e NATS_URI=${NATS_URI} \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
     -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
     -e TASK_SLOT={{.Task.Slot}} \
     -e CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY} \
-    -e DEBUG=aXvailability \
     -e CASSANDRA_URL=${CASSANDRA_URL} \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
     logimethods/smart-meter:cassandra-inject${postfix}"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -507,8 +572,10 @@ create_service_inject() {
     --name inject \
     --network smartmeter \
     -e DEPENDS_ON=\"${NATS_NAME}\" \
+    -e WAIT_FOR=\"${METRICS_GRAPHITE_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
-    -e NATS_URI=${NATS_URI} \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
@@ -524,6 +591,8 @@ create_service_inject() {
     -e TIME_ROOT=$(date +%s) \
     ${ON_WORKER_NODE} \
     --replicas=${replicas} \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
     logimethods/smart-meter:inject${postfix} \
       --no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
   echo "-----------------------------------------------------------------"
@@ -543,15 +612,18 @@ run_inject() {
     --network smartmeter \
     -e DEPENDS_ON=\"${NATS_NAME}\" \
     -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
-    -e NATS_URI=${NATS_CLUSTER_URI} \
+    -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
+    -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
     -e GATLING_DURATION=${GATLING_DURATION} \
     -e STREAMING_DURATION=${STREAMING_DURATION} \
     -e TASK_SLOT=1 \
     -e RANDOMNESS=${VOLTAGE_RANDOMNESS} \
     -e PREDICTION_LENGTH=${PREDICTION_LENGTH} \
+    --secret nats_username_secret \
+    --secret nats_password_secret \
     logimethods/smart-meter:inject${postfix} \
-    --no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
+      --no-reports -s com.logimethods.smartmeter.inject.NatsInjection"
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -692,7 +764,7 @@ create_service_eureka() {
   eval $cmd
 }
 
-run_telegraf() {
+__run_telegraf() {
    #if [ "$@" == "docker" ]
   #   then DOCKER_ACCES="-v /var/run/docker.sock:/var/run/docker.sock"
    #fi
@@ -729,6 +801,46 @@ run_telegraf() {
 #-e DOCKER_TARGET_NAME=${TELEGRAF_DOCKER_TARGET_NAME} \
 #-e \"TELEGRAF_CASSANDRA_TABLE=$TELEGRAF_CASSANDRA_TABLE\" \
 #-e \"TELEGRAF_CASSANDRA_GREP=$TELEGRAF_CASSANDRA_GREP\" \
+
+run_telegraf() {
+  source properties/configuration-telegraf.properties
+  source properties/configuration-telegraf-$@.properties
+  source properties/configuration-telegraf-debug.properties
+
+  DOCKER_ACCES="--mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+
+  cmd="docker ${remote} service create \
+    --network smartmeter \
+    --name telegraf_$@ \
+    ${EUREKA_WAITER_PARAMS_SERVICE} \
+    -e SETUP_LOCAL_CONTAINERS=true \
+    -e EUREKA_URL=${EUREKA_NAME}
+    -e NODE_ID={{.Node.ID}} \
+    -e SERVICE_ID={{.Service.ID}} \
+    -e SERVICE_NAME={{.Service.Name}} \
+    -e SERVICE_LABELS={{.Service.Labels}} \
+    -e TASK_ID={{.Task.ID}} \
+    -e TASK_NAME={{.Task.Name}} \
+    -e TASK_SLOT={{.Task.Slot}} \
+    -e JMX_PASSWORD=$JMX_PASSWORD \
+    -e TELEGRAF_DEBUG=$TELEGRAF_DEBUG \
+    -e TELEGRAF_QUIET=$TELEGRAF_QUIET \
+    -e TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL \
+    -e TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT \
+    -e WAIT_FOR=$TELEGRAF_WAIT_FOR \
+    -e DEPENDS_ON=$TELEGRAF_DEPENDS_ON \
+    ${TELEGRAF_ENVIRONMENT_VARIABLES} \
+    ${DOCKER_ACCES} \
+    ${ON_MASTER_NODE} \
+    logimethods/smart-meter:telegraf${postfix}\
+      telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/$@.conf"
+  #     --log-driver=json-file \
+  # ${CASSANDRA_MAIN_NAME}
+  echo "-----------------------------------------------------------------"
+  echo "$cmd"
+  echo "-----------------------------------------------------------------"
+  eval $cmd
+}
 
 create_service_telegraf() {
   source properties/configuration-telegraf.properties

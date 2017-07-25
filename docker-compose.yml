@@ -234,6 +234,7 @@ services:
   nats_client:
     image: logimethods/smart-meter:nats-client${postfix}
     environment:
+      - WAIT_FOR=${NATS_NAME}
       - DEBUG=true
       - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
       - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret

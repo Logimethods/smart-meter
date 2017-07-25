@@ -80,6 +80,10 @@ def rm_service(name, postfix):
 	# subprocess.run(["docker", "service", "rm", name])
 	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["rm_service", name])
 
+def create_secrets(name):
+	# subprocess.run(["docker", "service", "rm", name])
+	subprocess.run(["bash", "start-services_exec.sh"] + global_params + ["create_secrets" + "_" + name])
+
 def create_network():
 	client.networks.create("smartmeter", driver="overlay")
 
@@ -96,6 +100,8 @@ def run(steps):
 			create_service(step[1], step[2], postfix)
 		elif step[0] == "rm_service" :
 			rm_service(step[1], postfix)
+		elif step[0] == "create_secrets" :
+			create_secrets(step[1])
 		elif step[0] == "create_service_telegraf" :
 			create_service_telegraf(step[1], postfix)
 		elif step[0] == "create_service_telegraf_on_master" :
@@ -205,6 +211,7 @@ def run_setup_cassandra():
 def run_inject():
 	run([
 		create_network,
+		["create_secrets", "nats"],
 		["create_service", "eureka", 1],
 		["create_service", "visualizer", 1],
 		run_metrics,
@@ -230,6 +237,7 @@ def run_inject():
 def run_inject_cluster():
 	run([
 		create_network,
+		["create_secrets", "nats"],
 		["create_service", "visualizer", 1],
 		["create_service", "eureka", 1],
 		run_metrics,
