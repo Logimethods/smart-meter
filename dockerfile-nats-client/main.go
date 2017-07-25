@@ -26,13 +26,20 @@ func main() {
   }
   if (err == nil) {
     defer nc.Close()
-    nc.Publish("foo", []byte("Hello World"))
-    fmt.Println("Value published")
+    fmt.Println("Listening")
+
+    nats_subject := os.Getenv("NATS_SUBJECT")
+  	fmt.Println("NATS Subject: ", nats_subject)
+
+    // Simple Async Subscriber
+  	nc.QueueSubscribe(nats_subject, "cassandra_inject", func(m *nats.Msg) {
+  		fmt.Println(">", m)
+  	})
   } else {
     fmt.Println(err)
   }
 
-  // Wait forever
+  // Wait (almost) forever
   // https://blog.sgmansfield.com/2016/06/how-to-block-forever-in-go/
   <-time.After(time.Duration(math.MaxInt64))
 }

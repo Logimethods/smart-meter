@@ -10,6 +10,7 @@ build_dockerfile_inject() {
   sbt clean assembly dockerFileTask
   pushd target/docker
   mv Dockerfile Dockerfile_middle
+  cp ../../entrypoint_insert.sh .
   cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
   docker build -t logimethods/smart-meter:inject$1 .
   popd
@@ -24,6 +25,7 @@ build_dockerfile_app_streaming() {
   sbt clean assembly dockerFileTask
   pushd target/docker
   mv Dockerfile Dockerfile_middle
+  cp ../../entrypoint_insert.sh .
   cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
   docker build -t logimethods/smart-meter:app-streaming$1 .
   popd
@@ -74,5 +76,13 @@ build_dockerfile_cassandra_inject() {
 build_dockerfile_nats_server() {
   pushd dockerfile-nats-server
   docker build -t logimethods/smart-meter:nats-server$1 .
+  popd
+}
+
+build_dockerfile_nats_client() {
+  pushd dockerfile-nats-client
+  env GOOS=linux GOARCH=amd64 go build main.go
+  file main
+  docker build -t logimethods/smart-meter:nats-client$1 .
   popd
 }

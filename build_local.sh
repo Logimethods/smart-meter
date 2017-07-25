@@ -50,3 +50,8 @@ clear
 echo "-----------------------------------------"
 echo "build_dockerfile_nats_server $extension"
 build_dockerfile_nats_server "$extension"
+
+clear
+echo "-----------------------------------------"
+echo "build_dockerfile_nats_client $extension"
+build_dockerfile_nats_client "$extension"

@@ -48,4 +48,6 @@ RUN apk add --no-cache git \
 COPY /go/src/app /go/src/app
 RUN go-wrapper install
 
+COPY entrypoint_insert.sh /entrypoint_insert.sh
+
 CMD ["go-wrapper", "run"]
