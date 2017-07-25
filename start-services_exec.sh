@@ -328,7 +328,7 @@ create_service_nats_single() {
     --name $NATS_NAME \
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
-    -e DEBUG=true \
+    -e EUREKA_DEBUG=true \
     -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
     -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e NATS_CLUSTER_USERNAME_FILE=/run/secrets/nats_cluster_username_secret \
@@ -353,7 +353,7 @@ create_service_nats_client() {
     --network smartmeter \
     ${EUREKA_WAITER_PARAMS_SERVICE} \
     -e WAIT_FOR=\"${NATS_NAME}\"
-    -e DEBUG=true \
+    -e EUREKA_DEBUG=true \
     -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
     -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e NATS_SUBJECT=${NATS_CLIENT_SUBJECT} \

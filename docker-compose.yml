@@ -145,7 +145,7 @@ services:
       - DEPENDS_ON=${EUREKA_NAME},${CASSANDRA_MAIN_NAME}
       - SETUP_LOCAL_CONTAINERS=true
       - PROVIDED_CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
-#      - DEBUG=true
+#      - EUREKA_DEBUG=true
 #      - CHECK_DEPENDENCIES_INTERVAL=20
       - PING_ALLOWED=false
 
@@ -235,7 +235,7 @@ services:
     image: logimethods/smart-meter:nats-client${postfix}
     environment:
       - WAIT_FOR=${NATS_NAME}
-      - DEBUG=true
+      - EUREKA_DEBUG=true
       - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
       - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
       - NATS_SUBJECT=${NATS_CLIENT_SUBJECT}

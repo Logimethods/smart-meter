@@ -36,7 +36,7 @@ COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
 COPY --from=entrypoint entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-# RUN go get github.com/nats-io/nats
+# RUN go get github.com/nats-io/go-nats
 
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
