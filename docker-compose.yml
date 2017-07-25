@@ -192,6 +192,8 @@ services:
       - READY_WHEN=\"Server is ready\"
       - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
       - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+      - NATS_CLUSTER_USERNAME_FILE=/run/secrets/nats_cluster_username_secret
+      - NATS_CLUSTER_PASSWORD_FILE=/run/secrets/nats_cluster_password_secret
     ports:
       - "4222:4222"
       - "8222:8222"
@@ -200,6 +202,8 @@ services:
     secrets:
       - nats_username_secret
       - nats_password_secret
+      - nats_cluster_username_secret
+      - nats_cluster_password_secret
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
 
   nats_cluster:
@@ -216,11 +220,15 @@ services:
       - READY_WHEN=\"Server is ready\"
       - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
       - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+      - NATS_CLUSTER_USERNAME_FILE=/run/secrets/nats_cluster_username_secret
+      - NATS_CLUSTER_PASSWORD_FILE=/run/secrets/nats_cluster_password_secret
     volumes:
       - "/proc:/writable-proc"
     secrets:
       - nats_username_secret
       - nats_password_secret
+      - nats_cluster_username_secret
+      - nats_cluster_password_secret
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
 
   nats_client:
@@ -523,6 +531,10 @@ secrets:
     file: ./devsecrets/nats_username_secret
   nats_password_secret:
     file: ./devsecrets/nats_password_secret
+  nats_cluster_username_secret:
+    file: ./devsecrets/nats_cluster_username_secret
+  nats_cluster_password_secret:
+    file: ./devsecrets/nats_cluster_password_secret
 
 volumes:
   grafana-volume:
