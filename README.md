@@ -8,7 +8,7 @@ To demonstrate a Smart Meter Big Data Application.
 ## Docker Compose
 
 ```
-./docker-[local | remote]-up.sh
+./docker-[local | remote]-[single | cluster]-up.sh
 .../...
 ./docker-[local | remote]-down.sh
 ```
