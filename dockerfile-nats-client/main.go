@@ -6,7 +6,7 @@ import (
   "math"
   "time"
   "strings"
-  "github.com/nats-io/nats"
+  "github.com/nats-io/go-nats"
 )
 
 func main() {

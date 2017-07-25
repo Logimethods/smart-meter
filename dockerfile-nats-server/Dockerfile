@@ -1,4 +1,4 @@
-# https://github.com/nats-io/nats-docker/blob/master/Dockerfile
+# https://github.com/nats-io/go-nats-docker/blob/master/Dockerfile
 FROM nats:1.0.0 as nats
 
 ### MAIN FROM ###

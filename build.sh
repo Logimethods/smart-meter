@@ -69,6 +69,7 @@ build_dockerfile_telegraf() {
 
 build_dockerfile_cassandra_inject() {
   pushd dockerfile-cassandra-inject
+  go get github.com/nats-io/go-nats
   docker build -t logimethods/smart-meter:cassandra-inject$1 .
   popd
 }
@@ -81,6 +82,7 @@ build_dockerfile_nats_server() {
 
 build_dockerfile_nats_client() {
   pushd dockerfile-nats-client
+  go get github.com/nats-io/go-nats
   env GOOS=linux GOARCH=amd64 go build main.go
   file main
   docker build -t logimethods/smart-meter:nats-client$1 .

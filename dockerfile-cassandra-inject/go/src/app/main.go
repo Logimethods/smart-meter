@@ -35,7 +35,7 @@ import (
     "strconv"
 //    "unsafe"
 
-	"github.com/nats-io/nats"
+	"github.com/nats-io/go-nats"
 	"github.com/gocql/gocql"
 )
 
