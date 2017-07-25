@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-. ./docker-up.sh "local" "cluster" "-local"
+. ./docker-up.sh "local" "cluster" ""
