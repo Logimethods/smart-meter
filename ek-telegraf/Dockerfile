@@ -1,3 +1,4 @@
+# GENERATED FILE, please do not modify nor store into Git #
 ## MIT License
 ##
 ## Copyright (c) 2016-2017 Logimethods
@@ -27,21 +28,9 @@ FROM entrypoint_exp as entrypoint
 
 ### MAIN FROM ###
 
-FROM telegraf:${telegraf_version}
+FROM telegraf:1.3
 
-# RUN apk --no-cache add openjdk8-jre-base jq bash curl netcat-openbsd>1.130
-
-RUN apt-get update \
- && apt-get install -y \
-    default-jre jq bash curl netcat-openbsd
-
-# http://dba.stackexchange.com/questions/68332/how-can-i-get-nodetool-without-cassandra
-COPY tar/ /nodetool/
-RUN cd /nodetool && \
-    tar -zxf dsc-cassandra-3.0.9-bin.tar.gz &&\
-    rm dsc-cassandra-3.0.9-bin.tar.gz
-
-# RUN apk --no-cache add docker
+RUN apt-get update  && apt-get install -y     jq bash curl netcat-openbsd
 
 VOLUME ["/etc/telegraf/"]
 
@@ -49,7 +38,3 @@ COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
 COPY --from=entrypoint entrypoint.sh /entrypoint.sh
 COPY entrypoint_insert.sh /entrypoint_insert.sh
 ENTRYPOINT ["/entrypoint.sh"]
-
-COPY script/ /etc/telegraf/
-RUN chmod +x /etc/telegraf/*.sh
-COPY conf/ /etc/telegraf/

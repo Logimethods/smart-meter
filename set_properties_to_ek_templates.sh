@@ -11,4 +11,4 @@ eval "cat <<EOF
 $(<$filename)
 EOF
 " > "${filename%.*}"
-done < <(find ./dockerfile-*/* -name 'Dockerfile.tpl' -print0)
+done < <(find ./ek-*/* -name 'Dockerfile.tpl' -print0)
