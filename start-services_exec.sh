@@ -964,11 +964,11 @@ build_app-batch() {
   then
     ./set_properties_to_dockerfile_templates.sh
     pushd dockerfile-app-batch
-    echo "docker build -t logimethods/smart-meter:app-batch-local ."
+    echo "docker build -t logimethods/smart-meter:app-batch-DEV ."
     sbt update assembly
     mkdir -p libs
     mv target/scala-*/*.jar libs/
-    docker build -t logimethods/smart-meter:app-batch-local .
+    docker build -t logimethods/smart-meter:app-batch-DEV .
     popd
   else
     echo "docker ${remote} pull logimethods/smart-meter:app-batch${postfix}"
@@ -985,28 +985,28 @@ build_monitor() {
 build_cassandra() {
   ./set_properties_to_dockerfile_templates.sh
   pushd dockerfile-cassandra
-  docker build -t logimethods/smart-meter:cassandra-local .
+  docker build -t logimethods/smart-meter:cassandra-DEV .
   popd
 }
 
 build_cassandra-inject() {
   ./set_properties_to_dockerfile_templates.sh
   pushd dockerfile-cassandra-inject
-  docker build -t logimethods/smart-meter:cassandra-inject-local .
+  docker build -t logimethods/smart-meter:cassandra-inject-DEV .
   popd
 }
 
 build_nats-server() {
   ./set_properties_to_dockerfile_templates.sh
   pushd dockerfile-nats-server
-  docker build -t logimethods/smart-meter:nats-server-local .
+  docker build -t logimethods/smart-meter:nats-server-DEV .
   popd
 }
 
 build_telegraf() {
   ./set_properties_to_dockerfile_templates.sh
   pushd dockerfile-telegraf
-  docker build -t logimethods/smart-meter:telegraf-local .
+  docker build -t logimethods/smart-meter:telegraf-DEV .
   popd
 }
 

@@ -18,7 +18,7 @@ appProperties := {
 val rootName = "smart-meter"
 name := "docker-" + rootName + "-app-streaming"
 organization := "logimethods"
-val tag = "app-streaming-local"
+val tag = "app-streaming-DEV"
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"

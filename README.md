@@ -43,10 +43,10 @@ In parallel, you can play with the number of injectors:
 ### Local (DEV mode)
 
 ```
-> ./build-local.sh
+> ./build_DEV.sh
 > ./stop.sh
-> python3 -i start-services.py "local" "single" "local"
-Images will be postfixed by -local
+> python3 -i start-services.py "local" "single" "-DEV"
+Images will be postfixed by -DEV
 >>> run_inject()
 ```
 

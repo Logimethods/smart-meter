@@ -22,7 +22,7 @@ services:
 
   ### ["create_service", "eureka", 1],
   eureka:
-    image: logimethods/eureka${postfix}
+    image: logimethods/eureka:${eureka_version}
     deploy:
       placement:
         constraints:
@@ -180,7 +180,7 @@ services:
 
   ### create_service_nats,
   nats:
-    image: logimethods/ek_nats-server
+    image: logimethods/ek_nats-server:${ek_nats_server_version}
     deploy:
       placement:
         constraints:
@@ -207,7 +207,7 @@ services:
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
 
   nats_cluster:
-    image: logimethods/ek_nats-server
+    image: logimethods/ek_nats-server:${ek_nats_server_version}
     deploy:
       mode: global
       placement:
@@ -232,7 +232,7 @@ services:
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
 
   nats_client:
-    image: logimethods/ek_nats-client
+    image: logimethods/ek_nats-client:${ek_nats_client_version}
     environment:
       - WAIT_FOR=${NATS_NAME}
       - EUREKA_DEBUG=true

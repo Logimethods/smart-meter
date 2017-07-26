@@ -18,7 +18,7 @@ logLevel := Level.Debug
 val rootName = "smart-meter"
 name := "docker-" + rootName + "-inject"
 organization := "logimethods"
-val tag = "inject-local"
+val tag = "inject-DEV"
 
 version := "0.4.0-SNAPSHOT"
 scalaVersion := "2.11.8"
