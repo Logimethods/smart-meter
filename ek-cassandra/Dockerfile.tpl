@@ -40,10 +40,6 @@ RUN mkdir -p /opt/jolokia/
 COPY libs/jolokia-jvm-1.3.5-agent.jar /opt/jolokia/
 RUN echo "JVM_OPTS=\"\\\$JVM_OPTS -javaagent:/opt/jolokia/jolokia-jvm-1.3.5-agent.jar=port=${JOLOKIA_PORT},host=*\"" >> /etc/cassandra/cassandra-env.sh
 
-### CQL ###
-
-COPY /cql /cql
-
 ### JMX ###
 
 # https://support.datastax.com/hc/en-us/articles/204226179-Step-by-step-instructions-for-securing-JMX-authentication-for-nodetool-utility-OpsCenter-and-JConsole
@@ -59,12 +55,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends jq curl netcat-
 EXPOSE 6161
 
 COPY --from=entrypoint eureka_utils.sh /eureka_utils.sh
-COPY entrypoint_finalize.sh /entrypoint_finalize.sh
 COPY merged_entrypoint.sh /merged_entrypoint.sh
 RUN chmod +x /merged_entrypoint.sh
 ENTRYPOINT ["/merged_entrypoint.sh"]
 
 ENV READY_WHEN="Created default superuser role"
 
-## !!! ENTRYPOINT provides amnesia about CMD !!!
+## !!! ENTRYPOINT generates CMD amnesia !!!
 CMD ["cassandra", "-f"]
