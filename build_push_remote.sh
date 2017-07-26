@@ -66,19 +66,5 @@ build_dockerfile_cassandra_inject ""
 docker push logimethods/smart-meter:cassandra-inject
 docker -H localhost:2374 pull logimethods/smart-meter:cassandra-inject
 
-clear
-echo "-----------------------------------------"
-echo "build_dockerfile_nats_server $extension"
-build_dockerfile_nats_server ""
-docker push logimethods/smart-meter:nats-server
-docker -H localhost:2374 pull logimethods/smart-meter:nats-server
-
-clear
-echo "-----------------------------------------"
-echo "build_dockerfile_nats_client $extension"
-build_dockerfile_nats_client "$extension"
-docker push logimethods/smart-meter:nats-client
-docker -H localhost:2374 pull logimethods/smart-meter:nats-client
-
 #docker push logimethods/prometheus-nats-exporter
 #docker push logimethods/service-registry

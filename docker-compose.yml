@@ -180,7 +180,7 @@ services:
 
   ### create_service_nats,
   nats:
-    image: logimethods/smart-meter:nats-server${postfix}
+    image: logimethods/ek_nats-server
     deploy:
       placement:
         constraints:
@@ -207,7 +207,7 @@ services:
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
 
   nats_cluster:
-    image: logimethods/smart-meter:nats-server${postfix}
+    image: logimethods/ek_nats-server
     deploy:
       mode: global
       placement:
@@ -232,7 +232,7 @@ services:
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
 
   nats_client:
-    image: logimethods/smart-meter:nats-client${postfix}
+    image: logimethods/ek_nats-client
     environment:
       - WAIT_FOR=${NATS_NAME}
       - EUREKA_DEBUG=true
