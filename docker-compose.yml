@@ -231,17 +231,20 @@ services:
       - nats_cluster_password_secret
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
 
+  ## For TESTING/DEBUG ONLY! ##
   nats_client:
     image: logimethods/ek_nats-client:${ek_nats_client_version}
     environment:
       - WAIT_FOR=${NATS_NAME}
       - EUREKA_DEBUG=true
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+#      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
+#      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+      - NATS_USERNAME=natsuser_secret
+      - NATS_PASSWORD=natspwd_secret
       - NATS_SUBJECT=${NATS_CLIENT_SUBJECT}
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
+#    secrets:
+#      - nats_username_secret
+#      - nats_password_secret
     command: /main
 
   ### create_service_app_streaming,
