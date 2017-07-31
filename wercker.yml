@@ -19,7 +19,7 @@ build:
           pushd /master_docker
           git config --global user.email "info@logimethods.com"
           git config --global user.name "Logimethods Wercker"
-          git clone -b master_docker --single-branch https://github.com/Logimethods/smart-meter.git
+          git clone -b master_docker --progress --single-branch https://github.com/Logimethods/smart-meter.git
           popd
     - script:
         name: Set properties to Dockerfile
@@ -28,7 +28,7 @@ build:
     - script:
         name: app-batch
         code: |
-          cp /dockerfile-app-batch/Dockerfile /master_docker/dockerfile-app-batch
+          cp ./dockerfile-app-batch/Dockerfile /master_docker/dockerfile-app-batch
     - script:
         name: git push
         code: |
@@ -41,4 +41,4 @@ build:
           echo "GIT STATUS"
           git status
           echo "GIT PUSH"
-#          git push origin HEAD:master_docker
+          git push origin HEAD:master_docker
