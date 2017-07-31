@@ -19,7 +19,7 @@ build:
           pushd /master_docker
           git config --global user.email "info@logimethods.com"
           git config --global user.name "Logimethods Wercker"
-          git fetch origin/master_docker
+          git clone -b master_docker --single-branch https://github.com/Logimethods/smart-meter.git
           popd
     - script:
         name: Set properties to Dockerfile
