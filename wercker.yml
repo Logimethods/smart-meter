@@ -23,18 +23,19 @@ build:
         code: |
           pushd dockerfile-app-streaming
           sbt clean assembly dockerFileTask
-          rm -Rf ./docker
-          mv target/docker .
           pushd target/docker
           mv Dockerfile Dockerfile_middle
+          cp ../../entrypoint_insert.sh .
           cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
           popd
+          rm -Rf ./docker
+          mv target/docker .
           popd
     - script:
         name: build APP BATCH dockerfile
         code: |
           pushd dockerfile-app-batch
-          sbt clean update assembly
+          sbt clean update test assembly
           rm -Rf ./docker
           rm -Rf libs
           mkdir -p libs
@@ -45,12 +46,13 @@ build:
         code: |
           pushd dockerfile-inject
           sbt clean assembly dockerFileTask
-          rm -Rf ./docker
-          mv target/docker .
           pushd target/docker
           mv Dockerfile Dockerfile_middle
+          cp ../../entrypoint_insert.sh .
           cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
           popd
+          rm -Rf ./docker
+          mv target/docker .
           popd
     - script:
         name: build MONITOR dockerfile
