@@ -1,5 +1,7 @@
 box: hseeberger/scala-sbt
 build:
+box: hseeberger/scala-sbt
+build:
   steps:
     - install-packages:
         name: install git
@@ -17,19 +19,15 @@ build:
         code: |
           git config --global user.email "info@logimethods.com"
           git config --global user.name "Logimethods Wercker"
-          git clone -b master_docker --progress --single-branch https://github.com/Logimethods/smart-meter.git /master_docker
+          git fetch origin
+          git merge origin/master_docker
     - script:
         name: Set properties to Dockerfile
         code: |
           ./set_properties_to_dockerfile_templates.sh
     - script:
-        name: app-batch
-        code: |
-          cp ./dockerfile-app-batch/Dockerfile /master_docker/dockerfile-app-batch
-    - script:
         name: git push
         code: |
-          pushd /master_docker
           git status
           echo "GIT ADD"
           git add --all .
@@ -38,5 +36,4 @@ build:
           echo "GIT STATUS"
           git status
           echo "GIT PUSH"
-          ls -als /master_docker
           git push origin HEAD:master_docker
