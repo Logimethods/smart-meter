@@ -23,26 +23,26 @@
 package main
 
 import (
-	"os"
-	"log"
-	"fmt"
-	"time"
-	"strings"
+  "os"
+  "log"
+  "fmt"
+  "time"
+  "strings"
 
-//	"bytes"
+//  "bytes"
     "encoding/binary"
     "math"
     "strconv"
 //    "unsafe"
 
-	"github.com/nats-io/go-nats"
-	"github.com/gocql/gocql"
+  "github.com/nats-io/go-nats"
+  "github.com/gocql/gocql"
 )
 
 const query = "INSERT INTO raw_data (" +
-			  "line, transformer, usagePoint, year, month, day, hour, minute, day_of_week, voltage, demand, " +
-			  "val3, val4, val5, val6, val7, val8, val9, val10, val11, val12) " +
-			  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "line, transformer, usagePoint, year, month, day, hour, minute, day_of_week, voltage, demand, " +
+        "val3, val4, val5, val6, val7, val8, val9, val10, val11, val12) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 // http://docs.datastax.com/en/cql/3.3/cql/cql_using/useCounters.html
 const increment = "UPDATE raw_data_count SET count = count + 1 WHERE slot = ?"
@@ -51,37 +51,37 @@ var Session *gocql.Session
 var Cluster *gocql.ClusterConfig
 
 func main() {
-	log.Print("Welcome to the NATS to Cassandra Bridge")
+  log.Print("Welcome to the NATS to Cassandra Bridge")
 
-	log.Print("The time is", time.Now())
+  log.Print("The time is", time.Now())
 
-	nats_uri := os.Getenv("NATS_URI")
-	nc, _ := nats.Connect(nats_uri)
+  nats_uri := os.Getenv("NATS_URI")
+  nc, _ := nats.Connect(nats_uri)
 
-	log.Print("Subscribed to NATS: ", nats_uri)
+  log.Print("Subscribed to NATS: ", nats_uri)
 
-	nats_subject := os.Getenv("NATS_SUBJECT")
-	log.Print("NATS Subject: ", nats_subject)
+  nats_subject := os.Getenv("NATS_SUBJECT")
+  log.Print("NATS Subject: ", nats_subject)
 
-	// CASSANDRA
-	cassandra_url := os.Getenv("CASSANDRA_URL")
-	log.Print("Cassandra URL: ", cassandra_url)
+  // CASSANDRA
+  cassandra_url := os.Getenv("CASSANDRA_URL")
+  log.Print("Cassandra URL: ", cassandra_url)
 
-	// LOG LEVEL
-	log_level := os.Getenv("LOG_LEVEL")
-	log.Print("LOG LEVEL: ", log_level)
+  // LOG LEVEL
+  log_level := os.Getenv("LOG_LEVEL")
+  log.Print("LOG LEVEL: ", log_level)
 
   // TASK_SLOT
   task_slot := os.Getenv("TASK_SLOT")
   log.Print("TASK SLOT: ", task_slot)
 
-	// connect to the Cluster
-	Cluster = gocql.NewCluster(cassandra_url)
-	Cluster.Keyspace = "smartmeter"
+  // connect to the Cluster
+  Cluster = gocql.NewCluster(cassandra_url)
+  Cluster.Keyspace = "smartmeter"
 
-	cluster_consistency := os.Getenv("CASSANDRA_INJECT_CONSISTENCY")
-	Cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
-	log.Print("CONSISTENCY: ", Cluster.Consistency)
+  cluster_consistency := os.Getenv("CASSANDRA_INJECT_CONSISTENCY")
+  Cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
+  log.Print("CONSISTENCY: ", Cluster.Consistency)
 
   cluster_timeout := os.Getenv("CASSANDRA_TIMEOUT")
   if (cluster_timeout != "") {
@@ -96,23 +96,23 @@ func main() {
     log.Print("(Default) CASSANDRA_TIMEOUT: ", Cluster.Timeout)
   }
 
-	createSession()
+  createSession()
   defer Session.Close()
 
-	log.Print("Connected to Cassandra")
+  log.Print("Connected to Cassandra")
 
-	// Simple Async Subscriber
-	nc.QueueSubscribe(nats_subject, "cassandra_inject", func(m *nats.Msg) {
-		go insertIntoCassandra(m, task_slot, log_level)
-	})
+  // Simple Async Subscriber
+  nc.QueueSubscribe(nats_subject, "cassandra_inject", func(m *nats.Msg) {
+    go insertIntoCassandra(m, task_slot, log_level)
+  })
 
-	log.Print("Ready to store NATS messages into CASSANDRA")
+  log.Print("Ready to store NATS messages into CASSANDRA")
 
   // To keep the App alive
-	for {
-		time.Sleep(30 * time.Second)
-		// log.Print(time.Now())
-	}
+  for {
+    time.Sleep(30 * time.Second)
+    // log.Print(time.Now())
+  }
 
 }
 
@@ -121,60 +121,60 @@ func createSession() {
   var err error
   Session, err = Cluster.CreateSession()
   if (err != nil) {
-		log.Fatalf("Could not connect to Cassandra Cluster %s", err)
-	}
+    log.Fatalf("Could not connect to Cassandra Cluster %s", err)
+  }
 }
 
 func insertIntoCassandra(m *nats.Msg, task_slot string, log_level string) {
-	/*** Point ***/
+  /*** Point ***/
 
-	// https://www.dotnetperls.com/split-go
-	subjects := strings.Split(m.Subject, ".")
-	// smartmeter.voltage.data.3.3.2	 | (2016-11-16T20:05:04,116.366646)
-	len := len(subjects)
+  // https://www.dotnetperls.com/split-go
+  subjects := strings.Split(m.Subject, ".")
+  // smartmeter.voltage.data.3.3.2   | (2016-11-16T20:05:04,116.366646)
+  len := len(subjects)
 
-	// http://stackoverflow.com/questions/30299649/golang-converting-string-to-specific-type-of-int-int8-int16-int32-int64
-	line, _ := strconv.ParseInt(subjects[len -3], 10, 8) // tinyint,    // 8-bit signed int
-	transformer, _ := strconv.ParseInt(subjects[len -2], 10, 32)	//  int, // 32-bit signed int
-	usagePoint, _ := strconv.ParseInt(subjects[len -1], 10, 32)	//  int,
+  // http://stackoverflow.com/questions/30299649/golang-converting-string-to-specific-type-of-int-int8-int16-int32-int64
+  line, _ := strconv.ParseInt(subjects[len -3], 10, 8) // tinyint,    // 8-bit signed int
+  transformer, _ := strconv.ParseInt(subjects[len -2], 10, 32)  //  int, // 32-bit signed int
+  usagePoint, _ := strconv.ParseInt(subjects[len -1], 10, 32)  //  int,
 
-	/*** Date ***/
+  /*** Date ***/
 
-	longBytes := m.Data[:8]
-	// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
-	epoch := int64(binary.BigEndian.Uint64(longBytes))
-	date := time.Unix(epoch, 0)
+  longBytes := m.Data[:8]
+  // http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
+  epoch := int64(binary.BigEndian.Uint64(longBytes))
+  date := time.Unix(epoch, 0)
 
-	// https://golang.org/pkg/time/#Time
-	year, month, day := date.Date()
-	hour, minute, _ := date.Clock()
-	day_of_week := date.Weekday()
+  // https://golang.org/pkg/time/#Time
+  year, month, day := date.Date()
+  hour, minute, _ := date.Clock()
+  day_of_week := date.Weekday()
 
-	/*** Voltage ***/
+  /*** Voltage ***/
 
-	voltageFloatBytes := m.Data[8:12]
-	// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
-	voltage := math.Float32frombits(binary.BigEndian.Uint32(voltageFloatBytes))
+  voltageFloatBytes := m.Data[8:12]
+  // http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
+  voltage := math.Float32frombits(binary.BigEndian.Uint32(voltageFloatBytes))
 
-	/*** Demand ***/
+  /*** Demand ***/
 
-	demandFloatBytes := m.Data[12:16]
-	// http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
-	demand := math.Float32frombits(binary.BigEndian.Uint32(demandFloatBytes))
+  demandFloatBytes := m.Data[12:16]
+  // http://stackoverflow.com/questions/22491876/convert-byte-array-uint8-to-float64-in-golang
+  demand := math.Float32frombits(binary.BigEndian.Uint32(demandFloatBytes))
 
-	/*** Remaining Values ***/
+  /*** Remaining Values ***/
 
-	var values [10]float32
-	for i := 0; i < 10; i++ {
-		values[i] = math.Float32frombits(binary.BigEndian.Uint32(m.Data[(16+4*i):(20+4*i)]))
-	}
+  var values [10]float32
+  for i := 0; i < 10; i++ {
+    values[i] = math.Float32frombits(binary.BigEndian.Uint32(m.Data[(16+4*i):(20+4*i)]))
+  }
 
   // fmt.Print(".")
 
-	if (log_level == "TRACE") {
-		s := fmt.Sprintf("- v: %d", voltage)
-		log.Print(s)
-	}
+  if (log_level == "TRACE") {
+    s := fmt.Sprintf("- v: %d", voltage)
+    log.Print(s)
+  }
 
   if (Session == nil || Session.Closed()) {
     createSession()
