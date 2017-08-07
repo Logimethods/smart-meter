@@ -7,18 +7,13 @@ build:
     - add-to-known_hosts:
         name: add-to-known_hosts
         hostname: github.com
-        fingerprint: 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48
+        # https://help.github.com/articles/github-s-ssh-key-fingerprints/
+        # fingerprint: 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48
+        fingerprint: SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8
         type: rsa
     - add-ssh-key:
         name: add-ssh-key
         keyname: GITHUB_SSH_KEY
-    - script:
-        name: git setup
-        code: |
-          git config --global user.email "info@logimethods.com"
-          git config --global user.name "Logimethods Wercker"
-          git fetch origin
-          git merge origin/master_docker
     - script:
         name: Set properties to Dockerfile
         code: |
@@ -28,18 +23,19 @@ build:
         code: |
           pushd dockerfile-app-streaming
           sbt clean assembly dockerFileTask
-          rm -Rf ./docker
-          mv target/docker .
           pushd target/docker
           mv Dockerfile Dockerfile_middle
+          cp ../../entrypoint_insert.sh .
           cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
           popd
+          rm -Rf ./docker
+          mv target/docker .
           popd
     - script:
         name: build APP BATCH dockerfile
         code: |
           pushd dockerfile-app-batch
-          sbt clean update assembly
+          sbt clean update test assembly
           rm -Rf ./docker
           rm -Rf libs
           mkdir -p libs
@@ -50,12 +46,13 @@ build:
         code: |
           pushd dockerfile-inject
           sbt clean assembly dockerFileTask
-          rm -Rf ./docker
-          mv target/docker .
           pushd target/docker
           mv Dockerfile Dockerfile_middle
+          cp ../../entrypoint_insert.sh .
           cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
           popd
+          rm -Rf ./docker
+          mv target/docker .
           popd
     - script:
         name: build MONITOR dockerfile
@@ -68,6 +65,8 @@ build:
     - script:
         name: git push
         code: |
+          git config --global user.email "info@logimethods.com"
+          git config --global user.name "Logimethods Wercker"
           git status
           echo "GIT ADD"
           git add --all .
@@ -76,4 +75,4 @@ build:
           echo "GIT STATUS"
           git status
           echo "GIT PUSH"
-          git push origin HEAD:master_docker
+          git push --force origin HEAD:master_docker
