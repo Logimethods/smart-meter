@@ -19,8 +19,8 @@ build:
         code: |
           git config --global user.email "info@logimethods.com"
           git config --global user.name "Logimethods Wercker"
-          git fetch origin
-          git merge origin/master_docker
+#          git fetch origin
+#          git merge origin/master_docker
     - script:
         name: Set properties to Dockerfile
         code: |
@@ -36,4 +36,4 @@ build:
           echo "GIT STATUS"
           git status
           echo "GIT PUSH"
-          git push origin HEAD:master_docker
+          git push --force origin HEAD:master_docker
