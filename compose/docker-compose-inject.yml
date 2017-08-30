@@ -1,0 +1,55 @@
+services:
+  ### create_service_inject
+  inject:
+    image: logimethods/smart-meter:inject${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role != ${MASTER_NODE}
+    environment:
+      - DEPENDS_ON=${NATS_NAME}
+      - WAIT_FOR=${METRICS_GRAPHITE_NAME}
+      - GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw
+      # - NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222
+      - NATS_NAME=${NATS_NAME}
+      - GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC}
+      - GATLING_DURATION=${GATLING_DURATION}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - RANDOMNESS=${VOLTAGE_RANDOMNESS}
+      - PREDICTION_LENGTH=${PREDICTION_LENGTH}
+      - TIME_ROOT=${TIME_ROOT}
+    command: --no-reports -s com.logimethods.smartmeter.inject.NatsInjection
+
+  ### create_service_cassandra_inject,
+  cassandra_inject:
+    image: logimethods/smart-meter:cassandra-inject${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != ${MASTER_NODE}
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+#        max_attempts: 5
+#        window: 120s
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
+#      - NATS_URI=${NATS_URI}
+      - NATS_NAME=${NATS_NAME}
+      - NATS_NAME_FILE=${NATS_NAME}
+      - NATS_SUBJECT=smartmeter.voltage.raw.data.>
+      - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
+      - TASK_SLOT={{.Task.Slot}}
+      - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
+      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
+      - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
+      - PING_ALLOWED=false

@@ -485,16 +485,6 @@ services:
       - TIME_ROOT=${TIME_ROOT}
     command: --no-reports -s com.logimethods.smartmeter.inject.NatsInjection
 
-secrets:
-  nats_username_secret:
-    file: ./devsecrets/nats_username_secret
-  nats_password_secret:
-    file: ./devsecrets/nats_password_secret
-  nats_cluster_username_secret:
-    file: ./devsecrets/nats_cluster_username_secret
-  nats_cluster_password_secret:
-    file: ./devsecrets/nats_cluster_password_secret
-
 volumes:
   grafana-volume:
     external: true

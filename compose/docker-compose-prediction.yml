@@ -1,0 +1,48 @@
+services:
+  ### create_service_prediction_trainer,
+  prediction_trainer:
+    image: logimethods/smart-meter:app-streaming${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_URL}
+      - WAIT_FOR=${HADOOP_NAME}
+#      - NATS_URI=${NATS_URI}
+      - NATS_NAME=${NATS_NAME}
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
+      - HDFS_URL=${HDFS_URL}
+      - CASSANDRA_URL=${CASSANDRA_PREDICTION_URL}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
+      - SPARK_CORES_MAX=${PREDICTION_TRAINER_SPARK_CORES_MAX}
+      - ALERT_THRESHOLD=${ALERT_THRESHOLD}
+    command: com.logimethods.nats.connector.spark.app.SparkPredictionTrainer "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION TRAINER"
+
+  ### create_service_prediction_oracle,
+  prediction_oracle:
+    image: logimethods/smart-meter:app-streaming${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != ${MASTER_NODE}
+    environment:
+      - DEPENDS_ON=${NATS_NAME}
+      - WAIT_FOR=${HADOOP_NAME}
+#      - NATS_URI=${NATS_URI}
+#      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
+#      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+      - SPARK_MASTER_URL=${SPARK_LOCAL_URL}
+      - HDFS_URL=${HDFS_URL}
+      - CASSANDRA_URL=${CASSANDRA_PREDICTION_URL}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
+      - SPARK_CORES_MAX=${PREDICTION_ORACLE_SPARK_CORES_MAX}
+      - ALERT_THRESHOLD=${ALERT_THRESHOLD}
+    secrets:
+      - nats_username_secret
+      - nats_password_secret
+    command: com.logimethods.nats.connector.spark.app.SparkPredictionOracle "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION ORACLE"

@@ -1,0 +1,33 @@
+services:
+  ### TODO: ["create_volume", "cassandra"],
+  ### create_service_cassandra,
+  cassandra_cluster_main:
+    image: logimethods/smart-meter:cassandra${postfix}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+#      - LOCAL_JMX=no
+      - CASSANDRA_SETUP_FILE=${CASSANDRA_SETUP_FILE}
+      - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
+    ports:
+      - "${CASSANDRA_COUNT_PORT}:6161"
+
+  cassandra_cluster_node:
+    image: logimethods/smart-meter:cassandra${postfix}
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role != manager
+    environment:
+#      - LOCAL_JMX=no
+      - READY_WHEN=""
+#      - FAILED_WHEN=\"CASSANDRA_SEEDS:\\n\"
+      - DEPENDS_ON=${EUREKA_NAME},${CASSANDRA_MAIN_NAME}
+      - SETUP_LOCAL_CONTAINERS=true
+      - PROVIDED_CASSANDRA_SEEDS=$${${CASSANDRA_MAIN_NAME}_local}
+#      - EUREKA_DEBUG=true
+#      - CHECK_DEPENDENCIES_INTERVAL=20
+      - PING_ALLOWED=false
