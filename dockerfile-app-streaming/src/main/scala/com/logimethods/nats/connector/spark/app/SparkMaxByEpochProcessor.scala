@@ -19,7 +19,6 @@ import org.apache.spark.streaming._
 import com.datastax.spark.connector.streaming._
 import com.datastax.spark.connector.SomeColumns
 
-//import io.nats.client.Constants._
 import io.nats.client.ConnectionFactory._
 import java.nio.ByteBuffer
 

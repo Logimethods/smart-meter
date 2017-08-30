@@ -19,7 +19,6 @@ import org.apache.spark.SparkContext
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming._
 
-//import io.nats.client.Constants._
 import io.nats.client.ConnectionFactory._
 import java.nio.ByteBuffer
 
