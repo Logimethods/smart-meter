@@ -3,8 +3,8 @@ FROM nats:${nats_version} as nats
 
 ### MAIN FROM ###
 
-#FROM logimethods/eureka:entrypoint
-FROM entrypoint_exp
+FROM logimethods/eureka:entrypoint
+#FROM entrypoint_exp
 
 COPY entrypoint_insert.sh /entrypoint_insert.sh
 
