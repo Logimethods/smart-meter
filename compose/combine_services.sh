@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## ./compose/dependencies.sh "_secrets" inject_metrics
+## ./compose/combine_services.sh "_secrets" inject_metrics
 
 SECRET_MODE="$1"
 shift 1
