@@ -20,6 +20,11 @@ streaming_metrics="streaming_metrics $streaming $metrics"
 prediction="prediction prediction${SECRET_MODE} $root $spark $cassandra $hadoop"
 prediction_metrics="prediction_metrics $prediction $metrics"
 
+eval echo "\$$@" \
+  | xargs -n1 | sort -u | xargs \
+  | sed s/["^ "]*/"## "\&/g
+
 yamlreader $( eval echo "\$$@" \
   | xargs -n1 | sort -u | xargs \
   | sed s/["^ "]*/compose'\/'docker-compose-\&.yml/g )
+
