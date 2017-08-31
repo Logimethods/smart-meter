@@ -165,6 +165,7 @@ services:
     environment:
       - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
 #      - NATS_URI=${NATS_URI}
+      - NATS_NAME=${NATS_NAME}
       - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
       - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
       - NATS_SUBJECT=smartmeter.voltage.raw.data.>
