@@ -16,7 +16,7 @@ import com.logimethods.connector.gatling.to_nats._
 
 import scala.concurrent.duration._
 import java.util.Properties
-import io.nats.client.Constants.PROP_URL
+import io.nats.client.Nats.PROP_URL
 
 import com.logimethods.smartmeter.generate._
 
@@ -27,7 +27,7 @@ class NatsInjection extends Simulation {
   try {
     val properties = new Properties()
     val natsUrl = System.getenv("NATS_URI")
-    properties.setProperty(io.nats.client.Constants.PROP_URL, natsUrl)
+    properties.setProperty(io.nats.client.Nats.PROP_URL, natsUrl)
 
     val subject = System.getenv("GATLING_TO_NATS_SUBJECT")
     if (subject == null) {

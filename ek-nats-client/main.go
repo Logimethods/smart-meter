@@ -10,19 +10,21 @@ import (
 )
 
 func main() {
-  fmt.Println("NATS_PASSWORD:",os.Getenv("NATS_PASSWORD"),":")
-
   user, _ := os.LookupEnv("NATS_USERNAME")
-  fmt.Println("NATS_USERNAME=",user,"=")
+  fmt.Println("NATS_USERNAME=",user[:2],"...")
   pwd, _ := os.LookupEnv("NATS_PASSWORD")
-  fmt.Println("NATS_PASSWORD=",pwd,"=")
+  fmt.Println("NATS_PASSWORD=",pwd[:2],"...")
+  nats_name, _ := os.LookupEnv("NATS_NAME")
+  fmt.Println("NATS_NAME=",nats_name,"=")
+  nar_url := "nats://"+nats_name+":4222"
+  fmt.Println("nar_url=",nar_url)
 
-  nc, err := nats.Connect("nats://nats:4222", nats.UserInfo(user, pwd))
+  nc, err := nats.Connect(nar_url, nats.UserInfo(user, pwd))
   if (err != nil) {
     fmt.Println("error ", err.Error())
   }
   for ((err != nil) && strings.Contains(err.Error(), "no servers available for connection")) {
-    nc, err = nats.Connect("nats://nats:4222", nats.UserInfo(user, pwd))
+    nc, err = nats.Connect(nar_url, nats.UserInfo(user, pwd))
   }
   if (err == nil) {
     defer nc.Close()

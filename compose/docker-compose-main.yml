@@ -166,8 +166,7 @@ services:
       - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
 #      - NATS_URI=${NATS_URI}
       - NATS_NAME=${NATS_NAME}
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+      - NATS_NAME_FILE=${NATS_NAME}
       - NATS_SUBJECT=smartmeter.voltage.raw.data.>
       - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
       - TASK_SLOT={{.Task.Slot}}
@@ -175,9 +174,6 @@ services:
       - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
       - PING_ALLOWED=false
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
 
   ### create_service_nats,
   nats:
@@ -191,20 +187,12 @@ services:
 #        delay: 10s
     environment:
       - READY_WHEN=\"Server is ready\"
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
-      - NATS_CLUSTER_USERNAME_FILE=/run/secrets/nats_cluster_username_secret
-      - NATS_CLUSTER_PASSWORD_FILE=/run/secrets/nats_cluster_password_secret
+      - NATS_NAME=${NATS_NAME}
     ports:
       - "4222:4222"
       - "8222:8222"
     volumes:
       - "/proc:/writable-proc"
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
-      - nats_cluster_username_secret
-      - nats_cluster_password_secret
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222
 
   nats_cluster:
@@ -219,17 +207,9 @@ services:
 #        delay: 10s
     environment:
       - READY_WHEN=\"Server is ready\"
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
-      - NATS_CLUSTER_USERNAME_FILE=/run/secrets/nats_cluster_username_secret
-      - NATS_CLUSTER_PASSWORD_FILE=/run/secrets/nats_cluster_password_secret
+      - NATS_NAME=${NATS_NAME}
     volumes:
       - "/proc:/writable-proc"
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
-      - nats_cluster_username_secret
-      - nats_cluster_password_secret
     command: /gnatsd -c gnatsd.conf -m 8222 ${NATS_DEBUG} -cluster nats://0.0.0.0:6222 -routes nats://nats:6222
 
   ## For TESTING/DEBUG ONLY! ##
@@ -237,15 +217,9 @@ services:
     image: logimethods/ek_nats-client:${ek_nats_client_version}
     environment:
       - WAIT_FOR=${NATS_NAME}
+      - NATS_NAME=${NATS_NAME}
       - EUREKA_DEBUG=true
-#      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-#      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
-      - NATS_USERNAME=natsuser_secret
-      - NATS_PASSWORD=natspwd_secret
       - NATS_SUBJECT=${NATS_CLIENT_SUBJECT}
-#    secrets:
-#      - nats_username_secret
-#      - nats_password_secret
     command: /main
 
   ### create_service_app_streaming,
@@ -260,17 +234,13 @@ services:
     environment:
       - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
 #      - NATS_URI=${NATS_URI}
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+      - NATS_NAME=${NATS_NAME}
       - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
       - STREAMING_DURATION=${STREAMING_DURATION}
       - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
       - LOG_LEVEL=${APP_STREAMING_LOG_LEVEL}
       - TARGETS=${APP_STREAMING_TARGETS}
       - SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX}
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
     command: com.logimethods.nats.connector.spark.app.SparkMaxProcessor "smartmeter.voltage.raw" "smartmeter.voltage.extract.max" "Smartmeter MAX Streaming"
 
   ### create_service_prediction_trainer,
@@ -285,8 +255,7 @@ services:
       - DEPENDS_ON=${NATS_NAME},${CASSANDRA_URL}
       - WAIT_FOR=${HADOOP_NAME}
 #      - NATS_URI=${NATS_URI}
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+      - NATS_NAME=${NATS_NAME}
       - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
       - HDFS_URL=${HDFS_URL}
       - CASSANDRA_URL=${CASSANDRA_PREDICTION_URL}
@@ -294,9 +263,6 @@ services:
       - LOG_LEVEL=${APP_PREDICTION_LOG_LEVEL}
       - SPARK_CORES_MAX=${PREDICTION_TRAINER_SPARK_CORES_MAX}
       - ALERT_THRESHOLD=${ALERT_THRESHOLD}
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
     command: com.logimethods.nats.connector.spark.app.SparkPredictionTrainer "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION TRAINER"
 
   ### ["create_service_telegraf_on_master", "max_voltage"],
@@ -326,11 +292,7 @@ services:
       - DEPENDS_ON=${NATS_NAME}
       - WAIT_FOR=${INFLUXDB_NAME}
 #      - NATS_URI=${NATS_URI}
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
+      - NATS_NAME=${NATS_NAME}
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/max_voltage.conf
 
   ### ["create_service_telegraf_on_master", "temperature"],
@@ -359,11 +321,7 @@ services:
       # Specific
       - DEPENDS_ON=${NATS_NAME}
 #      - NATS_URI=${NATS_URI}
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
+      - NATS_NAME=${NATS_NAME}
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/temperature.conf
 
   ### ["create_service_telegraf_on_master", "prediction"],
@@ -511,8 +469,7 @@ services:
       - WAIT_FOR=${METRICS_GRAPHITE_NAME}
       - GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw
       # - NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+      - NATS_NAME=${NATS_NAME}
       - GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC}
       - GATLING_DURATION=${GATLING_DURATION}
       - STREAMING_DURATION=${STREAMING_DURATION}
@@ -526,9 +483,6 @@ services:
       - RANDOMNESS=${VOLTAGE_RANDOMNESS}
       - PREDICTION_LENGTH=${PREDICTION_LENGTH}
       - TIME_ROOT=${TIME_ROOT}
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
     command: --no-reports -s com.logimethods.smartmeter.inject.NatsInjection
 
 secrets:

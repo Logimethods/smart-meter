@@ -1,0 +1,34 @@
+services:
+  ### ["create_service_telegraf_on_master", "prediction"],
+  telegraf_prediction:
+    image: logimethods/smart-meter:telegraf${postfix}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - DEPENDS_ON=${NATS_NAME}
+      - WAIT_FOR=${INFLUXDB_NAME}
+#      - NATS_URI=${NATS_URI}
+      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
+      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
+    secrets:
+      - nats_username_secret
+      - nats_password_secret
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/prediction.conf
