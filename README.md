@@ -11,13 +11,13 @@ To demonstrate a Smart Meter Big Data Application.
 * Then, create your `docker-compose-merge.yml` file:
 ** When Docker Secrets are provided
 ```shell
-yamlreader compose/docker-compose-main.yml compose/docker-compose-secrets.yml > docker-compose-merge.yml
+./compose/dependencies.sh "_secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml
 ```
 ** When Docker Secrets are NOT provided
 ```shell
-yamlreader compose/docker-compose-main.yml compose/docker-compose-no-secrets.yml > docker-compose-merge.yml
+./compose/dependencies.sh "_no-secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml
 ```
-
+* Last, but not least, start the services based on the previously generated `docker-compose-merge.yml` file:
 ```
 ./docker-[local | remote]-[single | cluster]-up.sh
 .../...
