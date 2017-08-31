@@ -22,7 +22,7 @@
 
 FROM logimethods/ek_telegraf
 
-RUN apt-get install -y default-jre
+RUN apt-get update install -y default-jre
 
 # http://dba.stackexchange.com/questions/68332/how-can-i-get-nodetool-without-cassandra
 COPY tar/ /nodetool/
