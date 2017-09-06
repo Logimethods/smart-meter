@@ -9,11 +9,11 @@ To demonstrate a Smart Meter Big Data Application.
 
 * First, install [yamlreader](https://github.com/ImmobilienScout24/yamlreader).
 * Then, create your `docker-compose-merge.yml` file:
-** When Docker Secrets are provided
+    * When Docker Secrets are provided
 ```shell
 ./compose/combine_services.sh "_secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml
 ```
-** When Docker Secrets are NOT provided
+    * When Docker Secrets are NOT provided 
 ```shell
 ./compose/combine_services.sh "_no-secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml
 ```
