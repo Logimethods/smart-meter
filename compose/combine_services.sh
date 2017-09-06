@@ -29,7 +29,8 @@ eval echo "$targets" \
   | xargs -n1 | sort -u | xargs \
   | sed s/["^ "]*/"## "\&/g
 
-yamlreader $( eval echo "$targets" \
+docker run -v $(pwd)/compose:/files logimethods/yamlreader \
+  $( eval echo "$targets" \
   | xargs -n1 | sort -u | xargs \
-  | sed s/["^ "]*/compose'\/'docker-compose-\&.yml/g )
+  | sed s/["^ "]*/docker-compose-\&.yml/g )
 
