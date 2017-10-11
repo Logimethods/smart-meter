@@ -80,8 +80,13 @@ func main() {
   Cluster.Keyspace = "smartmeter"
 
   cluster_consistency := os.Getenv("CASSANDRA_INJECT_CONSISTENCY")
-  Cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
-  log.Print("CONSISTENCY: ", Cluster.Consistency)
+  var err error
+  Cluster.Consistency, err = gocql.ParseConsistency(cluster_consistency)
+  if (err == nil) {
+    log.Print("CONSISTENCY: ", Cluster.Consistency)
+  } else {
+    log.Panicf("Unable to parse CASSANDRA_INJECT_CONSISTENCY through gocql.ParseConsistency(%s)", cluster_consistency)
+  }
 
   cluster_timeout := os.Getenv("CASSANDRA_TIMEOUT")
   if (cluster_timeout != "") {
