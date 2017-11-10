@@ -1,0 +1,7 @@
+services:
+  nats_monitor:
+    image: ((docker-int_monitor-repository)):((docker-int_monitor-tag))((docker-additional-tag))
+    environment:
+      - WAIT_FOR=${NATS_NAME}
+      - NATS_NAME=${NATS_NAME}
+    command: ${MONITOR_MAIN_CLASS} ${MONITOR_SUBJECT_INPUT}

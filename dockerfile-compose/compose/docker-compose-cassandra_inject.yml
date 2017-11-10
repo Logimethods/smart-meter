@@ -1,0 +1,22 @@
+services:
+  ### create_service_cassandra_inject,
+  cassandra_inject:
+    image: ((docker-int_cassandra_inject-repository)):((docker-int_cassandra_inject-tag))((docker-additional-tag))
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+#        max_attempts: 5
+#        window: 120s
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
+#      - NATS_URI=${NATS_URI}
+      - NATS_NAME=${NATS_NAME}
+      - NATS_NAME_FILE=${NATS_NAME}
+      - NATS_SUBJECT=smartmeter.voltage.raw.data.>
+      - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
+      - TASK_SLOT={{.Task.Slot}}
+      - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
+      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
+      - CASSANDRA_TIMEOUT=${CASSANDRA_TIMEOUT}
+      - PING_ALLOWED=false

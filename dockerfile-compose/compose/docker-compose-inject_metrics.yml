@@ -1,0 +1,5 @@
+services:
+  ### create_service_inject
+  inject:
+    environment:
+      - WAIT_FOR=${METRICS_GRAPHITE_NAME}

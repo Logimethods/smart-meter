@@ -1,0 +1,18 @@
+services:
+  ### create_service_app_streaming,
+  app_streaming:
+    image: ((docker-int_streaming-repository)):((docker-int_streaming-tag))((docker-additional-tag))
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == ${MASTER_NODE}
+    environment:
+      - DEPENDS_ON=${NATS_NAME}
+#      - NATS_URI=${NATS_URI}
+      - NATS_NAME=${NATS_NAME}
+#      - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - TARGETS=${APP_STREAMING_TARGETS}
+#      - SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX}
+    command:  --class ${APP_STREAMING_MAIN_CLASS} --master ${SPARK_MASTER_URL_STREAMING} int_streaming-latest.jar ${APP_STREAMING_SUBJECT_INPUT} ${APP_STREAMING_SUBJECT_OUTPUT} "${APP_STREAMING_APP_NAME}"

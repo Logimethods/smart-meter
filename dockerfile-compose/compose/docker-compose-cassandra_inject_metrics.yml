@@ -1,0 +1,30 @@
+services:
+  ### ["create_service_telegraf", "cassandra_count"],
+  telegraf_cassandra_count:
+    image: ((docker-dz_telegraf-repository)):((docker-dz_telegraf-tag))((docker-additional-tag))
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == ${MASTER_NODE}
+    environment:
+      # - SETUP_LOCAL_CONTAINERS=true
+      - EUREKA_URL=${EUREKA_NAME}
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
+      - JMX_PASSWORD=$JMX_PASSWORD
+      - TELEGRAF_DEBUG=$TELEGRAF_DEBUG
+      - TELEGRAF_QUIET=$TELEGRAF_QUIET
+      - TELEGRAF_INTERVAL=$TELEGRAF_INTERVAL
+      - TELEGRAF_INPUT_TIMEOUT=$TELEGRAF_INPUT_TIMEOUT
+      # Specific
+      - TELEGRAF_DEPENDS_ON=${CASSANDRA_MAIN_NAME}
+      - WAIT_FOR=${INFLUXDB_NAME}
+      - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
+      - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
+    command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
