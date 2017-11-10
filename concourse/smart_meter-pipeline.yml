@@ -1,0 +1,71 @@
+###### JOBS #######
+
+jobs:
+- name: build-docker-int_compose
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  serial_groups: ((concourse-compose-serial_groups))
+  plan:
+  - get: docker-dz_compose
+    trigger: ((concourse-compose-trigger))
+  - get: github-repo-int_compose
+    trigger: ((concourse-compose-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-dz_templater-repository))
+          tag: ((docker-dz_templater-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-int_compose
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cp -R github-repo-int_compose/* complete_dockerfiles/
+          cd /templater/
+          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-int_compose
+    params:
+      build: complete_dockerfiles/((docker-int_compose-dockerfile-path))
+
+###### RESOURCES ######
+
+resources:
+- name: github-repo-int_compose
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-int_compose-path))/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+## Deetazilla Docker Images ##
+
+- name: docker-dz_compose
+  type: docker-image
+  source:
+#    email: ((docker-hub-email))
+#    username: ((docker-hub-username))
+#    password: ((docker-hub-password))
+    repository: ((docker-dz_compose-repository))
+    tag: ((docker-dz_compose-tag))((docker-additional-tag))
+
+## Integration Docker Images ##
+
+- name: docker-int_compose
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-int_compose-repository))
+    tag: ((docker-int_compose-tag))((docker-additional-tag))
+
