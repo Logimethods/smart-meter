@@ -1,7 +1,7 @@
 services:
   ### create_service_app_streaming,
   app_streaming:
-    image: ((docker-int_streaming-repository)):((docker-int_streaming-tag))((docker-additional-tag))
+    image: ((docker-app_streaming-repository)):((docker-app_streaming-tag))((docker-additional-tag))
     deploy:
       replicas: 1
       placement:
@@ -15,4 +15,4 @@ services:
       - STREAMING_DURATION=${STREAMING_DURATION}
       - TARGETS=${APP_STREAMING_TARGETS}
 #      - SPARK_CORES_MAX=${APP_STREAMING_SPARK_CORES_MAX}
-    command:  --class ${APP_STREAMING_MAIN_CLASS} --master ${SPARK_MASTER_URL_STREAMING} int_streaming-latest.jar ${APP_STREAMING_SUBJECT_INPUT} ${APP_STREAMING_SUBJECT_OUTPUT} "${APP_STREAMING_APP_NAME}"
+    command:  --class ${APP_STREAMING_MAIN_CLASS} --master ${SPARK_MASTER_URL_STREAMING} app_streaming-latest.jar ${APP_STREAMING_SUBJECT_INPUT} ${APP_STREAMING_SUBJECT_OUTPUT} "${APP_STREAMING_APP_NAME}"

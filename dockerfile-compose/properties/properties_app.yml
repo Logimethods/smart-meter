@@ -1,0 +1,31 @@
+github-integration-path: integration
+
+github-app_compose-path: integration/app_compose
+docker-app_compose-dockerfile-path: integration/app_compose
+docker-app_compose-repository: logimethods/app_compose
+docker-app_compose-tag: "1.0"
+
+github-app_inject-path: integration/app_inject
+docker-app_inject-dockerfile-path: app_inject/docker
+docker-app_inject-repository: logimethods/app_inject
+docker-app_inject-tag: "1.0"
+
+github-app_cassandra-path: integration/app_cassandra
+docker-app_cassandra-dockerfile-path: integration/app_cassandra
+docker-app_cassandra-repository: logimethods/app_cassandra
+docker-app_cassandra-tag: "1.0"
+
+github-app_cassandra_inject-path: integration/app_cassandra_inject
+docker-app_cassandra_inject-dockerfile-path: integration/app_cassandra_inject
+docker-app_cassandra_inject-repository: logimethods/app_cassandra_inject
+docker-app_cassandra_inject-tag: "1.0"
+
+github-app_streaming-path: integration/app_streaming
+docker-app_streaming-dockerfile-path: integration/app_streaming
+docker-app_streaming-repository: logimethods/app_streaming
+docker-app_streaming-tag: "1.0"
+
+github-app_monitor-path: integration/app_monitor
+docker-app_monitor-dockerfile-path: integration/app_monitor
+docker-app_monitor-repository: logimethods/app_monitor
+docker-app_monitor-tag: "1.0"

@@ -1,7 +1,7 @@
 services:
   ### create_service_cassandra_inject,
   cassandra_inject:
-    image: ((docker-int_cassandra_inject-repository)):((docker-int_cassandra_inject-tag))((docker-additional-tag))
+    image: ((docker-app_cassandra_inject-repository)):((docker-app_cassandra_inject-tag))((docker-additional-tag))
     deploy:
       restart_policy:
         condition: on-failure

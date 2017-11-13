@@ -1,7 +1,7 @@
 services:
   ### create_service_inject
   inject:
-    image: ((docker-int_inject-repository)):((docker-int_inject-tag))((docker-additional-tag))
+    image: ((docker-app_inject-repository)):((docker-app_inject-tag))((docker-additional-tag))
     environment:
       - DEPENDS_ON=${NATS_NAME}
       - GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw
