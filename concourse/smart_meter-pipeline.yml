@@ -1,14 +1,14 @@
 ###### JOBS #######
 
 jobs:
-- name: build-docker-int_compose
+- name: build-docker-app_compose
   public: ((concourse-public))
   serial: ((concourse-serial))
   serial_groups: ((concourse-compose-serial_groups))
   plan:
   - get: docker-dz_compose
     trigger: ((concourse-compose-trigger))
-  - get: github-repo-int_compose
+  - get: github-repo-app_compose
     trigger: ((concourse-compose-trigger))
   - task: complete_dockerfiles
     config:
@@ -19,7 +19,7 @@ jobs:
           repository: ((docker-dz_templater-repository))
           tag: ((docker-dz_templater-tag))((docker-additional-tag))
       inputs:
-      - name: github-repo-int_compose
+      - name: github-repo-app_compose
       outputs:
       - name: complete_dockerfiles
       run:
@@ -27,23 +27,23 @@ jobs:
         args:
         - -exc
         - |
-          cp -R github-repo-int_compose/* complete_dockerfiles/
+          cp -R github-repo-app_compose/* complete_dockerfiles/
           cd /templater/
           ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
-  - put: docker-int_compose
+  - put: docker-app_compose
     params:
-      build: complete_dockerfiles/((docker-int_compose-dockerfile-path))
+      build: complete_dockerfiles/((docker-app_compose-dockerfile-path))
 
 ###### RESOURCES ######
 
 resources:
-- name: github-repo-int_compose
+- name: github-repo-app_compose
   type: git
   source:
     uri: ((github-uri))
     branch: ((github-branch))
     paths:
-      - ((github-int_compose-path))/**
+      - ((github-app_compose-path))/**
     git_user: ((github-username))
     private_key: ((github-private-key))
 
@@ -60,12 +60,12 @@ resources:
 
 ## Integration Docker Images ##
 
-- name: docker-int_compose
+- name: docker-app_compose
   type: docker-image
   source:
     email: ((docker-hub-email))
     username: ((docker-hub-username))
     password: ((docker-hub-password))
-    repository: ((docker-int_compose-repository))
-    tag: ((docker-int_compose-tag))((docker-additional-tag))
+    repository: ((docker-app_compose-repository))
+    tag: ((docker-app_compose-tag))((docker-additional-tag))
 
