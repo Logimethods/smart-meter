@@ -16,3 +16,6 @@ test="base test test-${SECRET_MODE}"
 integration_app="$inject $streaming $monitoring"
 integration_app_monitoring="$inject_monitoring $streaming_monitoring $monitoring_monitoring"
 
+prediction="prediction prediction${SECRET_MODE} $root $spark $cassandra $hadoop"
+prediction_metrics="prediction_metrics $prediction $metrics"
+
