@@ -89,7 +89,7 @@ jobs:
         type: docker-image
         source:
           repository: ((docker-app_compose-repository))
-          tag: ((docker-app_compose-tag))((docker-additional-tag))
+          tag: ((docker-app_compose-tag))((docker-main-tag))((docker-additional-tag))
       inputs:
       - name: github-repo-app_cassandra
       outputs:
@@ -137,7 +137,7 @@ jobs:
         type: docker-image
         source:
           repository: ((docker-app_compose-repository))
-          tag: ((docker-app_compose-tag))((docker-additional-tag))
+          tag: ((docker-app_compose-tag))((docker-main-tag))((docker-additional-tag))
       inputs:
       - name: github-repo-app_streaming
       outputs:
@@ -147,7 +147,8 @@ jobs:
         args:
         - -exc
         - |
-          cp -R github-repo-app_streaming/* complete_dockerfiles/
+          mkdir -p complete_dockerfiles/((github-app_streaming-path))
+          cp -R github-repo-app_streaming/((github-app_streaming-path))/* complete_dockerfiles/((github-app_streaming-path))/
           cd /templater/
           ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_streaming
@@ -172,7 +173,7 @@ jobs:
         type: docker-image
         source:
           repository: ((docker-app_compose-repository))
-          tag: ((docker-app_compose-tag))((docker-additional-tag))
+          tag: ((docker-app_compose-tag))((docker-main-tag))((docker-additional-tag))
       inputs:
       - name: github-repo-app_monitor
       outputs:

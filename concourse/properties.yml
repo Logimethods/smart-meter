@@ -30,7 +30,7 @@ docker-app_cassandra_inject-dockerfile-path: dockerfile-cassandra_inject
 docker-app_cassandra_inject-repository: logimethods/smart-meter
 docker-app_cassandra_inject-tag: "cassandra_inject"
 
-github-app_streaming-path: dockerfile-streaming
+github-app_streaming-path: dockerfile-app_streaming
 docker-app_streaming-dockerfile-path: dockerfile-app_streaming
 docker-app_streaming-repository: logimethods/smart-meter
 docker-app_streaming-tag: "app_streaming"
