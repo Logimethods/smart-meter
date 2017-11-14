@@ -71,6 +71,125 @@ jobs:
     params:
       build: complete_dockerfiles/((docker-app_inject-dockerfile-path))
 
+- name: build-docker-app_cassandra
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  serial_groups: ((concourse-app-serial_groups))
+  plan:
+  - aggregate:
+    - get: docker-app_compose
+      passed: [build-docker-app_compose]
+      trigger: ((concourse-trigger))
+    - get: github-repo-app_cassandra
+      trigger: ((concourse-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-app_compose-repository))
+          tag: ((docker-app_compose-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-app_cassandra
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          mkdir -p complete_dockerfiles/((github-app_cassandra-path))
+          cp -R github-repo-app_cassandra/((github-app_cassandra-path))/* complete_dockerfiles/((github-app_cassandra-path))/
+          cd /templater/
+          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-app_cassandra
+    params:
+      build: complete_dockerfiles/((docker-app_cassandra-dockerfile-path))
+
+- name: build-docker-app_cassandra_inject
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  serial_groups: ((concourse-app-serial_groups))
+  plan:
+  - aggregate:
+    - get: github-repo-app_cassandra_inject
+      trigger: ((concourse-trigger))
+    - put: docker-app_cassandra_inject
+      params:
+        build: github-repo-app_cassandra_inject/((docker-app_cassandra_inject-dockerfile-path))
+
+- name: build-docker-app_streaming
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  serial_groups: ((concourse-app-serial_groups))
+  plan:
+  - aggregate:
+    - get: docker-app_compose
+      passed: [build-docker-app_compose]
+      trigger: ((concourse-trigger))
+    - get: github-repo-app_streaming
+      trigger: ((concourse-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-app_compose-repository))
+          tag: ((docker-app_compose-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-app_streaming
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cp -R github-repo-app_streaming/* complete_dockerfiles/
+          cd /templater/
+          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-app_streaming
+    params:
+      build: complete_dockerfiles/((docker-app_streaming-dockerfile-path))
+
+- name: build-docker-app_monitor
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  serial_groups: ((concourse-app-serial_groups))
+  plan:
+  - aggregate:
+    - get: docker-app_compose
+      passed: [build-docker-app_compose]
+      trigger: ((concourse-trigger))
+    - get: github-repo-app_monitor
+      trigger: ((concourse-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-app_compose-repository))
+          tag: ((docker-app_compose-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-app_monitor
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          mkdir -p complete_dockerfiles/((github-app_monitor-path))
+          cp -R github-repo-app_monitor/((github-app_monitor-path))/* complete_dockerfiles/((github-app_monitor-path))/
+          cd /templater/
+          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-app_monitor
+    params:
+      build: complete_dockerfiles/((docker-app_monitor-dockerfile-path))
+
 ###### RESOURCES ######
 
 ## Github Repositories ##
@@ -93,6 +212,46 @@ resources:
     branch: ((github-branch))
     paths:
       - ((github-app_inject-path))/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-app_cassandra
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-app_cassandra-path))/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-app_cassandra_inject
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-app_cassandra_inject-path))/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-app_streaming
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-app_streaming-path))/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-app_monitor
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-app_monitor-path))/**
     git_user: ((github-username))
     private_key: ((github-private-key))
 
@@ -126,4 +285,40 @@ resources:
     password: ((docker-hub-password))
     repository: ((docker-app_inject-repository))
     tag: ((docker-app_inject-tag))((docker-main-tag))((docker-additional-tag))
+
+- name: docker-app_cassandra
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-app_cassandra-repository))
+    tag: ((docker-app_cassandra-tag))((docker-additional-tag))
+
+- name: docker-app_cassandra_inject
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-app_cassandra_inject-repository))
+    tag: ((docker-app_cassandra_inject-tag))((docker-additional-tag))
+
+- name: docker-app_streaming
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-app_streaming-repository))
+    tag: ((docker-app_streaming-tag))((docker-additional-tag))
+
+- name: docker-app_monitor
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-app_monitor-repository))
+    tag: ((docker-app_monitor-tag))((docker-additional-tag))
 
