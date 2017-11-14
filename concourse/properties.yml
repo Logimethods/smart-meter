@@ -16,7 +16,7 @@ docker-app_compose-repository: logimethods/smart-meter
 docker-app_compose-tag: "compose"
 
 github-app_inject-path: dockerfile-inject
-docker-app_inject-dockerfile-path: dockerfile-inject/docker
+docker-app_inject-dockerfile-path: dockerfile-inject
 docker-app_inject-repository: logimethods/smart-meter
 docker-app_inject-tag: "inject"
 
