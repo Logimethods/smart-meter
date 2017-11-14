@@ -27,7 +27,8 @@ jobs:
         args:
         - -exc
         - |
-          cp -R github-repo-app_compose/* complete_dockerfiles/
+          mkdir -p complete_dockerfiles/((github-app_compose-path))
+          cp -R github-repo-app_compose/((github-app_compose-path))/* complete_dockerfiles/((github-app_compose-path))/
           cd /templater/
           ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_compose
@@ -60,7 +61,8 @@ jobs:
         args:
         - -exc
         - |
-          cp -R github-repo-app_inject/* complete_dockerfiles/
+          mkdir -p complete_dockerfiles/((github-app_inject-path))
+          cp -R github-repo-app_inject/((github-app_inject-path))/* complete_dockerfiles/((github-app_inject-path))/
           cd /templater/
           ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_inject
