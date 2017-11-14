@@ -15,27 +15,27 @@ docker-app_compose-dockerfile-path: dockerfile-compose
 docker-app_compose-repository: logimethods/smart-meter
 docker-app_compose-tag: "compose"
 
-github-app_inject-path: integration/app_inject
+github-app_inject-path: dockerfile-inject
 docker-app_inject-dockerfile-path: dockerfile-inject/docker
 docker-app_inject-repository: logimethods/smart-meter
 docker-app_inject-tag: "inject"
 
-github-app_cassandra-path: integration/app_cassandra
+github-app_cassandra-path: dockerfile-cassandra
 docker-app_cassandra-dockerfile-path: dockerfile-cassandra
 docker-app_cassandra-repository: logimethods/app_cassandra
 docker-app_cassandra-tag: "cassandra"
 
-github-app_cassandra_inject-path: integration/app_cassandra_inject
+github-app_cassandra_inject-path: dockerfile-cassandra_inject
 docker-app_cassandra_inject-dockerfile-path: dockerfile-cassandra_inject
 docker-app_cassandra_inject-repository: logimethods/smart-meter
 docker-app_cassandra_inject-tag: "cassandra_inject"
 
-github-app_streaming-path: integration/app_streaming
+github-app_streaming-path: dockerfile-streaming
 docker-app_streaming-dockerfile-path: dockerfile-app_streaming
 docker-app_streaming-repository: logimethods/smart-meter
 docker-app_streaming-tag: "app_streaming"
 
-github-app_monitor-path: integration/app_monitor
+github-app_monitor-path: dockerfile-monitor
 docker-app_monitor-dockerfile-path: dockerfile-monitor
 docker-app_monitor-repository: logimethods/smart-meter
 docker-app_monitor-tag: "monitor"
