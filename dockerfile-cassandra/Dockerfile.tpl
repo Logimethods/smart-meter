@@ -22,7 +22,7 @@
 
 # https://docs.docker.com/engine/userguide/eng-image/multistage-build/#use-multi-stage-builds
 # https://github.com/Logimethods/docker-eureka
-FROM logimethods/ek_cassandra
+FROM ((docker-dz_cassandra-repository)):((docker-dz_cassandra-tag))((docker-additional-tag))
 
 ### CQL ###
 
