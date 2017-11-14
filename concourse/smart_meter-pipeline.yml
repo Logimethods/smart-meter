@@ -40,10 +40,12 @@ jobs:
   serial: ((concourse-serial))
   serial_groups: ((concourse-app-serial_groups))
   plan:
-  - get: github-repo-app_inject
-    trigger: ((concourse-trigger))
-  - get: docker-app_compose
-    trigger: ((concourse-trigger))
+  - aggregate:
+    - get: docker-app_compose
+      passed: [build-docker-app_compose]
+      trigger: ((concourse-trigger))
+    - get: github-repo-app_inject
+      trigger: ((concourse-trigger))
   - task: complete_dockerfiles
     config:
       platform: linux
