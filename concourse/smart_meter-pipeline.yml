@@ -50,7 +50,7 @@ jobs:
         type: docker-image
         source:
           repository: ((docker-app_compose-repository))
-          tag: ((docker-app_compose-tag))((docker-additional-tag))
+          tag: ((docker-app_compose-tag))((docker-main-tag))((docker-additional-tag))
       inputs:
       - name: github-repo-app_inject
       outputs:
@@ -112,7 +112,7 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     repository: ((docker-app_compose-repository))
-    tag: ((docker-app_compose-tag))((docker-additional-tag))
+    tag: ((docker-app_compose-tag))((docker-main-tag))((docker-additional-tag))
 
 - name: docker-app_inject
   type: docker-image
@@ -121,5 +121,5 @@ resources:
     username: ((docker-hub-username))
     password: ((docker-hub-password))
     repository: ((docker-app_inject-repository))
-    tag: ((docker-app_inject-tag))((docker-additional-tag))
+    tag: ((docker-app_inject-tag))((docker-main-tag))((docker-additional-tag))
 
