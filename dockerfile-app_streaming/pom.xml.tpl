@@ -50,7 +50,6 @@
       <groupId>com.datastax.spark</groupId>
       <artifactId>spark-cassandra-connector_2.11</artifactId>
       <version>${spark_cassandra_connector_version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
