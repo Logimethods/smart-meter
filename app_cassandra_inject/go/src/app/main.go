@@ -30,12 +30,13 @@ import (
   "strings"
 
 //  "bytes"
-    "encoding/binary"
-    "math"
-    "strconv"
+  "encoding/binary"
+  "math"
+  "strconv"
 //    "unsafe"
 
-  "github.com/nats-io/go-nats"
+  // http://labix.org/gopkg.in
+  "gopkg.in/nats-io/go-nats.v1"
   "github.com/gocql/gocql"
 )
 
