@@ -112,12 +112,11 @@ jobs:
   serial: ((concourse-serial))
   serial_groups: ((concourse-app-serial_groups))
   plan:
-  - aggregate:
-    - get: github-repo-app_cassandra_inject
-      trigger: ((concourse-trigger))
-    - put: docker-app_cassandra_inject
-      params:
-        build: github-repo-app_cassandra_inject/((docker-app_cassandra_inject-dockerfile-path))
+  - get: github-repo-app_cassandra_inject
+    trigger: ((concourse-trigger))
+  - put: docker-app_cassandra_inject
+    params:
+      build: github-repo-app_cassandra_inject/((docker-app_cassandra_inject-dockerfile-path))
 
 - name: build-docker-app_streaming
   public: ((concourse-public))
