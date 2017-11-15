@@ -22,7 +22,7 @@ docker-app_inject-tag: "inject"
 
 github-app_cassandra-path: dockerfile-cassandra
 docker-app_cassandra-dockerfile-path: dockerfile-cassandra
-docker-app_cassandra-repository: logimethods/app_cassandra
+docker-app_cassandra-repository: logimethods/smart-meter
 docker-app_cassandra-tag: "cassandra"
 
 github-app_cassandra_inject-path: dockerfile-cassandra_inject
