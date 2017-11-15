@@ -6,7 +6,7 @@ github-branch: generic_externalized
 docker-main-tag: "-1.0"
 docker-additional-tag: "-dev"
 
-concourse-trigger: false
+concourse-trigger: true
 concourse-compose-trigger: true
 concourse-serial: true
 concourse-public: true
