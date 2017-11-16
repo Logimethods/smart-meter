@@ -61,6 +61,8 @@
 
   <!-- http://davidb.github.io/scala-maven-plugin/example_java.html -->
   <build>
+    <sourceDirectory>src/main/scala</sourceDirectory>
+
     <pluginManagement>
       <plugins>
         <plugin>
