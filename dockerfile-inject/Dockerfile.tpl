@@ -1,6 +1,7 @@
 FROM maven:3-jdk-8-alpine as maven
 COPY pom.xml .
 COPY src .
+RUN ls .
 RUN mvn package
 RUN mvn dependency:copy-dependencies -DoutputDirectory=/target && \
     ls -als /target/*.jar
