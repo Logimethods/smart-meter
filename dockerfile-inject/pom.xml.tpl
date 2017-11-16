@@ -6,10 +6,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.deetazilla.app</groupId>
-  <artifactId>int_inject</artifactId>
+  <artifactId>app_inject</artifactId>
   <packaging>jar</packaging>
   <version>latest</version>
-  <name>int_inject</name>
+  <name>app_inject</name>
 
   <dependencies>
     <!-- https://mvnrepository.com/artifact/com.typesafe.scala-logging/scala-logging -->

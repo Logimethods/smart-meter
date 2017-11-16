@@ -6,10 +6,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.deetazilla.app</groupId>
-  <artifactId>int_streaming</artifactId>
+  <artifactId>app_streaming</artifactId>
   <packaging>jar</packaging>
   <version>latest</version>
-  <name>int_streaming</name>
+  <name>app_streaming</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
