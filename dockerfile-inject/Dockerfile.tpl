@@ -1,6 +1,7 @@
 FROM maven:3-jdk-8-alpine as maven
 COPY pom.xml .
-RUN mvn dependency:copy-dependencies -DoutputDirectory=/libs
+##-- RUN mvn dependency:copy-dependencies -DoutputDirectory=/libs
+RUN mvn package -DoutputDirectory=/libs
 
 # https://github.com/Logimethods/docker-eureka
 FROM logimethods/eureka:entrypoint as entrypoint
