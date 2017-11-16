@@ -26,9 +26,28 @@
     </dependency>
 
     <dependency>
+      <groupId>org.scalanlp</groupId>
+      <artifactId>breeze_2.11</artifactId>
+      <version>${GATLING_breeze_version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scalactic</groupId>
+      <artifactId>scalactic_2.11</artifactId>
+      <version>${GATLING_scalactic_version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_2.11</artifactId>
+      <version>${GATLING_scalactic_version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${gatling_scala_version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 

@@ -1,7 +1,6 @@
 FROM maven:3-jdk-8-alpine as maven
 COPY pom.xml .
-##-- RUN mvn dependency:copy-dependencies -DoutputDirectory=/libs
-RUN mvn package -DoutputDirectory=/libs
+RUN mvn package
 
 # https://github.com/Logimethods/docker-eureka
 FROM logimethods/eureka:entrypoint as entrypoint
@@ -14,6 +13,6 @@ COPY entrypoint_insert.sh /entrypoint_insert.sh
 RUN apk --no-cache add jq bash netcat-openbsd>1.130
 ENTRYPOINT ["/entrypoint.sh", "gatling.sh"]
 
-COPY --from=maven /libs/*.jar /opt/gatling/lib/
+COPY --from=maven target/app_inject-latest.jar /opt/gatling/lib/
 COPY conf /opt/gatling/conf
 COPY user-files /opt/gatling/user-files
