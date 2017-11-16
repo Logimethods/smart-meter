@@ -1,5 +1,8 @@
 #!/bin/bash
 
+docker pull logimethods/smart-meter:app_streaming-1.0-dev
+docker pull logimethods/smart-meter:inject-1.0-dev
+
 docker network create --attachable --driver overlay deetazilla
 docker stack rm deetazilla
 docker pull logimethods/smart-meter:compose-1.0-dev

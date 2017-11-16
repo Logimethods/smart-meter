@@ -19,4 +19,4 @@ services:
       - RANDOMNESS=${VOLTAGE_RANDOMNESS}
       - PREDICTION_LENGTH=${PREDICTION_LENGTH}
       - TIME_ROOT=${TIME_ROOT}
-    command: --no-reports -s com.logimethods.nats.demo.NatsInjection
+    command: --no-reports -s ${GATLING_MAIN_CLASS}
