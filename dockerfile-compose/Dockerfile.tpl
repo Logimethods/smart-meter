@@ -3,3 +3,6 @@ FROM ((docker-dz_compose-repository)):((docker-dz_compose-tag))((docker-addition
 COPY *.sh ./
 COPY compose/*.yml ./
 COPY properties/* ./properties/
+### Debug
+RUN pwd
+RUN cat ./properties/properties.yml
