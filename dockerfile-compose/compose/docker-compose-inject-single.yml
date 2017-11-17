@@ -13,4 +13,4 @@ services:
       - SERVICE_LABELS="none"
       - TASK_ID="inject_task"
       - TASK_NAME="inject_task"
-      - TASK_SLOT="1"
+      - TASK_SLOT=1
