@@ -6,3 +6,11 @@ services:
       placement:
         constraints:
           - node.role != ${MASTER_NODE}
+    environment:
+      - NODE_ID={{.Node.ID}}
+      - SERVICE_ID={{.Service.ID}}
+      - SERVICE_NAME={{.Service.Name}}
+      - SERVICE_LABELS={{.Service.Labels}}
+      - TASK_ID={{.Task.ID}}
+      - TASK_NAME={{.Task.Name}}
+      - TASK_SLOT={{.Task.Slot}}
