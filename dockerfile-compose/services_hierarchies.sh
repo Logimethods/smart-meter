@@ -6,7 +6,7 @@ inject_metrics="$inject inject_metrics $metrics"
 cassandra_inject="cassandra_inject cassandra_inject-${CLUSTER_MODE} cassandra_inject-${SECRET_MODE} $cassandra $root"
 cassandra_inject_metrics="cassandra_inject_metrics $cassandra $metrics"
 
-streaming="streaming streaming-${SECRET_MODE} $root $spark"
+streaming="streaming streaming-${SECRET_MODE} $root $spark $cassandra"
 streaming_metrics="streaming_metrics streaming_metrics-${SECRET_MODE} $streaming $metrics"
 
 monitoring="monitoring monitoring-${SECRET_MODE} $root"
