@@ -49,7 +49,7 @@ const query = "INSERT INTO raw_data (" +
 const increment = "UPDATE raw_data_count SET count = count + 1 WHERE slot = ?"
 
 var Session *gocql.Session
-var Cluster *gocql.ClusterConfig
+var cluster *gocql.ClusterConfig
 
 func main() {
   log.Print("Welcome to the NATS to Cassandra Bridge")
@@ -77,24 +77,28 @@ func main() {
   log.Print("TASK SLOT: ", task_slot)
 
   // connect to the Cluster
-  Cluster = gocql.NewCluster(cassandra_url)
-  Cluster.Keyspace = "smartmeter"
+  cluster = gocql.NewCluster(cassandra_url)
+  cluster.Keyspace = "smartmeter"
+  //// https://github.com/gocql/gocql/issues/538
+  cluster.ProtoVersion = 4
+  //// https://github.com/gocql/gocql/issues/946
+  cluster.DisableInitialHostLookup = true
 
   cluster_consistency := os.Getenv("CASSANDRA_INJECT_CONSISTENCY")
   //// https://github.com/gocql/gocql/commit/939af06b39e61c17b91b7c11720213246ece9b80#diff-38a0fa12b0c511105c3a411f0df3e318
-  Cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
+  cluster.Consistency = gocql.ParseConsistency(cluster_consistency)
 
   cluster_timeout := os.Getenv("CASSANDRA_TIMEOUT")
   if (cluster_timeout != "") {
     timeout, err := strconv.Atoi(cluster_timeout)
     if (err == nil) {
-      Cluster.Timeout = time.Duration(timeout) * time.Millisecond
-      log.Print("(Provided) CASSANDRA_TIMEOUT: ", Cluster.Timeout)
+      cluster.Timeout = time.Duration(timeout) * time.Millisecond
+      log.Print("(Provided) CASSANDRA_TIMEOUT: ", cluster.Timeout)
     } else {
       log.Panicf("Unable to parse CASSANDRA_TIMEOUT (%s) into int64", cluster_timeout)
     }
   } else {
-    log.Print("(Default) CASSANDRA_TIMEOUT: ", Cluster.Timeout)
+    log.Print("(Default) CASSANDRA_TIMEOUT: ", cluster.Timeout)
   }
 
   createSession()
@@ -118,9 +122,9 @@ func main() {
 }
 
 func createSession() {
-  log.Print("Cluster.CreateSession()")
+  log.Print("cluster.CreateSession()")
   var err error
-  Session, err = Cluster.CreateSession()
+  Session, err = cluster.CreateSession()
   if (err != nil) {
     log.Fatalf("Could not connect to Cassandra Cluster %s", err)
   }
