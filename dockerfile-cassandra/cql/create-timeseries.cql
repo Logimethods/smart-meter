@@ -18,17 +18,6 @@ CREATE TABLE IF NOT EXISTS raw_data (
       minute tinyint,
       day_of_week tinyint,
       voltage float,
-      demand float,
-      val3 float,
-      val4 float,
-      val5 float,
-      val6 float,
-      val7 float,
-      val8 float,
-      val9 float,
-      val10 float,
-      val11 float,
-      val12 float,
       PRIMARY KEY ((line, transformer, usagePoint), year, month, day, hour, minute)
 ) WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC, minute DESC);
 

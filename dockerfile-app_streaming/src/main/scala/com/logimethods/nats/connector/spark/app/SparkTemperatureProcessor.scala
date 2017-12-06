@@ -31,18 +31,16 @@ import java.util.function._
 
 import java.time.{LocalDateTime, ZoneOffset}
 
-object SparkMaxProcessor extends App with SparkStreamingProcessor {
+object SparkTemperatureProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
 
   val (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl, streamingDuration) =
     setupStreaming(args)
 
-  // MAX Voltages by Epoch //
+  // Temperatures //
 
-//    val inputDataSubject = inputSubject + ".data.>"
-
-  val voltages =
+  val temperatures =
     if (inputNatsStreaming) {
       NatsToSparkConnector
         .receiveFromNatsStreaming(classOf[Tuple2[Long,Float]], StorageLevel.MEMORY_ONLY, clusterId)
@@ -59,28 +57,20 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
         .asStreamOf(ssc)
     }
 
-  voltages.saveToCassandra("smartmeter", "raw_data")
+  // Ideally, should be the AVG
+  val singleTemperature = temperatures.reduceByKey(Math.max(_,_))
 
-  if (logLevel.contains("MESSAGES")) {
-    voltages.print()
+  if (logLevel.contains("TEMPERATURE")) {
+    singleTemperature.print()
   }
 
-  val maxByEpoch = voltages.reduceByKey(Math.max(_,_))
-  maxByEpoch.saveToCassandra("smartmeter", "max_voltage")
+  singleTemperature.saveToCassandra("smartmeter", "temperature")
 
-  if (logLevel.contains("MAX")) {
-    maxByEpoch.print()
-  }
-
-  val maxReport = maxByEpoch.map({case (epoch, voltage) => (s"""{"epoch": $epoch, "voltage": $voltage}""") })
+  val temperatureReport = singleTemperature.map({case (epoch, temperature) => (s"""{"epoch": $epoch, "temperature": $temperature}""") })
   SparkToNatsConnectorPool.newPool()
-                          .withProperties(properties)
-                          .withSubjects(outputSubject)
-                          .publishToNats(maxReport)
-
-  if (logLevel.contains("MAX_REPORT")) {
-    maxReport.print()
-  }
+                      .withProperties(properties)
+                      .withSubjects(outputSubject) // "smartmeter.extract.temperature"
+                      .publishToNats(temperatureReport)
 
   // Start //
   ssc.start();

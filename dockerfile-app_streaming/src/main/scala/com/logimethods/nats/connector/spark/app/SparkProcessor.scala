@@ -79,6 +79,13 @@ trait SparkProcessor {
 
     (properties, targets, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl)
   }
+
+  def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
+        val buffer = ByteBuffer.wrap(bytes);
+        val epoch = buffer.getLong()
+        val value = buffer.getFloat()
+        (value, voltage)
+      }
 }
 
 
