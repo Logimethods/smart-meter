@@ -56,3 +56,4 @@ concourse/credentials.yml
 dockerfile-app_streaming/Dockerfile
 dockerfile-app_streaming/pom.xml
 dockerfile-inject/pom.xml
+dockerfile-app_streaming/_docker_build.sh
