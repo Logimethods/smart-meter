@@ -8,8 +8,8 @@
   <groupId>org.deetazilla.app</groupId>
   <artifactId>app_streaming</artifactId>
   <packaging>jar</packaging>
-  <version>latest</version>
-  <name>app_streaming</name>
+  <name>${APP_STREAMING_NAME}</name>
+  <version>${APP_STREAMING_VERSION}</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

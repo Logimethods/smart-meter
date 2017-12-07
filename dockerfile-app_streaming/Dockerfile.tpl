@@ -19,7 +19,7 @@ COPY entrypoint_insert.sh /entrypoint_insert.sh
 
 COPY spark/conf/*.properties ./conf/
 
-COPY --from=mvn /usr/src/app/target/*.jar ./
+COPY --from=mvn /usr/src/app/target/*.jar ./add_libs/
 
 EXPOSE 5005 4040
 
