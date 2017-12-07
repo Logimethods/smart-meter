@@ -30,7 +30,7 @@ jobs:
           mkdir -p complete_dockerfiles/((github-app_compose-path))
           cp -R github-repo-app_compose/((github-app_compose-path))/* complete_dockerfiles/((github-app_compose-path))/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_compose
     params:
       build: complete_dockerfiles/((docker-app_compose-dockerfile-path))
@@ -66,7 +66,7 @@ jobs:
           mkdir -p complete_dockerfiles/((github-app_inject-path))
           cp -R github-repo-app_inject/((github-app_inject-path))/* complete_dockerfiles/((github-app_inject-path))/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_inject
     params:
       build: complete_dockerfiles/((docker-app_inject-dockerfile-path))
@@ -81,6 +81,8 @@ jobs:
       passed: [build-docker-app_compose]
       trigger: ((concourse-trigger))
     - get: github-repo-app_cassandra
+      trigger: ((concourse-trigger))
+    - get: docker-dz_cassandra
       trigger: ((concourse-trigger))
   - task: complete_dockerfiles
     config:
@@ -102,7 +104,7 @@ jobs:
           mkdir -p complete_dockerfiles/((github-app_cassandra-path))
           cp -R github-repo-app_cassandra/((github-app_cassandra-path))/* complete_dockerfiles/((github-app_cassandra-path))/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_cassandra
     params:
       build: complete_dockerfiles/((docker-app_cassandra-dockerfile-path))
@@ -149,7 +151,7 @@ jobs:
           mkdir -p complete_dockerfiles/((github-app_streaming-path))
           cp -R github-repo-app_streaming/((github-app_streaming-path))/* complete_dockerfiles/((github-app_streaming-path))/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_streaming
     params:
       build: complete_dockerfiles/((docker-app_streaming-dockerfile-path))
@@ -185,7 +187,7 @@ jobs:
           mkdir -p complete_dockerfiles/((github-app_monitor-path))
           cp -R github-repo-app_monitor/((github-app_monitor-path))/* complete_dockerfiles/((github-app_monitor-path))/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_monitor
     params:
       build: complete_dockerfiles/((docker-app_monitor-dockerfile-path))
@@ -265,6 +267,15 @@ resources:
 #    password: ((docker-hub-password))
     repository: ((docker-dz_compose-repository))
     tag: ((docker-dz_compose-tag))((docker-additional-tag))
+
+- name: docker-dz_cassandra
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_cassandra-repository))
+    tag: ((docker-dz_cassandra-tag))((docker-additional-tag))
 
 ## Smart Meter Application Docker Images ##
 

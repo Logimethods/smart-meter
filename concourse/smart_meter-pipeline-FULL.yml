@@ -28,7 +28,7 @@ jobs:
         - |
           cp -R github-repo-int_compose/* complete_dockerfiles/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-int_compose
     params:
       build: complete_dockerfiles/((docker-int_compose-dockerfile-path))
@@ -99,7 +99,7 @@ jobs:
         - |
           cp -R github-repo-int_cassandra/* complete_dockerfiles/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-int_cassandra
     params:
       build: complete_dockerfiles/((docker-int_cassandra-dockerfile-path))
@@ -141,7 +141,7 @@ jobs:
         - |
           cp -R github-repo-int_streaming/* complete_dockerfiles/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-int_streaming
     params:
       build: complete_dockerfiles/((docker-int_streaming-dockerfile-path))
@@ -173,7 +173,7 @@ jobs:
         - |
           cp -R github-repo-int_monitor/* complete_dockerfiles/
           cd /templater/
-          ./set_properties_to_templates.sh /tmp/build/*/complete_dockerfiles
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-int_monitor
     params:
       build: complete_dockerfiles/((docker-int_monitor-dockerfile-path))

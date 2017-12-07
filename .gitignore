@@ -50,3 +50,9 @@ docker-compose-merge.yml
 .DS_Store
 
 concourse/credentials.yml
+
+# Generated Files
+*.tmp
+dockerfile-app_streaming/Dockerfile
+dockerfile-app_streaming/pom.xml
+dockerfile-inject/pom.xml
