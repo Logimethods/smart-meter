@@ -1,0 +1,24 @@
+github-app_compose-path: dockerfile-compose
+docker-app_compose-dockerfile-path: dockerfile-compose
+docker-app_compose-repository: logimethods/smartmeter
+docker-app_compose-tag: "compose-1.0"
+
+github-app_inject-path: dockerfile-app_inject
+docker-app_inject-dockerfile-path: dockerfile-app_inject
+docker-app_inject-repository: logimethods/smart-meter
+docker-app_inject-tag: "app_inject-1.0"
+
+github-app_cassandra-path: dockerfile-app_cassandra
+docker-app_cassandra-dockerfile-path: dockerfile-app_cassandra
+docker-app_cassandra-repository: logimethods/smart-meter
+docker-app_cassandra-tag: "app_cassandra-1.0"
+
+github-app_streaming-path: dockerfile-app_streaming
+docker-app_streaming-dockerfile-path: dockerfile-app_streaming
+docker-app_streaming-repository: logimethods/smart-meter
+docker-app_streaming-tag: "app_streaming-1.0"
+
+github-app_monitor-path: dockerfile-app_monitor
+docker-app_monitor-dockerfile-path: dockerfile-app_monitor
+docker-app_monitor-repository: logimethods/smart-meter
+docker-app_monitor-tag: "app_monitor-1.0"
