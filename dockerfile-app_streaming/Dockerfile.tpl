@@ -1,5 +1,5 @@
 ##* FROM maven:3-jdk-8-onbuild-alpine as mvn
-FROM logimethods/smart-meter:mvn_spark-onbuild-1.0-dev as BUILD
+FROM ((docker-dz_spark-onbuild-repository)):((docker-dz_spark-onbuild-tag))((docker-additional-tag)) as BUILD
 
 # https://docs.docker.com/engine/userguide/eng-image/multistage-build/#use-multi-stage-builds
 # https://github.com/Logimethods/docker-eureka
