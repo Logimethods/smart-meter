@@ -57,3 +57,6 @@ dockerfile-app_streaming/Dockerfile
 dockerfile-app_streaming/pom.xml
 dockerfile-inject/pom.xml
 dockerfile-app_streaming/_docker_build.sh
+dockerfile-mvn_spark/Dockerfile
+dockerfile-mvn_spark/pom.xml
+dockerfile-mvn_spark/_docker_build.sh

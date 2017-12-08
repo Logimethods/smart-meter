@@ -1,4 +1,5 @@
-FROM maven:3-jdk-8-onbuild-alpine as mvn
+##* FROM maven:3-jdk-8-onbuild-alpine as mvn
+FROM logimethods/smart-meter:mvn_spark-onbuild-1.0-dev as BUILD
 
 # https://docs.docker.com/engine/userguide/eng-image/multistage-build/#use-multi-stage-builds
 # https://github.com/Logimethods/docker-eureka
@@ -19,7 +20,7 @@ COPY entrypoint_insert.sh /entrypoint_insert.sh
 
 COPY spark/conf/*.properties ./conf/
 
-COPY --from=mvn /usr/src/app/target/*.jar ./add_libs/
+COPY --from=BUILD /usr/src/app/target/*.jar ./add_libs/
 
 EXPOSE 5005 4040
 

@@ -84,7 +84,7 @@ trait SparkProcessor {
         val buffer = ByteBuffer.wrap(bytes);
         val epoch = buffer.getLong()
         val value = buffer.getFloat()
-        (value, voltage)
+        (epoch, value)
       }
 }
 

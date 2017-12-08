@@ -32,17 +32,17 @@ import java.time._
 object SparkAlertProcessor extends App with SparkStreamingProcessor {
   val log = LogManager.getRootLogger
   log.setLevel(Level.WARN)
-  
-  val (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl, streamingDuration) = 
+
+  val (properties, target, logLevel, sc, ssc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl, streamingDuration) =
     setupStreaming(args)
-  
-  def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
+
+/*  def dataDecoder: Array[Byte] => Tuple2[Long,Float] = bytes => {
         val buffer = ByteBuffer.wrap(bytes);
         val epoch = buffer.getLong()
         val voltage = buffer.getFloat()
-        (epoch, voltage)  
-      }
-  
+        (epoch, voltage)
+      } */
+
   val messages =
     if (inputNatsStreaming) {
       NatsToSparkConnector
@@ -63,20 +63,20 @@ object SparkAlertProcessor extends App with SparkStreamingProcessor {
   if (logLevel.equals("MESSAGES")) {
     messages.print()
   }
-  
+
   // MAXIMUM values
-  
+
   val max = messages.reduceByKey((t1, t2) => (Math.max(t1._1,t2._1), Math.max(t1._2,t2._2)))
 
   if (logLevel.equals("MAX")) {
     max.print()
   }
-    
-  def longFloatTupleEncoder: Tuple2[Long,Float] => Array[Byte] = tuple => {        
+
+  def longFloatTupleEncoder: Tuple2[Long,Float] => Array[Byte] = tuple => {
         val buffer = ByteBuffer.allocate(4+8);
         buffer.putLong(tuple._1)
-        buffer.putFloat(tuple._2)        
-        buffer.array()    
+        buffer.putFloat(tuple._2)
+        buffer.array()
       }
 
   if (outputNatsStreaming) {
@@ -90,46 +90,46 @@ object SparkAlertProcessor extends App with SparkStreamingProcessor {
                             .withSubjects(outputSubject)
                             .publishToNatsAsKeyValue(max, longFloatTupleEncoder)
   }
-  
+
 /*  val maxReport = max.map(
-      {case (subject, (epoch, voltage)) 
+      {case (subject, (epoch, voltage))
           => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), voltage.toString())) })*/
   val maxReport = max.map(
-      {case (subject, (epoch, voltage)) 
+      {case (subject, (epoch, voltage))
           => (subject, voltage.toString()) })
   SparkToNatsConnectorPool.newPool()
                           .withProperties(properties)
                           .withSubjects(outputSubject.replace("extract", "report"))
                           .publishToNatsAsKeyValue(maxReport)
-          
+
   // ALERTS
-  
+
   final val OFF_LIMIT_VOLTAGE_COUNT = 2
 	final val OFF_LIMIT_VOLTAGE = 120f
-	
+
   val offLimits = messages.filter( _._2._2 > OFF_LIMIT_VOLTAGE )
-  if (logLevel.equals("OFF_LIMIT")) { 
+  if (logLevel.equals("OFF_LIMIT")) {
     offLimits.print()
   }
 
   val offLimitsCount = offLimits.mapValues(t => (t._1, 1))
                                 .reduceByKey((t1, t2) => (Math.min(t1._1,t2._1), t1._2 + t2._2))
-  if (logLevel.equals("OFF_LIMIT_COUNT")) { 
+  if (logLevel.equals("OFF_LIMIT_COUNT")) {
     offLimitsCount.print()
   }
-  
-  val alerts = offLimitsCount.filter( _._2._2 >= OFF_LIMIT_VOLTAGE_COUNT ) 
-  if (logLevel.equals("ALERTS")) { 
+
+  val alerts = offLimitsCount.filter( _._2._2 >= OFF_LIMIT_VOLTAGE_COUNT )
+  if (logLevel.equals("ALERTS")) {
     alerts.print()
   }
-    
-  def longIntTupleEncoder: Tuple2[Long,Int] => Array[Byte] = tuple => {        
+
+  def longIntTupleEncoder: Tuple2[Long,Int] => Array[Byte] = tuple => {
         val buffer = ByteBuffer.allocate(4+8);
         buffer.putLong(tuple._1)
-        buffer.putInt(tuple._2)        
-        buffer.array()    
+        buffer.putInt(tuple._2)
+        buffer.array()
       }
-  
+
   val outputAlertSubject = outputSubject.replace("max", "alert")
   if (outputNatsStreaming) {
     SparkToNatsConnectorPool.newStreamingPool(clusterId)
@@ -141,13 +141,13 @@ object SparkAlertProcessor extends App with SparkStreamingProcessor {
                             .withProperties(properties)
                             .withSubjects(outputAlertSubject)
                             .publishToNatsAsKeyValue(alerts, longIntTupleEncoder)
-  }  
-  
+  }
+
  /* val alertReport = alerts.map(
-      {case (subject, (epoch, alert)) 
+      {case (subject, (epoch, alert))
           => (subject, (LocalDateTime.ofEpochSecond(epoch, 0, ZoneOffset.MIN), alert.toString())) })*/
   val alertReport = alerts.map(
-      {case (subject, (epoch, alert)) 
+      {case (subject, (epoch, alert))
           => (subject, alert.toString()) })
   SparkToNatsConnectorPool.newPool()
                           .withProperties(properties)
@@ -155,7 +155,7 @@ object SparkAlertProcessor extends App with SparkStreamingProcessor {
                           .publishToNatsAsKeyValue(alertReport)
 
   // Start
-  ssc.start();		
-  
+  ssc.start();
+
   ssc.awaitTermination()
 }
