@@ -109,17 +109,6 @@ jobs:
     params:
       build: complete_dockerfiles/((docker-app_cassandra-dockerfile-path))
 
-- name: build-docker-app_cassandra_inject
-  public: ((concourse-public))
-  serial: ((concourse-serial))
-  serial_groups: ((concourse-app-serial_groups))
-  plan:
-  - get: github-repo-app_cassandra_inject
-    trigger: ((concourse-trigger))
-  - put: docker-app_cassandra_inject
-    params:
-      build: github-repo-app_cassandra_inject/((docker-app_cassandra_inject-dockerfile-path))
-
 - name: build-docker-app_streaming
   public: ((concourse-public))
   serial: ((concourse-serial))
@@ -227,16 +216,6 @@ resources:
     git_user: ((github-username))
     private_key: ((github-private-key))
 
-- name: github-repo-app_cassandra_inject
-  type: git
-  source:
-    uri: ((github-uri))
-    branch: ((github-branch))
-    paths:
-      - ((github-app_cassandra_inject-path))/**
-    git_user: ((github-username))
-    private_key: ((github-private-key))
-
 - name: github-repo-app_streaming
   type: git
   source:
@@ -305,15 +284,6 @@ resources:
     password: ((docker-hub-password))
     repository: ((docker-app_cassandra-repository))
     tag: ((docker-app_cassandra-tag))((docker-additional-tag))
-
-- name: docker-app_cassandra_inject
-  type: docker-image
-  source:
-    email: ((docker-hub-email))
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-    repository: ((docker-app_cassandra_inject-repository))
-    tag: ((docker-app_cassandra_inject-tag))((docker-additional-tag))
 
 - name: docker-app_streaming
   type: docker-image

@@ -55,12 +55,9 @@ concourse/credentials.yml
 *.tmp
 dockerfile-app_streaming/Dockerfile
 dockerfile-app_streaming/pom.xml
-dockerfile-inject/pom.xml
+dockerfile-app_inject/pom.xml
 dockerfile-app_streaming/_docker_build.sh
-dockerfile-mvn_spark/Dockerfile
-dockerfile-mvn_spark/pom.xml
-dockerfile-mvn_spark/_docker_build.sh
-dockerfile-compose/_docker_build.sh
-dockerfile-compose/Dockerfile
-dockerfile-cassandra/Dockerfile
-dockerfile-cassandra/_docker_build.sh
+dockerfile-app_compose/_docker_build.sh
+dockerfile-app_compose/Dockerfile
+dockerfile-app_cassandra/Dockerfile
+dockerfile-app_cassandra/_docker_build.sh

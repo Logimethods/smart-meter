@@ -1,9 +1,9 @@
-concourse-app-serial_groups: [compose_group,int_group]
+concourse-app-serial_groups: [compose_group,app_group]
 
 github-app_compose-path: "dockerfile-compose"
 docker-app_compose-dockerfile-path: "dockerfile-compose"
-docker-app_compose-repository: logimethods/smartmeter
-docker-app_compose-tag: "compose-1.0"
+docker-app_compose-repository: logimethods/smart-meter
+docker-app_compose-tag: "app_compose-1.0"
 
 github-app_inject-path: dockerfile-app_inject
 docker-app_inject-dockerfile-path: dockerfile-app_inject
