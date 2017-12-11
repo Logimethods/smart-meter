@@ -60,7 +60,7 @@ dockerfile-app_streaming/_docker_build.sh
 dockerfile-mvn_spark/Dockerfile
 dockerfile-mvn_spark/pom.xml
 dockerfile-mvn_spark/_docker_build.sh
-
 dockerfile-compose/_docker_build.sh
-
 dockerfile-compose/Dockerfile
+dockerfile-cassandra/Dockerfile
+dockerfile-cassandra/_docker_build.sh

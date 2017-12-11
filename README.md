@@ -1,5 +1,9 @@
 ** /!\ Work in progress, this README needs to be completed. **
 
+# (local) build
+
+/smart-meter/scripts > ./docker_build.sh dockerfile-app_streaming
+
 # smart-meter
 To demonstrate a Smart Meter Big Data Application.
 
