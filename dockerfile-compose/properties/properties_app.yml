@@ -1,5 +1,7 @@
-github-app_compose-path: dockerfile-compose
-docker-app_compose-dockerfile-path: dockerfile-compose
+concourse-app-serial_groups: [compose_group,int_group]
+
+github-app_compose-path: "dockerfile-compose"
+docker-app_compose-dockerfile-path: "dockerfile-compose"
 docker-app_compose-repository: logimethods/smartmeter
 docker-app_compose-tag: "compose-1.0"
 
