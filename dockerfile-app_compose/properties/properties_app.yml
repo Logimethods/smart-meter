@@ -1,7 +1,7 @@
 concourse-app-serial_groups: [compose_group,app_group]
 
-github-app_compose-path: "dockerfile-compose"
-docker-app_compose-dockerfile-path: "dockerfile-compose"
+github-app_compose-path: "dockerfile-app_compose"
+docker-app_compose-dockerfile-path: "dockerfile-app_compose"
 docker-app_compose-repository: logimethods/smart-meter
 docker-app_compose-tag: "app_compose-1.0"
 
