@@ -212,7 +212,7 @@ jobs:
         - -exc
         - |
           mkdir -p complete_dockerfiles/((github-app_telegraf-path))
-          cp -R github-repo-app_monitor/((github-app_telegraf-path))/* complete_dockerfiles/((github-app_telegraf-path))/
+          cp -R github-repo-app_telegraf/((github-app_telegraf-path))/* complete_dockerfiles/((github-app_telegraf-path))/
           cd /templater/
           ./complete_templates.sh /tmp/build/*/complete_dockerfiles
   - put: docker-app_telegraf

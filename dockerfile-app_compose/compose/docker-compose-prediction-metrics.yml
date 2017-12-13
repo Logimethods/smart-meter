@@ -1,3 +1,4 @@
+services:
   ### ["create_service_telegraf_on_master", "prediction"],
   telegraf_prediction:
     image: logimethods/smart-meter:telegraf${postfix}
