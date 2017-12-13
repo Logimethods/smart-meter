@@ -26,9 +26,4 @@ services:
       - DEPENDS_ON=${NATS_NAME}
       - WAIT_FOR=${INFLUXDB_NAME}
 #      - NATS_URI=${NATS_URI}
-      - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
-      - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
-    secrets:
-      - nats_username_secret
-      - nats_password_secret
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/prediction.conf
