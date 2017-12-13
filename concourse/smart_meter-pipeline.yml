@@ -181,6 +181,44 @@ jobs:
     params:
       build: complete_dockerfiles/((docker-app_monitor-dockerfile-path))
 
+- name: build-docker-app_telegraf
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  serial_groups: ((concourse-app-serial_groups))
+  plan:
+  - aggregate:
+    - get: docker-app_compose
+      passed: [build-docker-app_compose]
+      trigger: ((concourse-trigger))
+    - get: docker-dz_telegraf
+      trigger: ((concourse-trigger))
+    - get: github-repo-app_telegraf
+      trigger: ((concourse-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-app_compose-repository))
+          tag: ((docker-app_compose-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-app_telegraf
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          mkdir -p complete_dockerfiles/((github-app_telegraf-path))
+          cp -R github-repo-app_monitor/((github-app_telegraf-path))/* complete_dockerfiles/((github-app_telegraf-path))/
+          cd /templater/
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-app_telegraf
+    params:
+      build: complete_dockerfiles/((docker-app_telegraf-dockerfile-path))
+
 ###### RESOURCES ######
 
 ## Github Repositories ##
@@ -236,6 +274,16 @@ resources:
     git_user: ((github-username))
     private_key: ((github-private-key))
 
+- name: github-repo-app_telegraf
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-app_telegraf-path))/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
 ## Deetazilla Docker Images ##
 
 - name: docker-dz_compose
@@ -255,6 +303,15 @@ resources:
     password: ((docker-hub-password))
     repository: ((docker-dz_cassandra-repository))
     tag: ((docker-dz_cassandra-tag))((docker-additional-tag))
+
+- name: docker-dz_telegraf
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_telegraf-repository))
+    tag: ((docker-dz_telegraf-tag))((docker-additional-tag))
 
 ## Smart Meter Application Docker Images ##
 
@@ -302,4 +359,13 @@ resources:
     password: ((docker-hub-password))
     repository: ((docker-app_monitor-repository))
     tag: ((docker-app_monitor-tag))((docker-additional-tag))
+
+- name: docker-app_telegraf
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-app_telegraf-repository))
+    tag: ((docker-app_telegraf-tag))((docker-additional-tag))
 

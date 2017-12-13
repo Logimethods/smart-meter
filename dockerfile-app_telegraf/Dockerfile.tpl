@@ -20,7 +20,7 @@
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ## SOFTWARE.
 
-FROM logimethods/ek_telegraf
+FROM ((docker-dz_telegraf-repository)):((docker-dz_telegraf-tag))((docker-additional-tag))
 
 RUN apt-get update && apt-get install -y default-jre
 
