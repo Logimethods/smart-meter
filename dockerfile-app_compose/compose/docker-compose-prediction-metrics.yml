@@ -1,12 +1,12 @@
 services:
   ### ["create_service_telegraf_on_master", "prediction"],
   telegraf_prediction:
-    image: logimethods/smart-meter:telegraf${postfix}
+    image: ((docker-app_telegraf-repository)):((docker-app_telegraf-tag))((docker-additional-tag))
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.role == manager
+          - node.role == ${MASTER_NODE}
     environment:
       - SETUP_LOCAL_CONTAINERS=true
       - EUREKA_URL=${EUREKA_NAME}
