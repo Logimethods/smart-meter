@@ -40,7 +40,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
 
   // MAX Voltages by Epoch //
 
-  val inputDataSubject = inputSubject + ".data.>"
+  val inputDataSubject = inputSubject + ".voltage.data.>"
 
   val voltages =
     if (inputNatsStreaming) {
@@ -102,7 +102,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
     maxByEpoch.print()
   }
 
-  val outputMaxSubject = outputSubject + ".max"
+  val outputMaxSubject = outputSubject + ".voltage.max"
   val maxReport = maxByEpoch.map({case (epoch, voltage) => (s"""{"epoch": $epoch, "voltage": $voltage}""") })
   SparkToNatsConnectorPool.newPool()
                           .withProperties(properties)
@@ -115,7 +115,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
 
   // Temperatures //
 
-  val inputTemperatureSubject = inputSubject + ".temperature"
+  val inputTemperatureSubject = inputSubject + ".temperature.data"
 
   val temperatures =
     if (inputNatsStreaming) {
@@ -143,7 +143,7 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
 
   singleTemperature.saveToCassandra("smartmeter", "temperature")
 
-  val outputTemperatureSubject = outputSubject + ".temperature"
+  val outputTemperatureSubject = outputSubject + ".temperature.max"
   val temperatureReport = singleTemperature.map({case (epoch, temperature) => (s"""{"epoch": $epoch, "temperature": $temperature}""") })
   SparkToNatsConnectorPool.newPool()
                       .withProperties(properties)

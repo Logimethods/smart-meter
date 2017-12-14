@@ -168,7 +168,7 @@ services:
       - NATS_NAME=${NATS_NAME}
       - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
       - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret
-      - NATS_SUBJECT=smartmeter.voltage.raw.data.>
+      - NATS_SUBJECT=smartmeter.raw.voltage.data.>
       - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
       - TASK_SLOT={{.Task.Slot}}
       - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
@@ -271,7 +271,7 @@ services:
     secrets:
       - nats_username_secret
       - nats_password_secret
-    command: com.logimethods.nats.connector.spark.app.SparkMaxProcessor "smartmeter.voltage.raw" "smartmeter.voltage.extract.max" "Smartmeter MAX Streaming"
+    command: com.logimethods.nats.connector.spark.app.SparkMaxProcessor "smartmeter.raw.voltage" "smartmeter.extract.voltage.max" "Smartmeter MAX Streaming"
 
   ### create_service_prediction_trainer,
   prediction_trainer:
@@ -297,7 +297,7 @@ services:
     secrets:
       - nats_username_secret
       - nats_password_secret
-    command: com.logimethods.nats.connector.spark.app.SparkPredictionTrainer "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION TRAINER"
+    command: com.logimethods.nats.connector.spark.app.SparkPredictionTrainer "smartmeter.raw.temperature.forecast.12" "smartmeter.extract.voltage.prediction.12" "Smartmeter PREDICTION TRAINER"
 
   ### ["create_service_telegraf_on_master", "max_voltage"],
   telegraf_max_voltage:
@@ -496,7 +496,7 @@ services:
     secrets:
       - nats_username_secret
       - nats_password_secret
-    command: com.logimethods.nats.connector.spark.app.SparkPredictionOracle "smartmeter.voltage.raw.forecast.12" "smartmeter.voltage.extract.prediction.12" "Smartmeter PREDICTION ORACLE"
+    command: com.logimethods.nats.connector.spark.app.SparkPredictionOracle "smartmeter.raw.temperature.forecast.12" "smartmeter.extract.voltage.prediction.12" "Smartmeter PREDICTION ORACLE"
 
   ### create_service_inject
   inject:
@@ -509,7 +509,7 @@ services:
     environment:
       - DEPENDS_ON=${NATS_NAME}
       - WAIT_FOR=${METRICS_GRAPHITE_NAME}
-      - GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw
+      - GATLING_TO_NATS_SUBJECT=smartmeter.raw.voltage
       # - NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222
       - NATS_USERNAME_FILE=/run/secrets/nats_username_secret
       - NATS_PASSWORD_FILE=/run/secrets/nats_password_secret

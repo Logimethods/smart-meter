@@ -94,9 +94,9 @@ class ConsumerInterpolatedVoltageProvider(slot: Int, usersPerSec: Double, stream
   def getSubject() = {
     increment()
     returnType match {
-      case ReturnType.TEMPERATURE => ".temperature"
-      case ReturnType.FORECAST => ".forecast.12"
-      case ReturnType.VOLTAGE => ".data." + point()
+      case ReturnType.TEMPERATURE => ".temperature.data"
+      case ReturnType.FORECAST => ".temperature.forecast.12"
+      case ReturnType.VOLTAGE => ".voltage.data." + point()
     }
   }
 

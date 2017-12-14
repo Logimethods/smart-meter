@@ -13,7 +13,7 @@ services:
 #      - NATS_URI=${NATS_URI}
       - NATS_NAME=${NATS_NAME}
       - NATS_NAME_FILE=${NATS_NAME}
-      - NATS_SUBJECT=smartmeter.voltage.raw.data.>
+      - NATS_SUBJECT=smartmeter.raw.voltage.data.>
       - LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL}
       - TASK_SLOT={{.Task.Slot}}
       - CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY}
