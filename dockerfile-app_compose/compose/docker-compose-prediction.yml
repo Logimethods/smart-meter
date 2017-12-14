@@ -9,6 +9,7 @@ services:
           - node.role == ${MASTER_NODE}
     environment:
       - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
+      - WAIT_FOR=${HADOOP_NAME}
       # ${CASSANDRA_URL} ?
       - NATS_NAME=${NATS_NAME}
       - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
