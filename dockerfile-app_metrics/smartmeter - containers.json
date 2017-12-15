@@ -10,7 +10,7 @@
     },
     {
       "name": "DS_INFLUXDB",
-      "label": "InfluxDB",
+      "label": "Influxdb",
       "description": "",
       "type": "datasource",
       "pluginId": "influxdb",
@@ -1447,5 +1447,5 @@
   },
   "timezone": "browser",
   "title": "smartmeter - containers",
-  "version": 2
+  "version": 3
 }

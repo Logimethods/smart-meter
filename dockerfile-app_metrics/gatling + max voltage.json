@@ -10,7 +10,7 @@
     },
     {
       "name": "DS_INFLUXDB",
-      "label": "InfluxDB",
+      "label": "Influxdb",
       "description": "",
       "type": "datasource",
       "pluginId": "influxdb",
@@ -350,7 +350,7 @@
                   "type": "tag"
                 }
               ],
-              "measurement": "execcassandra_write_count",
+              "measurement": "exec_cassandra_count",
               "policy": "default",
               "refId": "G",
               "resultFormat": "time_series",
@@ -358,7 +358,7 @@
                 [
                   {
                     "params": [
-                      "value"
+                      "*"
                     ],
                     "type": "field"
                   },
@@ -620,7 +620,8 @@
                   "type": "fill"
                 }
               ],
-              "measurement": "execcassandra_write_count",
+              "hide": false,
+              "measurement": "exec_cassandra_count",
               "policy": "default",
               "refId": "C",
               "resultFormat": "time_series",
@@ -628,7 +629,7 @@
                 [
                   {
                     "params": [
-                      "value"
+                      "*"
                     ],
                     "type": "field"
                   },
@@ -638,7 +639,8 @@
                   }
                 ]
               ],
-              "tags": []
+              "tags": [],
+              "target": "*.*.*.select metric"
             }
           ],
           "thresholds": [],
@@ -1213,5 +1215,5 @@
   },
   "timezone": "browser",
   "title": "gatling + max voltage",
-  "version": 31
+  "version": 4
 }
