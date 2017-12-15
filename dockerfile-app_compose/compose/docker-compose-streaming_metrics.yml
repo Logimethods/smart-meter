@@ -86,4 +86,7 @@ services:
       - WAIT_FOR=${INFLUXDB_NAME}
       - CASSANDRA_MAIN_URL=${CASSANDRA_MAIN_NAME}
       - CASSANDRA_COUNT_PORT=${CASSANDRA_COUNT_PORT}
+      - NATS_USERNAME="NONE"
+      - NATS_PASSWORD="NONE"
+      - NATS_NAME="NONE"
     command: telegraf --output-filter ${TELEGRAF_OUTPUT_FILTER} -config /etc/telegraf/cassandra_count.conf
