@@ -91,8 +91,13 @@ object SparkMaxProcessor extends App with SparkStreamingProcessor {
     })
   raw_data.saveToCassandra("smartmeter", "raw_data")
 
+  val raw_data_count = raw_data.map(x => (x._1, 1))
+                               .reduceByKey(_ + _)
+  raw_data_count.saveToCassandra("smartmeter", "raw_data_count")
+
   if (logLevel.contains("RAW_DATA")) {
     raw_data.print()
+    raw_data_count.print()
   }
 
   val maxByEpoch = voltages.map(v => v._2).reduceByKey(Math.max(_,_))
