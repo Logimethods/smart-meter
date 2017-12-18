@@ -63,7 +63,6 @@ dockerfile-app_cassandra/Dockerfile
 dockerfile-app_cassandra/_docker_build.sh
 dockerfile-app_telegraf/Dockerfile
 dockerfile-app_telegraf/_docker_build.sh
-
 dockerfile-app_prometheus/_docker_build.sh
-
 dockerfile-app_prometheus/Dockerfile
+dockerfile-app_compose/properties/configuration-application.properties
