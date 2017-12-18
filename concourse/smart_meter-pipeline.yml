@@ -322,6 +322,16 @@ resources:
     git_user: ((github-username))
     private_key: ((github-private-key))
 
+- name: github-repo-app_prometheus
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-app_prometheus-path))/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
 ## Deetazilla Docker Images ##
 
 - name: docker-dz_compose
@@ -350,6 +360,15 @@ resources:
     password: ((docker-hub-password))
     repository: ((docker-dz_telegraf-repository))
     tag: ((docker-dz_telegraf-tag))((docker-additional-tag))
+
+- name: docker-dz_prometheus
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_prometheus-repository))
+    tag: ((docker-dz_prometheus-tag))((docker-additional-tag))
 
 ## Smart Meter Application Docker Images ##
 
@@ -406,4 +425,13 @@ resources:
     password: ((docker-hub-password))
     repository: ((docker-app_telegraf-repository))
     tag: ((docker-app_telegraf-tag))((docker-additional-tag))
+
+- name: docker-app_prometheus
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-app_prometheus-repository))
+    tag: ((docker-app_prometheus-tag))((docker-additional-tag))
 
