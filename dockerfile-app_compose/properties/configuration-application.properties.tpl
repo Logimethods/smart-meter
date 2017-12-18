@@ -7,18 +7,18 @@ hadoop_docker_image=sequenceiq/hadoop-docker
 APPLICATION_NAME="smartmeter"
 NETWORK_NAME="smartmeter"
 
-STACK_NAME=${STACK_NAME:-smartmeter}
+STACK_NAME=\${STACK_NAME:-smartmeter}
 
 EUREKA_AVAILABILITY_PORT=6868
 
-SPARK_HOME=\$SPARK_HOME
+SPARK_HOME="\$SPARK_HOME"
 SPARK_MASTER_NAME="spark-master"
 SPARK_WORKER_NAME="spark-worker"
 SPARK_UI_PORT=8181
 
 HADOOP_NAME="hadoop"
 HDFS_PORT=9000
-HDFS_URL="hdfs://${HADOOP_NAME}:${HDFS_PORT}"
+HDFS_URL="hdfs://\${HADOOP_NAME}:\${HDFS_PORT}"
 
 # https://docs.docker.com/engine/reference/run/#/restart-policies---restart
 # DOCKER_RESTART_POLICY="--restart on-failure:3"
@@ -76,9 +76,9 @@ NATS_PASSWORD="xyz1234"
 NATS_CLUSTER_USERNAME="nats_cluster"
 NATS_CLUSTER_PASSWORD="1234xyz"
 
-#NATS_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222
+#NATS_URI=nats://\${NATS_USERNAME}:\${NATS_PASSWORD}@nats:4222
 #NATS_URI=nats://nats:4222
-#NATS_CLUSTER_URI=nats://${NATS_USERNAME}:${NATS_PASSWORD}@nats:4222
+#NATS_CLUSTER_URI=nats://\${NATS_USERNAME}:\${NATS_PASSWORD}@nats:4222
 ## https://nats.io/documentation/server/gnatsd-usage/
 ##NATS_DEBUG="-DV"
 
@@ -116,8 +116,8 @@ INFLUXDB_NAME=influxdb
 GF_SECURITY_ADMIN_PASSWORD="a2min"
 
 CASSANDRA_ROOT_NAME="cassandra_cluster"
-CASSANDRA_MAIN_NAME="${CASSANDRA_ROOT_NAME}_main"
-CASSANDRA_NODE_NAME="${CASSANDRA_ROOT_NAME}_node"
+CASSANDRA_MAIN_NAME="\${CASSANDRA_ROOT_NAME}_main"
+CASSANDRA_NODE_NAME="\${CASSANDRA_ROOT_NAME}_node"
 CASSANDRA_DEFAULT_VOLUME_SIZE=5G
 CASSANDRA_REMOTE_VOLUME_SIZE=10G
 CASSANDRA_LOCAL_VOLUME_SIZE=1G
@@ -137,7 +137,7 @@ prometheus_tag='((docker-app_prometheus-tag))((docker-additional-tag))'
 PROMETHEUS_NAME="prometheus"
 PROMETHEUS_NATS_EXPORTER_NAME="prometheus_nats_exporter"
 PROMETHEUS_NATS_EXPORTER_FLAGS="-varz -connz -routez -subz"
-PROMETHEUS_NATS_EXPORTER_URLS="\"http://${NATS_NAME}:8222\""
+PROMETHEUS_NATS_EXPORTER_URLS="\"http://\${NATS_NAME}:8222\""
 PROMETHEUS_NATS_EXPORTER_SERVICE_MODE="--mode global"
 #PROMETHEUS_NATS_EXPORTER_DEBUG="-DV"
 
