@@ -2,4 +2,4 @@ FROM ((docker-dz_compose-repository)):((docker-dz_compose-tag))((docker-addition
 
 COPY *.sh ./
 COPY compose/*.yml ./
-COPY properties/* ./properties/
+COPY properties/*.properties properties/*.yml ./properties/
