@@ -219,6 +219,44 @@ jobs:
     params:
       build: complete_dockerfiles/((docker-app_telegraf-dockerfile-path))
 
+- name: build-docker-app_prometheus
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  serial_groups: ((concourse-app-serial_groups))
+  plan:
+  - aggregate:
+    - get: docker-app_compose
+      passed: [build-docker-app_compose]
+      trigger: ((concourse-trigger))
+    - get: docker-dz_prometheus
+      trigger: ((concourse-trigger))
+    - get: github-repo-app_prometheus
+      trigger: ((concourse-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-app_compose-repository))
+          tag: ((docker-app_compose-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-app_prometheus
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          mkdir -p complete_dockerfiles/((github-app_prometheus-path))
+          cp -R github-repo-app_prometheus/((github-app_prometheus-path))/* complete_dockerfiles/((github-app_prometheus-path))/
+          cd /templater/
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-app_prometheus
+    params:
+      build: complete_dockerfiles/((docker-app_prometheus-dockerfile-path))
+
 ###### RESOURCES ######
 
 ## Github Repositories ##

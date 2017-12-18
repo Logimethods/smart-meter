@@ -34,3 +34,5 @@ COPY entrypoint_prepare.sh /
 COPY script/ /etc/telegraf/
 RUN chmod +x /etc/telegraf/*.sh
 COPY conf/ /etc/telegraf/
+
+EXPOSE 7400

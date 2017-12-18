@@ -32,3 +32,8 @@ scrape_configs:
     # scheme defaults to 'http'.
     static_configs:
       - targets: ['prometheus_nats_exporter:7777']
+
+  # https://github.com/nabto/cassandra-prometheus/blob/master/integrationtest/prometheus.yml
+  - job_name: 'cassandra'
+    static_configs:
+      - targets: ['cassandra_cluster_main:7400']
