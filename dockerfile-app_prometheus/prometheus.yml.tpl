@@ -23,7 +23,7 @@ scrape_configs:
     # metrics_path defaults to '/metrics'
     # scheme defaults to 'http'.
     static_configs:
-      - targets: ['prometheus_nats_exporter:7777']
+      - targets: ['${PROMETHEUS_NATS_EXPORTER_NAME}:7777']
 
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'telegraf_cassandra'
@@ -36,4 +36,4 @@ scrape_configs:
   # https://github.com/nabto/cassandra-prometheus/blob/master/integrationtest/prometheus.yml
   - job_name: 'cassandra'
     static_configs:
-      - targets: ['cassandra_cluster_main:7400']
+      - targets: ['${CASSANDRA_MAIN_NAME}:7400']
