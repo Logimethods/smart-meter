@@ -15,6 +15,14 @@
       "type": "datasource",
       "pluginId": "influxdb",
       "pluginName": "InfluxDB"
+    },
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
     }
   ],
   "__requires": [
@@ -40,6 +48,12 @@
       "type": "datasource",
       "id": "influxdb",
       "name": "InfluxDB",
+      "version": "1.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
       "version": "1.0.0"
     },
     {
@@ -571,20 +585,21 @@
     },
     {
       "collapse": false,
-      "height": 267,
+      "height": 277,
       "panels": [
         {
           "aliasColors": {},
           "bars": false,
           "datasource": "${DS_INFLUXDB}",
-          "editable": true,
-          "error": false,
+          "decimals": 0,
           "fill": 1,
-          "grid": {},
-          "id": 6,
+          "id": 10,
+          "interval": ">5s",
           "legend": {
             "avg": false,
             "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
             "max": false,
             "min": false,
             "show": false,
@@ -592,16 +607,16 @@
             "values": false
           },
           "lines": true,
-          "linewidth": 2,
+          "linewidth": 1,
           "links": [],
-          "nullPointMode": "connected",
+          "nullPointMode": "null",
           "percentage": false,
-          "pointradius": 1,
+          "pointradius": 5,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
           "span": 6,
-          "stack": true,
+          "stack": false,
           "steppedLine": true,
           "targets": [
             {
@@ -621,9 +636,8 @@
                 }
               ],
               "hide": true,
-              "measurement": "execcassandra_write_count",
               "policy": "default",
-              "refId": "C",
+              "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -635,11 +649,13 @@
                   },
                   {
                     "params": [],
-                    "type": "distinct"
+                    "type": "mean"
                   }
                 ]
               ],
-              "tags": []
+              "tags": [],
+              "target": "docker.*.moby.docker.n_containers_running",
+              "textEditor": false
             },
             {
               "dsType": "influxdb",
@@ -652,26 +668,27 @@
                 },
                 {
                   "params": [
-                    "null"
+                    "previous"
                   ],
                   "type": "fill"
                 }
               ],
-              "measurement": "exec_cassandra_count",
+              "hide": false,
+              "measurement": "docker_container_cpu",
               "policy": "default",
-              "refId": "A",
+              "refId": "B",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "*"
+                      "usage_percent"
                     ],
                     "type": "field"
                   },
                   {
                     "params": [],
-                    "type": "distinct"
+                    "type": "count"
                   }
                 ]
               ],
@@ -681,12 +698,11 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Cassandra Writes Count",
+          "title": "Running Containers Count",
           "tooltip": {
-            "msResolution": true,
             "shared": true,
             "sort": 0,
-            "value_type": "cumulative"
+            "value_type": "individual"
           },
           "type": "graph",
           "xaxis": {
@@ -701,7 +717,7 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": null,
+              "min": "0",
               "show": true
             },
             {
@@ -1257,20 +1273,20 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": 225,
       "panels": [
         {
           "aliasColors": {},
           "bars": false,
           "datasource": "${DS_INFLUXDB}",
-          "decimals": 0,
+          "editable": true,
+          "error": false,
           "fill": 1,
-          "id": 10,
+          "grid": {},
+          "id": 6,
           "legend": {
             "avg": false,
             "current": false,
-            "hideEmpty": false,
-            "hideZero": false,
             "max": false,
             "min": false,
             "show": false,
@@ -1278,16 +1294,16 @@
             "values": false
           },
           "lines": true,
-          "linewidth": 1,
+          "linewidth": 2,
           "links": [],
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "percentage": false,
-          "pointradius": 5,
+          "pointradius": 1,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
+          "span": 4,
+          "stack": true,
           "steppedLine": true,
           "targets": [
             {
@@ -1307,8 +1323,9 @@
                 }
               ],
               "hide": true,
+              "measurement": "execcassandra_write_count",
               "policy": "default",
-              "refId": "A",
+              "refId": "C",
               "resultFormat": "time_series",
               "select": [
                 [
@@ -1320,13 +1337,11 @@
                   },
                   {
                     "params": [],
-                    "type": "mean"
+                    "type": "distinct"
                   }
                 ]
               ],
-              "tags": [],
-              "target": "docker.*.moby.docker.n_containers_running",
-              "textEditor": false
+              "tags": []
             },
             {
               "dsType": "influxdb",
@@ -1339,27 +1354,26 @@
                 },
                 {
                   "params": [
-                    "previous"
+                    "null"
                   ],
                   "type": "fill"
                 }
               ],
-              "hide": false,
-              "measurement": "docker_container_cpu",
+              "measurement": "exec_cassandra_count",
               "policy": "default",
-              "refId": "B",
+              "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "usage_percent"
+                      "*"
                     ],
                     "type": "field"
                   },
                   {
                     "params": [],
-                    "type": "count"
+                    "type": "distinct"
                   }
                 ]
               ],
@@ -1369,7 +1383,81 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Running Containers",
+          "title": "Cassandra Writes Count",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "fill": 1,
+          "id": 20,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(cassandra_keyspace_memtablelivedatasize) by (keyspace)",
+              "interval": "",
+              "intervalFactor": 2,
+              "legendFormat": "{{keyspace}}",
+              "refId": "A",
+              "step": 2,
+              "target": ""
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Cassandra memtable live data size",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1388,7 +1476,314 @@
               "label": null,
               "logBase": 1,
               "max": null,
-              "min": "0",
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "fill": 1,
+          "id": 19,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "sum(cassandra_keyspace_livediskspaceused) by (keyspace)",
+              "intervalFactor": 2,
+              "legendFormat": "{{keyspace}}",
+              "refId": "A",
+              "step": 2,
+              "target": ""
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Cassandra Keyspace live disk usage",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 252,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "fill": 1,
+          "id": 21,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "irate(cassandra_keyspace_rangelatency[5m])",
+              "intervalFactor": 2,
+              "legendFormat": "{{keyspace}}",
+              "refId": "A",
+              "step": 2,
+              "target": ""
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Cassandra Keyspace Range Latency",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "fill": 1,
+          "id": 22,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "cassandra_client_connectednativeclients",
+              "intervalFactor": 1,
+              "legendFormat": "Native",
+              "refId": "A",
+              "step": 1,
+              "target": ""
+            },
+            {
+              "expr": "cassandra_client_connectedthriftclients",
+              "intervalFactor": 1,
+              "legendFormat": "Thrift",
+              "refId": "B",
+              "step": 1
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Cassandra Client Count",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "fill": 6,
+          "id": 23,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "cassandra_cache_capacity",
+              "intervalFactor": 2,
+              "legendFormat": "{{cache}}",
+              "refId": "A",
+              "step": 2,
+              "target": ""
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Cassandra Cache Capacity",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
               "show": true
             },
             {
@@ -1447,5 +1842,5 @@
   },
   "timezone": "browser",
   "title": "smartmeter - containers",
-  "version": 3
+  "version": 13
 }
