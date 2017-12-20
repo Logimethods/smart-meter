@@ -390,7 +390,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Cassandra Increase per Second",
+          "title": "Cassandra RAW DATA Writes per Second",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -541,7 +541,7 @@
             }
           ],
           "timeFrom": null,
-          "timeShift": "50s",
+          "timeShift": "30s",
           "title": "Predictive Alerts",
           "tooltip": {
             "msResolution": true,
@@ -1383,7 +1383,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Cassandra Writes Count",
+          "title": "Cassandra RAW DATA Count",
           "tooltip": {
             "msResolution": true,
             "shared": true,
@@ -1842,5 +1842,5 @@
   },
   "timezone": "browser",
   "title": "smartmeter - containers",
-  "version": 13
+  "version": 17
 }
