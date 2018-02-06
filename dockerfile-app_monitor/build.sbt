@@ -20,7 +20,7 @@ name := "docker-" + rootName + "-monitor"
 organization := "logimethods"
 val tag = "monitor-DEV"
 
-version := "0.4.0-SNAPSHOT"
+version := "0.4.0"
 scalaVersion := "2.11.8"
 
 lazy val scalaNatsVersion = settingKey[String]("scalaNatsVersion")

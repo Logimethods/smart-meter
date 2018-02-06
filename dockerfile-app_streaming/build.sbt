@@ -23,7 +23,7 @@ val tag = "app-streaming-DEV"
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Sonatype OSS Release" at "https://oss.sonatype.org/content/groups/public/"
 
-version := "0.4.0-SNAPSHOT"
+version := "0.4.0"
 scalaVersion := "2.11.8"
 
 lazy val sparkVersion = settingKey[String]("sparkVersion")

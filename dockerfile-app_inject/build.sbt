@@ -20,7 +20,7 @@ name := "docker-" + rootName + "-inject"
 organization := "logimethods"
 val tag = "inject-DEV"
 
-version := "0.4.0-SNAPSHOT"
+version := "0.4.0"
 scalaVersion := "2.11.8"
 
 lazy val gatlingVersion = settingKey[String]("gatlingVersion")
