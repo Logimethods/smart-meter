@@ -16,9 +16,6 @@ import com.logimethods.connector.gatling.to_nats._
 
 import scala.concurrent.duration._
 import java.util.Properties
-import io.nats.client.Constants._
-//import io.nats.client.Nats._
-
 import com.logimethods.smartmeter.generate._
 
 class NatsStreamingInjection extends Simulation {
