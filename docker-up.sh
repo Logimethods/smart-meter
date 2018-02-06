@@ -21,4 +21,7 @@ set +a
 
 echo "DOCKER_COMPOSE_FILE: ${DOCKER_COMPOSE_FILE}"
 
+echo "docker ${remote} network create --driver overlay --attachable ${NETWORK_NAME}"
+
+# DOCKER_ORCHESTRATOR=swarm
 docker ${remote} stack deploy -c ${DOCKER_COMPOSE_FILE} "${STACK_NAME}"
