@@ -1,3 +1,3 @@
 services:
-  cassandra_cluster_main:
+  cassandra-cluster-main:
     image: ((docker-app_cassandra-repository)):((docker-app_cassandra-tag))((docker-additional-tag))

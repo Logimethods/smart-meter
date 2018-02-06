@@ -118,7 +118,7 @@ services:
 
   ### TODO: ["create_volume", "cassandra"],
   ### create_service_cassandra,
-  cassandra_cluster_main:
+  cassandra-cluster-main:
     image: logimethods/smart-meter:cassandra${postfix}
     deploy:
       placement:
