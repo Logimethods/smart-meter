@@ -1,0 +1,4 @@
+FROM frolvlad/alpine-scala:2.11
+ADD 0/scala-library-2.11.8.jar 1/scala_nats_2.11-0.2.1.jar 2/scala-reflect-2.11.8.jar 3/java_nats-0.6.1.jar 4/slf4j-simple-1.7.5.jar 5/java-nats-streaming-0.4.1.jar 6/jnats-0.7.3.jar 7/slf4j-api-1.7.21.jar 8/gson-2.7.jar 9/protobuf-java-3.1.0.jar /app/
+ADD 10/docker-smart-meter-monitor_2.11-0.4.0-SNAPSHOT.jar /app/docker-smart-meter-monitor_2.11-0.4.0-SNAPSHOT.jar
+ENTRYPOINT ["scala", "-cp", "\/app\/scala-library-2.11.8.jar:\/app\/scala_nats_2.11-0.2.1.jar:\/app\/scala-reflect-2.11.8.jar:\/app\/java_nats-0.6.1.jar:\/app\/slf4j-simple-1.7.5.jar:\/app\/java-nats-streaming-0.4.1.jar:\/app\/jnats-0.7.3.jar:\/app\/slf4j-api-1.7.21.jar:\/app\/gson-2.7.jar:\/app\/protobuf-java-3.1.0.jar:\/app\/docker-smart-meter-monitor_2.11-0.4.0-SNAPSHOT.jar", "com.logimethods.nats.connector.spark.monitor.NatsOutputMonitor"]
