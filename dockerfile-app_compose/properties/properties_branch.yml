@@ -1,9 +1,10 @@
 github-uri: git@github.com:Logimethods/smart-meter.git
-#github-branch: master
-github-branch: generic_externalized
+github-branch: master
+#github-branch: generic_externalized
 
 #docker-additional-tag: "-SNAPSHOT"
-docker-additional-tag: "-dev"
+#docker-additional-tag: "-dev"
+docker-additional-tag: ""
 
 concourse-trigger: true
 concourse-compose-trigger: true
