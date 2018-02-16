@@ -1,0 +1,47 @@
+services:
+  ### create_service_prediction_trainer,
+  app_prediction_trainer:
+    image: ((docker-app_streaming-repository)):((docker-app_streaming-tag))((docker-additional-tag))
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == ${MASTER_NODE}
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME}
+      - WAIT_FOR=${HADOOP_NAME}
+      # ${CASSANDRA_URL} ?
+      - NATS_NAME=${NATS_NAME}
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - HDFS_URL=${HDFS_URL}
+      - CASSANDRA_URL=${CASSANDRA_MAIN_NAME}
+#      - TARGETS=${APP_STREAMING_TARGETS}
+      - LOG_LEVEL=${PREDICTION_TRAINER_LOG_LEVEL}
+      - SPARK_CORES_MAX=${PREDICTION_TRAINER_SPARK_CORES_MAX}
+      - ALERT_THRESHOLD=${PREDICTION_ALERT_THRESHOLD}
+      - READY_WHEN=${PREDICTION_TRAINER_READY_WHEN}
+    command:  --class ${PREDICTION_TRAINER_MAIN_CLASS} --master ${SPARK_MASTER_URL_STREAMING} ./add_libs/${APP_STREAMING_NAME}-${APP_STREAMING_VERSION}.jar ${PREDICTION_TRAINER_SUBJECT_INPUT} ${PREDICTION_TRAINER_SUBJECT_OUTPUT} "${PREDICTION_TRAINER_APP_NAME}"
+
+  ### create_service_prediction_oracle,
+  app_prediction_oracle:
+    image: ((docker-app_streaming-repository)):((docker-app_streaming-tag))((docker-additional-tag))
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role != ${MASTER_NODE}
+    environment:
+      - DEPENDS_ON=${NATS_NAME},${CASSANDRA_MAIN_NAME},${PREDICTION_TRAINER_NAME}
+      - WAIT_FOR=${HADOOP_NAME}
+      # ${CASSANDRA_URL} ?
+      - NATS_NAME=${NATS_NAME}
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL_STREAMING}
+      - STREAMING_DURATION=${STREAMING_DURATION}
+      - HDFS_URL=${HDFS_URL}
+      - CASSANDRA_URL=${CASSANDRA_PREDICTION_URL}
+#      - TARGETS=${APP_STREAMING_TARGETS}
+      - LOG_LEVEL=${PREDICTION_ORACLE_LOG_LEVEL}
+      - SPARK_CORES_MAX=${PREDICTION_ORACLE_SPARK_CORES_MAX}
+      - ALERT_THRESHOLD=${PREDICTION_ALERT_THRESHOLD}
+    command:  --class ${PREDICTION_ORACLE_MAIN_CLASS} --master ${SPARK_MASTER_URL_STREAMING} ./add_libs/${APP_STREAMING_NAME}-${APP_STREAMING_VERSION}.jar ${PREDICTION_ORACLE_SUBJECT_INPUT} ${PREDICTION_ORACLE_SUBJECT_OUTPUT} "${PREDICTION_ORACLE_APP_NAME}"

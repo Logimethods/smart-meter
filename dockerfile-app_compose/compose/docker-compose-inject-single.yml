@@ -1,0 +1,16 @@
+services:
+  ### create_service_inject
+  inject:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == ${MASTER_NODE}
+    environment:
+      - NODE_ID="${MASTER_NODE}"
+      - SERVICE_ID="inject"
+      - SERVICE_NAME="inject"
+      - SERVICE_LABELS="none"
+      - TASK_ID="inject_task"
+      - TASK_NAME="inject_task"
+      - TASK_SLOT=1

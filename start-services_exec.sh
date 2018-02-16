@@ -384,7 +384,7 @@ create_service_app_streaming() {
     --secret nats_username_secret \
     --secret nats_password_secret \
     logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkMaxProcessor\" \
-      \"smartmeter.voltage.raw\" \"smartmeter.voltage.extract.max\" \
+      \"smartmeter.raw.voltage\" \"smartmeter.extract.voltage.max\" \
       \"Smartmeter MAX Streaming\""
 
   echo "-----------------------------------------------------------------"
@@ -413,7 +413,7 @@ create_service_prediction_trainer() {
     --secret nats_username_secret \
     --secret nats_password_secret \
     logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionTrainer\" \
-      \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
+      \"smartmeter.raw.temperature.forecast.12\" \"smartmeter.extract.voltage.prediction.12\" \
       \"Smartmeter PREDICTION TRAINER\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -442,7 +442,7 @@ create_service_prediction_oracle() {
     --secret nats_username_secret \
     --secret nats_password_secret \
     logimethods/smart-meter:app-streaming${postfix}  \"com.logimethods.nats.connector.spark.app.SparkPredictionOracle\" \
-      \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
+      \"smartmeter.raw.temperature.forecast.12\" \"smartmeter.extract.voltage.prediction.12\" \
       \"Smartmeter PREDICTION ORACLE\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -468,7 +468,7 @@ __run_app_prediction() {
     --secret nats_username_secret \
     --secret nats_password_secret \
     logimethods/smart-meter:app-streaming${postfix}  com.logimethods.nats.connector.spark.app.SparkPredictionProcessor \
-      \"smartmeter.voltage.raw.forecast.12\" \"smartmeter.voltage.extract.prediction.12\" \
+      \"smartmeter.raw.temperature.forecast.12\" \"smartmeter.extract.voltage.prediction.12\" \
       \"Smartmeter PREDICTION Streaming\" "
   echo "-----------------------------------------------------------------"
   echo "$cmd"
@@ -518,7 +518,7 @@ create_service_monitor() {
     --secret nats_username_secret \
     --secret nats_password_secret \
     logimethods/smart-meter:monitor${postfix} \
-      \"smartmeter.voltage.extract.>\""
+      \"smartmeter.extract.voltage.>\""
   echo "-----------------------------------------------------------------"
   echo "$cmd"
   echo "-----------------------------------------------------------------"
@@ -548,7 +548,7 @@ create_service_cassandra-inject() {
     -e DEPENDS_ON=\"${NATS_NAME},${CASSANDRA_URL}\" \
     -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
     -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
-    -e NATS_SUBJECT=\"smartmeter.voltage.raw.data.>\" \
+    -e NATS_SUBJECT=\"smartmeter.raw.voltage.data.>\" \
     -e LOG_LEVEL=${CASSANDRA_INJECT_LOG_LEVEL} \
     -e TASK_SLOT={{.Task.Slot}} \
     -e CASSANDRA_INJECT_CONSISTENCY=${CASSANDRA_INJECT_CONSISTENCY} \
@@ -573,7 +573,7 @@ create_service_inject() {
     --network smartmeter \
     -e DEPENDS_ON=\"${NATS_NAME}\" \
     -e WAIT_FOR=\"${METRICS_GRAPHITE_NAME}\" \
-    -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
+    -e GATLING_TO_NATS_SUBJECT=smartmeter.raw.voltage \
     -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
     -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \
@@ -611,7 +611,7 @@ run_inject() {
     --name inject \
     --network smartmeter \
     -e DEPENDS_ON=\"${NATS_NAME}\" \
-    -e GATLING_TO_NATS_SUBJECT=smartmeter.voltage.raw \
+    -e GATLING_TO_NATS_SUBJECT=smartmeter.raw.voltage \
     -e NATS_USERNAME_FILE=/run/secrets/nats_username_secret \
     -e NATS_PASSWORD_FILE=/run/secrets/nats_password_secret \
     -e GATLING_USERS_PER_SEC=${GATLING_USERS_PER_SEC} \

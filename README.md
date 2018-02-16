@@ -1,19 +1,33 @@
 ** /!\ Work in progress, this README needs to be completed. **
 
+# (local) build
+
+/smart-meter/scripts > ./docker_build.sh dockerfile-app_streaming
+
 # smart-meter
 To demonstrate a Smart Meter Big Data Application.
 
 ![SmartMeter.png](images/SmartMeter.png "SmartMeter Architecture")
 
+## Docker Run
+
+```
+  scripts> ./compose_classic.sh
+```    
+
 ## Docker Compose
+
+```
+  > docker_tag="1.5-dev"
+```    
 
 * First, create your `docker-compose-merge.yml` file thanks to [combine_services.sh](./compose/combine_services.sh), which makes use of [yamlreader](https://github.com/ImmobilienScout24/yamlreader):
     * When Docker Secrets are provided:    
     `./compose/combine_services.sh "_secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
-    or `docker run logimethods/smart-meter:compose "_secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
+    or `docker run logimethods/smart-meter:app_compose-${docker_tag} "_secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
     * When Docker Secrets are NOT provided:    
     `./compose/combine_services.sh "_no-secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
-    or `docker run logimethods/smart-meter:compose "_no-secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
+    or `docker run logimethods/smart-meter:app_compose-${docker_tag} "_no-secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
 * Last, but not least, start the services based on the previously generated `docker-compose-merge.yml` file:
 ```
 ./docker-[local | remote]-[single | cluster]-up.sh

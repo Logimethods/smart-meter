@@ -1,0 +1,374 @@
+###### JOBS #######
+
+jobs:
+- name: build-docker-int_compose
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  plan:
+  - get: docker-dz_compose
+    trigger: ((concourse-compose-trigger))
+  - get: github-repo-int_compose
+    trigger: ((concourse-compose-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-dz_templater-repository))
+          tag: ((docker-dz_templater-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-int_compose
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cp -R github-repo-int_compose/* complete_dockerfiles/
+          cd /templater/
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-int_compose
+    params:
+      build: complete_dockerfiles/((docker-int_compose-dockerfile-path))
+
+- name: build-docker-int_inject
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  plan:
+  - get: github-repo-int_inject
+    trigger: ((concourse-trigger))
+  - task: set-up_dockerfile_inject
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: hseeberger/scala-sbt
+          tag: "latest"
+      inputs:
+      - name: github-repo-int_inject
+      outputs:
+      - name: dockerfile_integration
+      run:
+        path: bash
+        args:
+        - -exc
+        - |
+          echo "---------------------- INJECT ----------------------"
+          pushd github-repo-int_inject/((github-int_inject-path))/
+          echo "q" | sbt --info clean assembly dockerFileTask
+          pushd target/docker
+          mv Dockerfile Dockerfile_middle
+          cp ../../entrypoint_insert.sh .
+          cat ../../Dockerfile_pre Dockerfile_middle ../../Dockerfile_post >> Dockerfile
+          popd
+          rm -Rf ./docker
+          mv target/docker .
+          popd
+          echo "---------------------- FINAL COPY ----------------------"
+          cp -R github-repo-int_inject/((github-integration-path))/* dockerfile_integration/
+          # ls -als dockerfile_integration/*/*
+  - put: docker-int_inject
+    params:
+      build: dockerfile_integration/((docker-int_inject-dockerfile-path))
+
+- name: build-docker-int_cassandra
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  plan:
+  - get: github-repo-int_cassandra
+    trigger: ((concourse-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-int_compose-repository))
+          tag: ((docker-int_compose-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-int_cassandra
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cp -R github-repo-int_cassandra/* complete_dockerfiles/
+          cd /templater/
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-int_cassandra
+    params:
+      build: complete_dockerfiles/((docker-int_cassandra-dockerfile-path))
+
+- name: build-docker-int_cassandra_inject
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  plan:
+  - get: github-repo-int_cassandra_inject
+    trigger: ((concourse-trigger))
+  - put: docker-int_cassandra_inject
+    params:
+      build: github-repo-int_cassandra_inject/((docker-int_cassandra_inject-dockerfile-path))
+
+- name: build-docker-int_streaming
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  plan:
+  - get: docker-int_compose
+    trigger: ((concourse-trigger))
+  - get: github-repo-int_streaming
+    trigger: ((concourse-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-int_compose-repository))
+          tag: ((docker-int_compose-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-int_streaming
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cp -R github-repo-int_streaming/* complete_dockerfiles/
+          cd /templater/
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-int_streaming
+    params:
+      build: complete_dockerfiles/((docker-int_streaming-dockerfile-path))
+
+- name: build-docker-int_monitor
+  public: ((concourse-public))
+  serial: ((concourse-serial))
+  plan:
+  - get: docker-int_compose
+    trigger: ((concourse-trigger))
+  - get: github-repo-int_monitor
+    trigger: ((concourse-trigger))
+  - task: complete_dockerfiles
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((docker-int_compose-repository))
+          tag: ((docker-int_compose-tag))((docker-additional-tag))
+      inputs:
+      - name: github-repo-int_monitor
+      outputs:
+      - name: complete_dockerfiles
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cp -R github-repo-int_monitor/* complete_dockerfiles/
+          cd /templater/
+          ./complete_templates.sh /tmp/build/*/complete_dockerfiles
+  - put: docker-int_monitor
+    params:
+      build: complete_dockerfiles/((docker-int_monitor-dockerfile-path))
+
+###### RESOURCES ######
+
+resources:
+- name: github-repo-int_compose
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-int_compose-path))/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-int_inject
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-int_inject-path))/**
+      - ((github-dz_templater-path))/properties/**
+      - ((github-int_compose-path))/properties/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-int_cassandra
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-int_cassandra-path))/**
+      - ((github-dz_templater-path))/properties/**
+      - ((github-int_compose-path))/properties/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-int_cassandra_inject
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-int_cassandra_inject-path))/**
+#      - ((github-dz_templater-path))/properties/**
+#      - ((github-int_compose-path))/properties/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-int_streaming
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-int_streaming-path))/**
+#      - ((github-dz_templater-path))/properties/**
+#      - ((github-int_compose-path))/properties/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+- name: github-repo-int_monitor
+  type: git
+  source:
+    uri: ((github-uri))
+    branch: ((github-branch))
+    paths:
+      - ((github-int_monitor-path))/**
+      - ((github-dz_templater-path))/properties/**
+#      - ((github-int_compose-path))/properties/**
+    git_user: ((github-username))
+    private_key: ((github-private-key))
+
+## Deetazilla Docker Images ##
+
+- name: docker-dz_templater
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_templater-repository))
+    tag: ((docker-dz_templater-tag))((docker-additional-tag))
+
+- name: docker-dz_compose
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_compose-repository))
+    tag: ((docker-dz_compose-tag))((docker-additional-tag))
+
+- name: docker-dz_cassandra
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_cassandra-repository))
+    tag: ((docker-dz_cassandra-tag))((docker-additional-tag))
+
+- name: docker-dz_nats-client
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_nats-client-repository))
+    tag: ((docker-dz_nats-client-tag))((docker-additional-tag))
+
+- name: docker-dz_nats-server
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_nats-server-repository))
+    tag: ((docker-dz_nats-server-tag))((docker-additional-tag))
+
+- name: docker-dz_prometheus
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_prometheus-repository))
+    tag: ((docker-dz_prometheus-tag))((docker-additional-tag))
+
+- name: docker-dz_telegraf
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-dz_telegraf-repository))
+    tag: ((docker-dz_telegraf-tag))((docker-additional-tag))
+
+## Integration Docker Images ##
+
+- name: docker-int_compose
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-int_compose-repository))
+    tag: ((docker-int_compose-tag))((docker-additional-tag))
+
+- name: docker-int_inject
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-int_inject-repository))
+    tag: ((docker-int_inject-tag))((docker-additional-tag))
+
+- name: docker-int_cassandra
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-int_cassandra-repository))
+    tag: ((docker-int_cassandra-tag))((docker-additional-tag))
+
+- name: docker-int_cassandra_inject
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-int_cassandra_inject-repository))
+    tag: ((docker-int_cassandra_inject-tag))((docker-additional-tag))
+
+- name: docker-int_streaming
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-int_streaming-repository))
+    tag: ((docker-int_streaming-tag))((docker-additional-tag))
+
+- name: docker-int_monitor
+  type: docker-image
+  source:
+    email: ((docker-hub-email))
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+    repository: ((docker-int_monitor-repository))
+    tag: ((docker-int_monitor-tag))((docker-additional-tag))
+

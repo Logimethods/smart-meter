@@ -1,0 +1,11 @@
+services:
+  ### ["create_service", "hadoop", 1],
+  hadoop:
+    image: ${hadoop_docker_image}:${hadoop_docker_version}
+    deploy:
+      placement:
+        constraints:
+          - node.role == ${MASTER_NODE}
+    ports:
+      - "${HDFS_PORT}:${HDFS_PORT}"
+#!!      - "50070:50070"
