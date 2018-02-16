@@ -39,22 +39,22 @@ object SparkPredictionTrainer extends App with SparkPredictionProcessor {
   log.setLevel(Level.WARN)
 
   val (properties, targets, logLevel, sc, inputNatsStreaming, inputSubject, outputSubject, clusterId, outputNatsStreaming, natsUrl) = setup(args)
- 
+
   val streamingDuration = scala.util.Properties.envOrElse("STREAMING_DURATION", "2000").toInt
   println("STREAMING_DURATION = " + streamingDuration)
-  
+
   new Thread(new Runnable {
               def run() {
                  while( true ){
-//                   try {
+                   try {
                      val data = SparkPredictionProcessor.getData(sc, THRESHOLD)
                      val model = trainer.fit(data)
                      model.write.overwrite.save(PREDICTION_MODEL_PATH)
                      println("New model of size " + data.count() + " trained: " + model.uid)
                      Thread.sleep(streamingDuration)
-//                   } catch {
-//                     case e: Throwable => log.error(e)
-//                   }
+                   } catch {
+                     case e: Throwable => log.error(e)
+                   }
                  }
               }
              }).start()
