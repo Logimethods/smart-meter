@@ -9,6 +9,12 @@ To demonstrate a Smart Meter Big Data Application.
 
 ![SmartMeter.png](images/SmartMeter.png "SmartMeter Architecture")
 
+## Docker Run
+
+```
+  scripts> ./compose_classic.sh
+```    
+
 ## Docker Compose
 
 ```
