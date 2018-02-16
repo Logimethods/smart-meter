@@ -1323,7 +1323,7 @@
                 }
               ],
               "hide": true,
-              "measurement": "execcassandra_write_count",
+              "measurement": "exec_cassandra_count",
               "policy": "default",
               "refId": "C",
               "resultFormat": "time_series",
@@ -1331,7 +1331,7 @@
                 [
                   {
                     "params": [
-                      "value"
+                      "11"
                     ],
                     "type": "field"
                   },
@@ -1359,15 +1359,18 @@
                   "type": "fill"
                 }
               ],
+              "hide": false,
               "measurement": "exec_cassandra_count",
               "policy": "default",
+              "query": "SELECT * FROM \"exec_cassandra_count\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
                 [
                   {
                     "params": [
-                      "*"
+                      "11"
                     ],
                     "type": "field"
                   },
@@ -1842,5 +1845,5 @@
   },
   "timezone": "browser",
   "title": "smartmeter - containers",
-  "version": 17
+  "version": 1
 }
