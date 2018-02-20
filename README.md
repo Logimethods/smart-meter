@@ -5,10 +5,6 @@
 ## Version 1.5
 * Based on [Deetazilla](https://github.com/Logimethods/deetazilla)
 
-# (local) build
-
-/smart-meter/scripts > ./docker_build.sh dockerfile-app_streaming
-
 # smart-meter
 To demonstrate a Smart Meter Big Data Application.
 
@@ -181,3 +177,16 @@ Setup the Grafana Data Sources + Import [NATS Servers.json](dockerfile-metrics/N
 * Et Voilà!
 
 ![from_Cassandra_2_Excel.png](excel/from_Cassandra_2_Excel.png)
+
+# Build
+## Legacy (local) build
+```
+/smart-meter/scripts > ./docker_build.sh dockerfile-app_streaming
+```
+
+## [Concourse](http://concourse.ci/) Continuous Integration
+
+See [Concourse Pipeline](concourse/smart_meter-pipeline.yml).
+
+![concourse_build.png](images/concourse_build.png "Concourse Build")
+
