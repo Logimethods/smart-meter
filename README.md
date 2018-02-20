@@ -1,5 +1,10 @@
 ** /!\ Work in progress, this README needs to be completed. **
 
+# Release Notes
+
+## Version 1.5
+* Based on [Deetazilla](https://github.com/Logimethods/deetazilla)
+
 # (local) build
 
 /smart-meter/scripts > ./docker_build.sh dockerfile-app_streaming
