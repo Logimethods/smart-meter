@@ -18,16 +18,16 @@ To demonstrate a Smart Meter Big Data Application.
 ## Docker Compose
 
 ```
-  > docker_tag="1.5-dev"
+  > export docker_tag="1.5"
 ```    
 
-* First, create your `docker-compose-merge.yml` file thanks to [combine_services.sh](./compose/combine_services.sh), which makes use of [yamlreader](https://github.com/ImmobilienScout24/yamlreader):
+* First, create your `docker-compose-merge.yml` (without `-e "local" "single"`, the properties are not solved):
     * When Docker Secrets are provided:    
-    `./compose/combine_services.sh "_secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
-    or `docker run logimethods/smart-meter:app_compose-${docker_tag} "_secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
+    `docker run --rm logimethods/smart-meter:app_compose-${docker_tag} combine_services -e "local" "single" "secrets" root_metrics inject streaming_metrics prediction_metrics > docker-compose-merge.yml`
     * When Docker Secrets are NOT provided:    
-    `./compose/combine_services.sh "_no-secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
-    or `docker run logimethods/smart-meter:app_compose-${docker_tag} "_no-secrets" root_metrics inject_metrics streaming_metrics prediction_metrics > docker-compose-merge.yml`
+    `docker run --rm logimethods/smart-meter:app_compose-${docker_tag} combine_services -e "local" "single" "no_secrets" root_metrics inject streaming_metrics prediction_metrics > docker-compose-merge.yml`
+    * To make use of local properties:
+    `docker run --rm -v `pwd`/alt_properties:/templater/alt_properties logimethods/smart-meter:app_compose-${docker_tag} combine_services -p alt_properties -e "local" "single" "no_secrets" root_metrics inject streaming_metrics prediction_metrics > docker-compose-merge.yml`
 * Last, but not least, start the services based on the previously generated `docker-compose-merge.yml` file:
 ```
 ./docker-[local | remote]-[single | cluster]-up.sh
