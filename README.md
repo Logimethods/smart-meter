@@ -21,7 +21,7 @@ To demonstrate a Smart Meter Big Data Application.
   > export docker_tag="1.5"
 ```    
 
-* First, create your `docker-compose-merge.yml` (without `-e "local" "single"`, the properties are not solved):
+* First, create your `docker-compose-merge.yml`:
     * When Docker Secrets are provided:    
     `docker run --rm logimethods/smart-meter:app_compose-${docker_tag} combine_services -e "local" "single" "secrets" root_metrics inject streaming_metrics prediction_metrics > docker-compose-merge.yml`
     * When Docker Secrets are NOT provided:    

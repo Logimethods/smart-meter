@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker_tag="1.5-dev"
+docker_tag="1.5"
 
 docker pull logimethods/smart-meter:app_inject-${docker_tag}
 docker pull logimethods/smart-meter:app_compose-${docker_tag}
