@@ -20,6 +20,7 @@ To demonstrate a Smart Meter Big Data Application.
 
 ```
   > export docker_tag="1.5"
+  > export NETWORK_NAME="smartmeter"
 ```    
 
 * First, create your `docker-compose-merge.yml`:
