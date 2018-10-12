@@ -160,7 +160,7 @@ The generated ML Models are stored in HDFS (on port `50070`): [Browsing HDFS](ht
 ## Additional Metrics
 
 ### NATS Metrics
-Setup the Grafana Data Sources + Import [NATS Servers.json](dockerfile-metrics/NATS%20Servers.json).
+Setup the Grafana Data Sources + Import [NATS Servers.json](dockerfile-app_metrics/NATS%20Servers.json).
 ![grafana_nats_screenshot.png](images/grafana_nats_screenshot.png "Grafana NATS Metrics Screenshot")
 
 ## Excel
