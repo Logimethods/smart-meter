@@ -52,7 +52,7 @@ See [start-services.py](start-services.py)
 >>> exit()
 ```
 
-Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage.json](dockerfile-metrics/gatling%20%2B%20max%20voltage.json)
+Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage.json](dockerfile-app_metrics/gatling%20%2B%20max%20voltage.json)
 
 [http://localhost/dashboard/db/gatling-max-voltage](http://localhost/dashboard/db/gatling-max-voltage)
 
@@ -87,7 +87,7 @@ Images will be postfixed by -DEV
 >>> exit()
 ```
 
-Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage - swarm.json](dockerfile-metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
+Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage - swarm.json](dockerfile-app_metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
 
 /!\ To login to Grafana, use `admin` as the user, with the password defined by the `GF_SECURITY_ADMIN_PASSWORD` variable in the [configuration.properties](properties/configuration.properties#L98) file.
 
