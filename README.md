@@ -89,8 +89,6 @@ Images will be postfixed by -DEV
 
 Setup the Grafana Data Sources (see bellow) + Import [gatling + max voltage - swarm.json](dockerfile-app_metrics/gatling%20%2B%20max%20voltage%20-%20swarm.json).
 
-/!\ To login to Grafana, use `admin` as the user, with the password defined by the `GF_SECURITY_ADMIN_PASSWORD` variable in the [configuration.properties](properties/configuration.properties#L98) file.
-
 ![gatling-max-voltage-swarm_screenshot.png](images/gatling-max-voltage-swarm_screenshot.png "Gatling-max-voltage-swarm Screenshot")
 
 ## Architectures
@@ -102,7 +100,12 @@ The *Batch* demo architecture:
 
 ## Grafana Setup
 
-From [Grafana](http://localhost:80), setup the Graphite, InfluxDB & Prometheus Data Sources (see bellow).
+/!\ To login to Grafana, use `admin` as the user, with the password defined by the `GF_SECURITY_ADMIN_PASSWORD` variable in the [configuration.properties](properties/configuration.properties#L98) file.
+
+From [Grafana](http://localhost:80), setup the Graphite, InfluxDB & Prometheus Data Sources:
+```
+> ./import_grafana_datasources.sh [grafana_URL]
+```
 
 <img src="images/graphite_data_source.png" alt="Graphite Data Source" width="300x">
 <img src="images/influxdb_data_source.png" alt="InfluxDB Data Source" width="300x">
