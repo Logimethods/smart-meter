@@ -8,7 +8,7 @@
 # smart-meter
 To demonstrate a Smart Meter Big Data Application.
 
-![SmartMeter.png](images/SmartMeter.png "SmartMeter Architecture")
+<img src="images/SmartMeter.png" alt="SmartMeter Architecture" width="640x">
 
 ## Docker Run
 
@@ -96,7 +96,8 @@ The *Injection* demo architecture:
 ![SmartMeter-Inject.png](images/SmartMeter-Inject.png "SmartMeter Injection Architecture")
 
 The *Batch* demo architecture:
-![SmartMeter-Batch.png](images/SmartMeter-Batch.png "SmartMeter Injection Architecture")
+
+<img src="images/SmartMeter-Batch.png" alt="SmartMeter Injection Architecture" width="600x">
 
 ## Grafana Setup
 
