@@ -29,7 +29,11 @@ To demonstrate a Smart Meter Big Data Application.
     * When Docker Secrets are NOT provided:    
     `docker run --rm logimethods/smart-meter:app_compose-${docker_tag} combine_services -e "local" "single" "no_secrets" root_metrics inject streaming_metrics prediction_metrics > docker-compose-merge.yml`
     * To make use of local properties:
-    `docker run --rm -v `pwd`/alt_properties:/templater/alt_properties logimethods/smart-meter:app_compose-${docker_tag} combine_services -p alt_properties -e "local" "single" "no_secrets" root_metrics inject streaming_metrics prediction_metrics > docker-compose-merge.yml`
+    ```
+    docker run --rm -v `pwd`/alt_properties:/templater/alt_properties logimethods/smart-meter:app_compose-${docker_tag} \
+    combine_services -p alt_properties -e "local" "single" "no_secrets" root_metrics inject streaming_metrics prediction_metrics \
+    > docker-compose-merge.yml
+    ```
 * Last, but not least, start the services based on the previously generated `docker-compose-merge.yml` file:
 ```
 ./docker-[local | remote]-[single | cluster]-up.sh
