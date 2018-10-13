@@ -119,7 +119,7 @@ From [Grafana](http://localhost:80), setup the Graphite, InfluxDB & Prometheus D
 ## CQLSH (Cassandra CLI)
 To access to the RAW Voltage Data:
 ```
-> ./cqlsh.sh
+> docker exec -it $(docker ps | grep cassandra-cluster-main | awk '{print $NF}' ) cqlsh
 Connected to Smartmeter Cluster at 127.0.0.1:9042.
 [cqlsh 5.0.1 | Cassandra 3.5 | CQL spec 3.4.0 | Native protocol v4]
 Use HELP for help.
